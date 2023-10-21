@@ -19,31 +19,31 @@ const Content = () => {
   let activeComponent, activePath;
 
   switch (path) {
-    case "/dashboard/dashboard":
+    case "/admin/dashboard/dashboard":
       activePath = "Dashboard";
       activeComponent = <Overview />;
       break;
-    case "/dashboard/toda":
+    case "/admin/dashboard/toda":
       activePath = "TODA";
       activeComponent = <Toda />;
       break;
-    case "/dashboard/reports":
+    case "/admin/dashboard/reports":
       activePath = "Reports";
       activeComponent = <Reports />;
       break;
-    case "/dashboard/tricyle":
+    case "/admin/dashboard/tricyle":
       activePath = "Tricycle";
       activeComponent = <Tricycle />;
       break;
-    case "/dashboard/officer":
+    case "/admin/dashboard/officer":
       activePath = "Officer";
       activeComponent = <Officer />;
       break;
-    case "/dashboard/tricycle-driver":
+    case "/admin/dashboard/tricycle-driver":
       activePath = "Tricyle Driver";
       activeComponent = <TricyleDriver />;
       break;
-    case "/dashboard/account":
+    case "/admin/dashboard/account":
       activePath = "Account";
       activeComponent = <Account />;
       break;
@@ -52,12 +52,10 @@ const Content = () => {
   }
 
   return (
-    // <div>
-    <div className="py-6 md:px-6 rounded-3xl bg-white shadow-lg font-RobotoCondensed overflow-x-hidden h-full">
+    <div className="py-6 px-6 rounded-3xl bg-white shadow-lg font-RobotoCondensed overflow-x-hidden h-full">
       {/* <h1 className="mb-10 font-bold text-3xl">{activePath}</h1> */}
       <div className="  ">{activeComponent}</div>
     </div>
-    // </div>
   );
 };
 

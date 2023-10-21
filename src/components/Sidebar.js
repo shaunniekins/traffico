@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import {
   IoHomeOutline,
   IoPeopleOutline,
@@ -14,44 +15,44 @@ import {
   IoMenuOutline,
 } from "react-icons/io5";
 
-const Sidebar = () => {
+const Sidebar = ({ isMenuOpen, handleMenuClick }) => {
+  //   console.log("isMenuOpen", isMenuOpen);
   const router = useRouter();
   const path = usePathname();
-  const [isMenuOpen, setIsMenuOpen] = useState(true);
 
   const buttons = [
     {
-      path: "/dashboard/dashboard",
+      path: "/admin/dashboard/dashboard",
       label: "Dashboard",
       icon: <IoHomeOutline />,
     },
     {
-      path: "/dashboard/toda",
+      path: "/admin/dashboard/toda",
       label: "TODA",
       icon: <IoPeopleOutline />,
     },
     {
-      path: "/dashboard/reports",
+      path: "/admin/dashboard/reports",
       label: "Reports",
       icon: <IoClipboardOutline />,
     },
     {
-      path: "/dashboard/tricyle",
+      path: "/admin/dashboard/tricyle",
       label: "Tricycle",
       icon: <IoCalendarOutline />,
     },
     {
-      path: "/dashboard/officer",
+      path: "/admin/dashboard/officer",
       label: "Officer",
       icon: <IoArchiveOutline />,
     },
     {
-      path: "/dashboard/tricycle-driver",
-      label: "Tricyle Driver",
+      path: "/admin/dashboard/tricycle-driver",
+      label: "Driver",
       icon: <IoSettingsOutline />,
     },
     {
-      path: "/dashboard/account",
+      path: "/admin/dashboard/account",
       label: "Account",
       icon: <IoSettingsOutline />,
     },
@@ -61,34 +62,43 @@ const Sidebar = () => {
   const isCurrentPath = (buttonPath) => path === buttonPath;
 
   return (
-    <>
+    <div className={"bg-[#03396C] rounded-r-3xl font-RobotoCondensed"}>
+      <button
+        className={`
+        ${isMenuOpen ? "flex" : "hidden"}
+            md:hidden
+            w-full h-[5dvh] self-center items-center justify-end flex p-5 text-3xl
+        }`}
+        onClick={handleMenuClick}>
+        <IoMenuOutline />
+      </button>
       <div
         className={`${
-          isMenuOpen ? "" : ""
-        } hidden xl:flex h-[100dvh] flex-col bg-[#03396C] text-white rounded-r-3xl flex-0 lg:justify-center space-y-14 lg:items-center font-RobotoCondensed`}>
-        <div className="h-[130px] w-[130px] self-center border border-white rounded-full"></div>
+          isMenuOpen ? "xl:flex" : "hidden"
+        }   h-[95dvh] md:h-[100dvh] flex-col rounded-r-3xl bg-[#03396C] text-white   lg:justify-center space-y-10 lg:items-center `}>
+        <Image
+          src="/Traffico.png"
+          alt="Traffico Logo"
+          width={180}
+          height={180}
+        />
+
+        {/* <div className="h-[130px] w-[130px] self-center border border-white rounded-full"></div> */}
         <div className="flex flex-col lg:items-start space-y-5">
           {buttons.map((button, index) => (
             <button
               key={index}
               onClick={() => router.push(button.path)}
               className={`${
-                isCurrentPath(button.path) && "bg-[#338FFF] text-left"
-              } py-4 px-20 flex text-xl items-center gap-x-3`}>
+                isCurrentPath(button.path) && "bg-[#338FFF]  items-center"
+              } py-4 px-20 w-full flex text-xl items-center gap-x-3 `}>
               <span>{button.icon}</span>
               {button.label}
             </button>
           ))}
         </div>
       </div>
-      <button
-        className={`${!isMenuOpen ? "flex" : "hidden"}`}
-        onClick={() => {
-          setIsMenuOpen(!isMenuOpen);
-        }}>
-        <IoMenuOutline />
-      </button>
-    </>
+    </div>
   );
 };
 

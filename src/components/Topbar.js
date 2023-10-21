@@ -1,17 +1,13 @@
+"use client";
+
 import { IoMenuOutline, IoSettingsOutline } from "react-icons/io5";
 import { CgProfile } from "react-icons/cg";
+import { useState } from "react";
 
-const Topbar = () => {
+const Topbar = ({ isMenuOpen, handleMenuClick }) => {
   return (
     <div className="flex justify-between items-center py-2 h-[5dvh]">
-      <button
-        className="text-3xl self-end"
-        // onClick={() => {
-        //   setIsMenuOpen(!isMenuOpen);
-        // }}
-      >
-        <IoMenuOutline />
-      </button>
+      <MenuButton onClick={handleMenuClick} />
       <div className="flex pr-5 items-center space-x-4">
         <button className="flex items-center text-2xl space-x-2">
           <CgProfile />
@@ -22,6 +18,14 @@ const Topbar = () => {
         </button>
       </div>
     </div>
+  );
+};
+
+const MenuButton = ({ onClick }) => {
+  return (
+    <button className="text-3xl self-end" onClick={onClick}>
+      <IoMenuOutline />
+    </button>
   );
 };
 
