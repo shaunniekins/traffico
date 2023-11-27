@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import React from "react";
 import {
   IoHomeOutline,
   IoPeopleOutline,
@@ -43,6 +44,7 @@ const ChooseUser = () => {
           alt="Traffico Logo"
           width={200}
           height={200}
+          priority
         />
         <div className="w-full flex flex-col space-y-3 items-center text-white text-lg">
           {buttons.map((button, index) => (
