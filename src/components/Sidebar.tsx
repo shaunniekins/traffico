@@ -48,11 +48,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
       label: "Application",
       icon: <IoCalendarOutline />,
     },
-    {
-      path: "/admin/dashboard/violations",
-      label: "Violations Record",
-      icon: <IoArchiveOutline />,
-    },
+    // {
+    //   path: "/admin/dashboard/violations",
+    //   label: "Violations Record",
+    //   icon: <IoArchiveOutline />,
+    // },
     {
       path: "/admin/dashboard/tricycle-driver",
       label: "Tricycle Driver's Violation",
@@ -87,12 +87,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
         className={`${
           isMenuOpen ? "flex" : "hidden"
         }   h-[95dvh] md:h-[100dvh] flex-col rounded-r-3xl bg-[#03396C] text-white lg:justify-center space-y-10 lg:space-y-20 items-center `}>
-        <Image
-          src="/Traffico.png"
-          alt="Traffico Logo"
-          width={180}
-          height={180}
-        />
+        <div className="rounded-3xl overflow-hidden">
+          <Image
+            src="/traffico-logo.jpeg"
+            alt="Traffico Logo"
+            width={200}
+            height={200}
+          />
+        </div>
+
         <div className="flex flex-col space-y-5">
           {buttons.map((button, index) => (
             <button

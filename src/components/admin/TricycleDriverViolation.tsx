@@ -1,4 +1,4 @@
-const TricycleDriver = () => {
+const TricycleDriverViolation = () => {
   return (
     <>
       <div></div>
@@ -6,4 +6,4 @@ const TricycleDriver = () => {
   );
 };
 
-export default TricycleDriver;
+export default TricycleDriverViolation;

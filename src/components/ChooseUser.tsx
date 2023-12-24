@@ -39,13 +39,14 @@ const ChooseUser = () => {
   return (
     <div className="w-screen h-[100dvh] flex flex-col items-center justify-center font-Montserrat bg-[#03396C] gap-y-10 px-5">
       <div className="w-full bg-white md:w-[450px] px-5 py-10 flex flex-col items-center rounded-xl backdrop-blur-2xl shadow-2xl font-Montserrat border-b-4 border-b-[#338FFF] space-y-8 ">
-        <Image
-          src="/Traffico (dark).png"
-          alt="Traffico Logo"
-          width={200}
-          height={200}
-          priority
-        />
+        <div className="rounded-3xl overflow-hidden">
+          <Image
+            src="/traffico-logo.jpeg"
+            alt="Traffico Logo"
+            width={200}
+            height={200}
+          />
+        </div>
         <div className="w-full flex flex-col space-y-3 items-center text-white text-lg">
           {buttons.map((button, index) => (
             <button
