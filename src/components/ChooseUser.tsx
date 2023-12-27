@@ -20,14 +20,9 @@ const ChooseUser = () => {
 
   const buttons = [
     {
-      path: "/admin/dashboard/dashboard",
-      label: "Admin",
+      path: "/signin",
+      label: "Sign In",
       icon: <IoHomeOutline />,
-    },
-    {
-      path: "/admin/dashboard/toda",
-      label: "Officer",
-      icon: <IoPeopleOutline />,
     },
     {
       path: "/admin/dashboard/reports",

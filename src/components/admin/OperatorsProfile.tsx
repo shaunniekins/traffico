@@ -92,7 +92,7 @@ const OperatorsProfile = () => {
           <button
             className={`${
               currentPage === 1 ? "text-gray-700" : "text-black"
-            } border border-sky-700 py-2 px-3`}
+            } border border-sky-700 py-2 px-2 text-sm`}
             onClick={() => setCurrentPage(currentPage - 1)}
             disabled={currentPage === 1}>
             Prev
@@ -111,12 +111,12 @@ const OperatorsProfile = () => {
                 setCurrentPage(pageNumber);
               }
             }}
-            className="bg-sky-700 text-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 text-center"
+            className="bg-sky-700 text-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 text-center text-sm"
           />
           <button
             className={`${
               records.length < entriesPerPage ? "text-gray-400" : "text-black"
-            } border border-sky-700 py-2 px-3`}
+            } border border-sky-700 py-1 px-2 text-sm`}
             onClick={() => setCurrentPage(currentPage + 1)}
             disabled={records.length < entriesPerPage}>
             Next
