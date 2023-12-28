@@ -11,8 +11,6 @@ import Application from "@/components/admin/Application";
 import ViolationsRecord from "@/components/admin/ViolationsRecord";
 import TricycleDriverViolation from "@/components/admin/TricycleDriverViolation";
 import TricycleQrCode from "@/components/admin/TricycleQrCode";
-import Approval from "@/components/admin/superadmin/Approval";
-import Users from "@/components/admin/superadmin/Users";
 
 const Content = () => {
   const router = useRouter();
@@ -21,41 +19,33 @@ const Content = () => {
   let activeComponent, activePath;
 
   switch (path) {
-    case "/admin/dashboard/dashboard":
+    case "/personnel/dashboard/dashboard":
       activePath = "Dashboard";
       activeComponent = <Overview />;
       break;
-    case "/admin/dashboard/approval":
-      activePath = "Approval";
-      activeComponent = <Approval />;
-      break;
-    case "/admin/dashboard/operators":
+    case "/personnel/dashboard/operators":
       activePath = "Operator's Profile";
       activeComponent = <OperatorsProfile />;
       break;
-    case "/admin/dashboard/drivers":
+    case "/personnel/dashboard/drivers":
       activePath = "Driver's Profile";
       activeComponent = <DriversProfile />;
       break;
-    case "/admin/dashboard/application":
+    case "/personnel/dashboard/application":
       activePath = "Application";
       activeComponent = <Application />;
       break;
-    case "/admin/dashboard/violations":
+    case "/personnel/dashboard/violations":
       activePath = "Violations Record";
       activeComponent = <ViolationsRecord />;
       break;
-    case "/admin/dashboard/tricycle-driver":
+    case "/personnel/dashboard/tricycle-driver":
       activePath = "Tricycle Driver's Violation";
       activeComponent = <TricycleDriverViolation />;
       break;
-    case "/admin/dashboard/tricycle-qr":
+    case "/personnel/dashboard/tricycle-qr":
       activePath = "Tricycle Generated QR Code";
       activeComponent = <TricycleQrCode />;
-      break;
-    case "/admin/dashboard/users":
-      activePath = "Users List";
-      activeComponent = <Users />;
       break;
     default:
       activeComponent = null;
@@ -64,11 +54,10 @@ const Content = () => {
   return (
     <div
       className={`${
-        path === "/admin/dashboard/dashboard"
+        path === "/personnel/dashboard/dashboard"
           ? ""
           : "rounded-3xl bg-white shadow-lg py-6 px-6"
       }  font-RobotoCondensed overflow-x-hidden h-full`}>
-      {/* <h1 className="mb-10 font-bold text-3xl">{activePath}</h1> */}
       <div className="  ">{activeComponent}</div>
     </div>
   );

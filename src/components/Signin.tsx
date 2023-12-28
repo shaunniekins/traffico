@@ -133,14 +133,14 @@ const SigninComponent = () => {
 
   return (
     <>
-      <div className="min-h-[100svh] h-[100svh] flex flex-col container mx-auto">
+      <div className="min-h-[100svh] h-[100svh] flex flex-col  bg-sky-100">
         {loading && (
           <div
             className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black overflow-y-auto`}>
             <FidgetSpinner />
           </div>
         )}
-        <div className="h-full flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 container mx-auto">
           <div className="max-w-md w-full space-y-8 ">
             <div className="flex flex-col items-center mt-[-5rem]">
               {/* <button onClick={() => router.push("/")}>
@@ -176,7 +176,7 @@ const SigninComponent = () => {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="appearance-none relative block w-full p-3 border border-sky-700 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 sm:text-sm"
+                    className="appearance-none relative block w-full p-3 border border-sky-700 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 sm:text-sm bg-sky-50"
                     placeholder="Email address"
                   />
                 </div>
@@ -192,7 +192,7 @@ const SigninComponent = () => {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="appearance-none relative block w-full p-3 border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 placeholder-gray-500 text-gray-900 rounded-md  sm:text-sm"
+                    className="appearance-none relative block w-full p-3 border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 placeholder-gray-500 text-gray-900 rounded-md  sm:text-sm bg-sky-50"
                     placeholder="Password"
                   />
                 </div>
@@ -201,7 +201,7 @@ const SigninComponent = () => {
                   id="role"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
-                  className="self-end border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-1 px-2 text-sm">
+                  className="self-end border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-1 px-2 text-sm bg-sky-50">
                   <option value="admin">Administrator</option>
                   <option value="personnel">Personnel</option>
                   <option value="enforcer">Traffic Enforcer</option>

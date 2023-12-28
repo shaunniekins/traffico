@@ -27,7 +27,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const buttons: Button[] = [
+  const userType = pathname.includes("/admin/")
+    ? "admin"
+    : pathname.includes("/personnel/")
+    ? "personnel"
+    : null;
+
+  let buttons: Button[] = [
     {
       path: "/admin/dashboard/dashboard",
       label: "Dashboard",
@@ -48,11 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
       label: "Application",
       icon: <IoCalendarOutline />,
     },
-    // {
-    //   path: "/admin/dashboard/violations",
-    //   label: "Violations Record",
-    //   icon: <IoArchiveOutline />,
-    // },
     {
       path: "/admin/dashboard/tricycle-driver",
       label: "Tricycle Driver's Violation",
@@ -64,6 +65,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
       icon: <IoSettingsOutline />,
     },
   ];
+
+  if (userType === "admin") {
+    buttons.splice(1, 0, {
+      path: "/admin/dashboard/approval",
+      label: "Approval",
+      icon: <IoHomeOutline />,
+    });
+    buttons.push({
+      path: "/admin/dashboard/users",
+      label: "Users",
+      icon: <IoHomeOutline />,
+    });
+  }
 
   // Check if the current path matches the button's path
   const isCurrentPath = (buttonPath: string) => pathname === buttonPath;

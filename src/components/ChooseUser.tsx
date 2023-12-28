@@ -21,7 +21,7 @@ const ChooseUser = () => {
   const buttons = [
     {
       path: "/signin",
-      label: "Sign In",
+      label: "Sign-In",
       icon: <IoHomeOutline />,
     },
     {
