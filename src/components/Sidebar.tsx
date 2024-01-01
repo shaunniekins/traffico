@@ -102,12 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
           isMenuOpen ? "flex" : "hidden"
         }   h-[95dvh] md:h-[100dvh] flex-col rounded-r-3xl bg-[#03396C] text-white lg:justify-center space-y-10 lg:space-y-20 items-center `}>
         <div className="rounded-3xl overflow-hidden">
-          <Image
-            src="/traffico-logo.jpeg"
-            alt="Traffico Logo"
-            width={200}
-            height={200}
-          />
+          <Image src="/logo.svg" alt="Traffico Logo" width={200} height={200} />
         </div>
 
         <div className="flex flex-col space-y-5">
