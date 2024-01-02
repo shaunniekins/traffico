@@ -8,6 +8,13 @@ import {
   MdOutlineWarning,
 } from "react-icons/md";
 
+import { IoMdCloseCircleOutline } from "react-icons/io";
+
+import ReactImagePickerEditor, {
+  ImagePickerConf,
+} from "react-image-picker-editor";
+import "react-image-picker-editor/dist/index.css";
+
 import Select from "react-select";
 
 import {
@@ -76,6 +83,32 @@ const OperatorsProfile = () => {
     value: route.zone,
     label: `Zone ${route.zone}`,
   }));
+
+  const [modalUploadImagesOpen, setModalUploadImagesOpen] = useState(false);
+
+  const [frontView, setFrontView] = useState<string | ArrayBuffer | null>(null);
+  const [leftSideView, setLeftSideView] = useState<string | ArrayBuffer | null>(
+    null
+  );
+  const [rightSideView, setRightSideView] = useState<
+    string | ArrayBuffer | null
+  >(null);
+  const [insideFrontView, setInsideFrontView] = useState<
+    string | ArrayBuffer | null
+  >(null);
+  const [backView, setBackView] = useState<string | ArrayBuffer | null>(null);
+
+  const config: ImagePickerConf = {
+    borderRadius: "8px",
+    language: "en",
+    width: "160px",
+    height: "150px",
+    objectFit: "contain",
+    compressInitial: null,
+  };
+  // const initialImage: string = '/assets/images/8ptAya.webp';
+  const [imageSrc, setImageSrc] = useState<string | ArrayBuffer | null>(null); // [string, React.Dispatch<React.SetStateAction<string>>
+  const initialImage = "";
 
   // viewing existing data record
   const [toggleMoreDetails, setToggleMoreDetails] = useState(false);
@@ -613,20 +646,133 @@ const OperatorsProfile = () => {
                       />
                       {selectedRouteObj && (
                         <>
-                          <div>Adult</div>
-                          <div className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
-                            {selectedRouteObj.adult}
-                          </div>
-                          <div>Student</div>
-                          <div className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
-                            {selectedRouteObj.student}
+                          <h1>Minimum Fare Rate</h1>
+                          <div className="">
+                            <table className="w-full text-sm">
+                              <tbody>
+                                <tr className="bg-white border border-sky-700">
+                                  <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
+                                    Student / Senior Citizen / PWD / Solo Parent
+                                  </td>
+                                  <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
+                                    {selectedRouteObj.student}
+                                  </td>
+                                </tr>
+                                <tr className="bg-white border border-sky-700">
+                                  <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
+                                    Adult
+                                  </td>
+                                  <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
+                                    {selectedRouteObj.adult}
+                                  </td>
+                                </tr>
+                              </tbody>
+                            </table>
                           </div>
                         </>
                       )}
                       <div className="justify-self-center col-span-2">
-                        <button className="border border-sky-700 bg-sky-700 text-white py-2 px-4 text-sm rounded-lg">
+                        <button
+                          className="border border-sky-700 bg-sky-700 text-white py-2 px-4 text-sm rounded-lg"
+                          onClick={() => setModalUploadImagesOpen(true)}>
                           Upload images
                         </button>
+
+                        {modalUploadImagesOpen && (
+                          <div
+                            className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black`}>
+                            <div
+                              className={`rounded-2xl bg-white text-black mx-3 py-3 px-5`}>
+                              <div className="flex justify-between items-center py-3">
+                                <h3 className="text-lg leading-6 font-medium text-gray-900">
+                                  Upload Tricycle Information
+                                </h3>
+                                <div className="mt-3 sm:mt-0 sm:ml-4 sm:text-right">
+                                  <button
+                                    className="text-2xl flex items-center justify-center"
+                                    onClick={() =>
+                                      setModalUploadImagesOpen(false)
+                                    }>
+                                    <IoMdCloseCircleOutline />
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="rounded-lg border border-sky-700 py-3 px-5 grid grid-cols-3 gap-6">
+                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
+                                  <label className="text-sky-700">
+                                    Front View
+                                  </label>
+                                  <ReactImagePickerEditor
+                                    config={config}
+                                    imageChanged={(newDataUri: any) => {
+                                      setFrontView(newDataUri);
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
+                                  <label className="text-sky-700">
+                                    Left Side View
+                                  </label>
+                                  <ReactImagePickerEditor
+                                    config={config}
+                                    imageChanged={(newDataUri: any) => {
+                                      setLeftSideView(newDataUri);
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
+                                  <label className="text-sky-700">
+                                    Right Side View
+                                  </label>
+                                  <ReactImagePickerEditor
+                                    config={config}
+                                    imageChanged={(newDataUri: any) => {
+                                      setRightSideView(newDataUri);
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
+                                  <label className="text-sky-700">
+                                    Inside Front View
+                                  </label>
+                                  <ReactImagePickerEditor
+                                    config={config}
+                                    imageChanged={(newDataUri: any) => {
+                                      setInsideFrontView(newDataUri);
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
+                                  <label className="text-sky-700">
+                                    Back View
+                                  </label>
+                                  <ReactImagePickerEditor
+                                    config={config}
+                                    imageChanged={(newDataUri: any) => {
+                                      setBackView(newDataUri);
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                              <div className="bg-gray-50 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-4">
+                                <button
+                                  className="border-sky-700 bg-sky-700 text-white border py-2 px-4 text-sm rounded-lg"
+                                  onClick={() =>
+                                    setModalUploadImagesOpen(false)
+                                  }>
+                                  Upload
+                                </button>
+                                <button
+                                  className="border-red-700 bg-red-700 text-white border py-2 px-4 text-sm rounded-lg"
+                                  onClick={() =>
+                                    setModalUploadImagesOpen(false)
+                                  }>
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </>
                   )}
