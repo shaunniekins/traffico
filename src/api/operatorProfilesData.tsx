@@ -10,11 +10,12 @@ export const fetchOperatorProfileData = async (
   try {
     let query = supabase
       .from("OperatorProfiles")
-      .select(`*`, { count: "exact" });
+      .select(`*`, { count: "exact" })
+      .order("date_registered", { ascending: false });
 
     if (searchValue) {
       query = query.or(
-        `last_name.ilike.%${searchValue}%,first_name.ilike.%${searchValue}%,middle_name.ilike.%${searchValue}%,address.ilike.%${searchValue}%,plate_num.ilike.%${searchValue}%,body_num.ilike.%${searchValue}%`
+        `last_name.ilike.%${searchValue}%,first_name.ilike.%${searchValue}%,middle_name.ilike.%${searchValue}%,address.ilike.%${searchValue}%`
       );
     }
 
@@ -52,7 +53,10 @@ export const fetchOperatorProfileByName = async (name: string) => {
 
 export const insertOperatorProfileData = async (data: any) => {
   try {
-    const response = await supabase.from("OperatorProfiles").insert(data);
+    const response = await supabase
+      .from("OperatorProfiles")
+      .insert(data)
+      .select();
 
     if (response.error) {
       throw response.error;
@@ -60,6 +64,27 @@ export const insertOperatorProfileData = async (data: any) => {
     return response;
   } catch (error) {
     console.error("Error inserting data:", error);
+    return null;
+  }
+};
+
+export const editOperatorProfileData = async (
+  id: string,
+  updatedRecord: any
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("OperatorProfiles")
+      .update(updatedRecord)
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating data:", error);
     return null;
   }
 };

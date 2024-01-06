@@ -1,0 +1,39 @@
+import { supabase } from "@/utils/supabase";
+
+export const insertVehicleOwnershipReportData = async (data: any) => {
+  try {
+    const response = await supabase
+      .from("VehicleOwnershipRecords")
+      .insert(data)
+      .select();
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error inserting data:", error);
+    return null;
+  }
+};
+
+export const editVehicleOwnershipReportData = async (
+  id: string,
+  updatedRecord: any
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("VehicleOwnershipRecords")
+      .update(updatedRecord)
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating data:", error);
+    return null;
+  }
+};

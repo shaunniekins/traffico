@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
 import {
   MdOutlineDelete,
   MdOutlineEdit,
   MdOutlineSearch,
   MdOutlineWarning,
 } from "react-icons/md";
+
+import { LuImagePlus } from "react-icons/lu";
 
 import { IoMdCloseCircleOutline } from "react-icons/io";
 
@@ -25,11 +27,17 @@ import {
 } from "../../api/dataValues";
 
 import {
+  editOperatorProfileData,
   fetchOperatorProfileByName,
   fetchOperatorProfileData,
   insertOperatorProfileData,
 } from "@/api/operatorProfilesData";
 import { supabase } from "@/utils/supabase";
+import {
+  editVehicleOwnershipReportData,
+  insertVehicleOwnershipReportData,
+} from "@/api/vehicleOwnership";
+import ImageUploader from "./ImageUploader";
 
 const OperatorsProfile = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -46,6 +54,7 @@ const OperatorsProfile = () => {
   const [registerPermitViewPage, setRegisterPermitViewPage] = useState(1);
   const [currentPageRegister, setCurrentPageRegister] = useState(1);
 
+  const [newOperatorId, setNewOperatorId] = useState<number | null>(null);
   const [newDateRegistered, setNewDateRegistered] = useState("");
   const [newLastName, setNewLastName] = useState("");
   const [newFirstName, setNewFirstName] = useState("");
@@ -55,6 +64,7 @@ const OperatorsProfile = () => {
   const [newAddress, setNewAddress] = useState("");
   const [newCivilStatus, setNewCivilStatus] = useState("");
   const [newIsActive, setNewIsActive] = useState(false);
+  const [newContactNum, setNewContactNum] = useState("");
   const [newFaceImage, setNewFaceImage] = useState<File | null>(null);
   const [newSignatureImage, setNewSignatureImage] = useState<File | null>(null);
 
@@ -86,37 +96,68 @@ const OperatorsProfile = () => {
 
   const [modalUploadImagesOpen, setModalUploadImagesOpen] = useState(false);
 
-  const [frontView, setFrontView] = useState<string | ArrayBuffer | null>(null);
-  const [leftSideView, setLeftSideView] = useState<string | ArrayBuffer | null>(
+  // new images
+
+  const [image, setImage] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+
+  const [newFrontViewImage, setNewFrontViewImage] = useState<File | null>(null);
+  const [newFrontViewPreview, setNewFrontViewPreview] = useState<string | null>(
     null
   );
-  const [rightSideView, setRightSideView] = useState<
-    string | ArrayBuffer | null
-  >(null);
-  const [insideFrontView, setInsideFrontView] = useState<
-    string | ArrayBuffer | null
-  >(null);
-  const [backView, setBackView] = useState<string | ArrayBuffer | null>(null);
 
-  const config: ImagePickerConf = {
-    borderRadius: "8px",
-    language: "en",
-    width: "160px",
-    height: "150px",
-    objectFit: "contain",
-    compressInitial: null,
-  };
-  // const initialImage: string = '/assets/images/8ptAya.webp';
-  const [imageSrc, setImageSrc] = useState<string | ArrayBuffer | null>(null); // [string, React.Dispatch<React.SetStateAction<string>>
-  const initialImage = "";
+  const [newLeftSideViewImage, setNewLeftSideViewImage] = useState<File | null>(
+    null
+  );
+  const [newLeftSideViewPreview, setNewLeftSideViewPreview] = useState<
+    string | null
+  >(null);
+
+  const [newRightSideViewImage, setNewRightSideViewImage] =
+    useState<File | null>(null);
+  const [newRightSideViewPreview, setNewRightSideViewPreview] = useState<
+    string | null
+  >(null);
+
+  const [newInsideFrontViewImage, setNewInsideFrontViewImage] =
+    useState<File | null>(null);
+  const [newInsideFrontViewPreview, setNewInsideFrontViewPreview] = useState<
+    string | null
+  >(null);
+
+  const [newBackViewImage, setNewBackViewImage] = useState<File | null>(null);
+  const [newBackViewPreview, setNewBackViewPreview] = useState<string | null>(
+    null
+  );
+
+  // const config: ImagePickerConf = {
+  //   borderRadius: "8px",
+  //   language: "en",
+  //   width: "160px",
+  //   height: "150px",
+  //   objectFit: "contain",
+  //   compressInitial: null,
+  // };
+  // // const initialImage: string = '/assets/images/8ptAya.webp';
+  // const [imageSrc, setImageSrc] = useState<string | undefined>(); // [string, React.Dispatch<React.SetStateAction<string>>
+  // useEffect(() => {
+  //   if (newFrontView instanceof File) {
+  //     const reader = new FileReader();
+  //     reader.onloadend = () => {
+  //       setImageSrc(reader.result as string);
+  //     };
+  //     reader.readAsDataURL(newFrontView);
+  //   } else {
+  //     setImageSrc(undefined);
+  //   }
+  // }, [newFrontView]);
+  // const initialImage = "";
 
   // viewing existing data record
   const [toggleMoreDetails, setToggleMoreDetails] = useState(false);
-
   const headerNames = [
     "ID",
-    "Plate No.",
-    "Body No.",
+    "Date Registered",
     "Operator's Name",
     "Contact No.",
     "Address",
@@ -204,8 +245,8 @@ const OperatorsProfile = () => {
         (payload) => {
           if (payload.new) {
             setRecords((prevRecord: any) => [
-              ...prevRecord,
               payload.new as any,
+              ...prevRecord,
             ]);
           }
         }
@@ -248,6 +289,186 @@ const OperatorsProfile = () => {
       supabase.removeChannel(channel);
     };
   }, [searchValue, entriesPerPage, currentPageDetailsSection]);
+
+  const handleSubmissionWithoutEvent = () => {
+    if (!newOperator) {
+      handleInsertExistingOperatorProfile({ preventDefault: () => {} });
+    } else {
+      handleInsertOperatorsProfile({ preventDefault: () => {} });
+    }
+  };
+
+  const handleInsertExistingOperatorProfile = async (event: any) => {
+    event.preventDefault();
+
+    handleInsertVehicleOwnershipRecord(selectedOperator?.value);
+  };
+
+  const handleInsertOperatorsProfile = async (event: any) => {
+    event.preventDefault();
+
+    const newRecord = {
+      date_registered: newDateRegistered,
+      last_name: newLastName,
+      first_name: newFirstName,
+      middle_name: newMiddleName,
+      extension_name: newExtensionName,
+      birth_date: newBirthdate,
+      address: newAddress,
+      civil_status: newCivilStatus,
+      contact_num: newContactNum,
+      is_active: newIsActive,
+    };
+
+    const response = await insertOperatorProfileData(newRecord);
+
+    if (response?.error) {
+      console.error("Error inserting new row data:", response.error);
+    } else {
+      if (response && response.data) {
+        const insertedId = response.data[0].id;
+        // console.log("Inserted ID:", insertedId);
+
+        const STORAGE_BUCKET_OPERATOR_FACE_PHOTO =
+          "assets/operators/face_photo";
+        const STORAGE_BUCKET_OPERATOR_SIGNATURE =
+          "assets/operators/signature_photo";
+
+        const UPLOAD_FACE_PHOTO = `face_${insertedId}.jpeg`;
+        const UPLOAD_SIGNATURE_PHOTO = `signature_${insertedId}.jpeg`;
+
+        if (newFaceImage && newSignatureImage) {
+          const { data: faceData, error: faceError } = await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_FACE_PHOTO)
+            .upload(UPLOAD_FACE_PHOTO, newFaceImage);
+
+          const { data: signatureData, error: signatureError } =
+            await supabase.storage
+              .from(STORAGE_BUCKET_OPERATOR_SIGNATURE)
+              .upload(UPLOAD_SIGNATURE_PHOTO, newSignatureImage);
+        }
+
+        const updateRecord = {
+          face_photo: UPLOAD_FACE_PHOTO,
+          signature_photo: UPLOAD_SIGNATURE_PHOTO,
+        };
+
+        await editOperatorProfileData(insertedId, updateRecord);
+
+        handleInsertVehicleOwnershipRecord(insertedId);
+      }
+    }
+  };
+
+  const handleInsertVehicleOwnershipRecord = async (ownerId: any) => {
+    const newRecord = {
+      operator_id: ownerId,
+      date_registered: newDateRegisteredVehicle,
+      chassis_num: newChassisNumber,
+      lto_plate_num: newLTOPlateNumber,
+      color_code: newColorCode,
+      motor_num: newMotorNumber,
+      type: newType,
+      vehicle_type: newVehicleType,
+      association: newAssociation,
+      zone: newZone?.value,
+    };
+
+    const response = await insertVehicleOwnershipReportData(newRecord);
+
+    if (response?.error) {
+      console.error("Error inserting new row data:", response.error);
+    } else {
+      if (response && response.data) {
+        const vehicleId = response.data[0].id;
+
+        const STORAGE_BUCKET_OPERATOR_VEHICLE = "assets/operators/vehicles";
+
+        const UPLOAD_FRONT = `vehicle_${ownerId}-${vehicleId}-front.jpeg`;
+        const UPLOAD_LEFT = `vehicle_${ownerId}-${vehicleId}-left.jpeg`;
+        const UPLOAD_RIGHT = `vehicle_${ownerId}-${vehicleId}-right.jpeg`;
+        const UPLOAD_INSIDE = `vehicle_${ownerId}-${vehicleId}-inside.jpeg`;
+        const UPLOAD_BACK = `vehicle_${ownerId}-${vehicleId}-back.jpeg`;
+
+        if (
+          newFrontViewImage &&
+          newLeftSideViewImage &&
+          newRightSideViewImage &&
+          newInsideFrontViewImage &&
+          newBackViewImage
+        ) {
+          const { data: frontData, error: frontError } = await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_FRONT, newFrontViewImage);
+
+          const { data: leftData, error: leftError } = await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_LEFT, newLeftSideViewImage);
+
+          const { data: rightData, error: rightError } = await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_RIGHT, newRightSideViewImage);
+
+          const { data: insideFrontData, error: insideFrontError } =
+            await supabase.storage
+              .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+              .upload(UPLOAD_INSIDE, newInsideFrontViewImage);
+
+          const { data: backData, error: backError } = await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_BACK, newBackViewImage);
+        }
+
+        const updateRecord = {
+          front_view_image: UPLOAD_FRONT,
+          left_side_view_image: UPLOAD_LEFT,
+          right_side_view_image: UPLOAD_RIGHT,
+          inside_front_image: UPLOAD_INSIDE,
+          back_view_image: UPLOAD_BACK,
+        };
+
+        await editVehicleOwnershipReportData(vehicleId, updateRecord);
+      }
+
+      setNewDateRegistered("");
+      setNewLastName("");
+      setNewFirstName("");
+      setNewMiddleName("");
+      setNewExtensionName("");
+      setNewBirthdate("");
+      setNewAddress("");
+      setNewCivilStatus("");
+      setNewContactNum("");
+      setNewIsActive(false);
+      setNewFaceImage(null);
+      setNewSignatureImage(null);
+
+      setNewOperator(false);
+      setNewOperatorId(null);
+      setNewDateRegisteredVehicle("");
+      setNewChassisNumber("");
+      setNewLTOPlateNumber("");
+      setNewColorCode("");
+      setNewMotorNumber("");
+      setNewType("");
+      setNewVehicleType("");
+      setNewAssociation("");
+      setNewZone(null);
+      setNewFrontViewImage(null);
+      setNewLeftSideViewImage(null);
+      setNewRightSideViewImage(null);
+      setNewInsideFrontViewImage(null);
+      setNewBackViewImage(null);
+    }
+  };
+
+  // useEffect(() => {
+  //   console.log("selectedOperator123", selectedOperator);
+  // }, [selectedOperator]);
+
+  // useEffect(() => {
+  //   console.log("newOperator", newOperator);
+  // }, [newOperator]);
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
@@ -339,7 +560,7 @@ const OperatorsProfile = () => {
                           value={selectedOperator}
                           onChange={(selectedOption) => {
                             setSelectedOperator(selectedOption);
-                            console.log("selectedOption", selectedOption);
+                            // console.log("selectedOption", selectedOption);
                           }}
                           options={operators}
                           className="basic-multi-select"
@@ -385,6 +606,7 @@ const OperatorsProfile = () => {
                           type="text"
                           name="newMiddleName"
                           id="newMiddleName"
+                          required
                           value={newMiddleName}
                           placeholder="Middle Name"
                           onChange={(e) => setNewMiddleName(e.target.value)}
@@ -395,6 +617,12 @@ const OperatorsProfile = () => {
                           id="middleNameNone"
                           name="middleNameNone"
                           value="none"
+                          checked={newMiddleName === ""}
+                          onChange={(e) =>
+                            setNewMiddleName(
+                              e.target.checked ? "" : "defaultMiddleName"
+                            )
+                          }
                           className="mt-3"
                         />
                         <label htmlFor="middleNameNone">
@@ -443,6 +671,16 @@ const OperatorsProfile = () => {
                         <option value="single">Single</option>
                         <option value="married">Married</option>
                       </select>
+                      <label htmlFor="newContactNum">Contact Number</label>
+                      <input
+                        type="text"
+                        name="newContactNum"
+                        id="newContactNum"
+                        value={newContactNum}
+                        placeholder="Contact Number"
+                        onChange={(e) => setNewContactNum(e.target.value)}
+                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                      />
                       <label htmlFor="newIsActive">Active</label>
                       <div className="flex items-center">
                         <input
@@ -473,26 +711,50 @@ const OperatorsProfile = () => {
                         <label htmlFor="newIsActiveNo">No</label>
                       </div>
                       <label htmlFor="newFaceImage">Face Image</label>
-                      <input
-                        type="file"
-                        name="newFaceImage"
-                        id="newFaceImage"
-                        onChange={(e) =>
-                          e.target.files && setNewFaceImage(e.target.files[0])
-                        }
-                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full my-3"
-                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="newFaceImage"
+                          onChange={(e) =>
+                            e.target.files && setNewFaceImage(e.target.files[0])
+                          }
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+
+                        <div
+                          id="fileFaceLabel"
+                          className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
+                          <button className="bg-blue-500 text-white rounded px-2 mr-2">
+                            Browse
+                          </button>
+                          {newFaceImage
+                            ? `Selected file: ${newFaceImage.name}`
+                            : "No File Chosen"}
+                        </div>
+                      </div>
+
                       <label htmlFor="newSignatureImage">Signature Image</label>
-                      <input
-                        type="file"
-                        name="newSignatureImage"
-                        id="newSignatureImage"
-                        onChange={(e) =>
-                          e.target.files &&
-                          setNewSignatureImage(e.target.files[0])
-                        }
-                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full my-3"
-                      />
+                      <div className="relative">
+                        <input
+                          type="file"
+                          id="newSignatureImage"
+                          onChange={(e) =>
+                            e.target.files &&
+                            setNewSignatureImage(e.target.files[0])
+                          }
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        />
+                        <div
+                          id="fileSignatureLabel"
+                          className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
+                          <button className="bg-blue-500 text-white rounded px-2 mr-2">
+                            Browse
+                          </button>
+                          {newSignatureImage
+                            ? `Selected file: ${newSignatureImage.name}`
+                            : "No File Chosen"}
+                        </div>
+                      </div>
                     </>
                   )}
                 </>
@@ -671,111 +933,95 @@ const OperatorsProfile = () => {
                           </div>
                         </>
                       )}
-                      <div className="justify-self-center col-span-2">
-                        <button
-                          className="border border-sky-700 bg-sky-700 text-white py-2 px-4 text-sm rounded-lg"
-                          onClick={() => setModalUploadImagesOpen(true)}>
-                          Upload images
-                        </button>
-
-                        {modalUploadImagesOpen && (
-                          <div
-                            className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black`}>
-                            <div
-                              className={`rounded-2xl bg-white text-black mx-3 py-3 px-5`}>
-                              <div className="flex justify-between items-center py-3">
-                                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                  Upload Tricycle Information
-                                </h3>
-                                <div className="mt-3 sm:mt-0 sm:ml-4 sm:text-right">
-                                  <button
-                                    className="text-2xl flex items-center justify-center"
-                                    onClick={() =>
-                                      setModalUploadImagesOpen(false)
-                                    }>
-                                    <IoMdCloseCircleOutline />
-                                  </button>
-                                </div>
-                              </div>
-                              <div className="rounded-lg border border-sky-700 py-3 px-5 grid grid-cols-3 gap-6">
-                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
-                                  <label className="text-sky-700">
-                                    Front View
-                                  </label>
-                                  <ReactImagePickerEditor
-                                    config={config}
-                                    imageChanged={(newDataUri: any) => {
-                                      setFrontView(newDataUri);
-                                    }}
-                                  />
-                                </div>
-                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
-                                  <label className="text-sky-700">
-                                    Left Side View
-                                  </label>
-                                  <ReactImagePickerEditor
-                                    config={config}
-                                    imageChanged={(newDataUri: any) => {
-                                      setLeftSideView(newDataUri);
-                                    }}
-                                  />
-                                </div>
-                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
-                                  <label className="text-sky-700">
-                                    Right Side View
-                                  </label>
-                                  <ReactImagePickerEditor
-                                    config={config}
-                                    imageChanged={(newDataUri: any) => {
-                                      setRightSideView(newDataUri);
-                                    }}
-                                  />
-                                </div>
-                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
-                                  <label className="text-sky-700">
-                                    Inside Front View
-                                  </label>
-                                  <ReactImagePickerEditor
-                                    config={config}
-                                    imageChanged={(newDataUri: any) => {
-                                      setInsideFrontView(newDataUri);
-                                    }}
-                                  />
-                                </div>
-                                <div className="flex flex-col p-3 gap-2 border border-sky-700 bg-gray-100 rounded-lg">
-                                  <label className="text-sky-700">
-                                    Back View
-                                  </label>
-                                  <ReactImagePickerEditor
-                                    config={config}
-                                    imageChanged={(newDataUri: any) => {
-                                      setBackView(newDataUri);
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                              <div className="bg-gray-50 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-4">
-                                <button
-                                  className="border-sky-700 bg-sky-700 text-white border py-2 px-4 text-sm rounded-lg"
-                                  onClick={() =>
-                                    setModalUploadImagesOpen(false)
-                                  }>
-                                  Upload
-                                </button>
-                                <button
-                                  className="border-red-700 bg-red-700 text-white border py-2 px-4 text-sm rounded-lg"
-                                  onClick={() =>
-                                    setModalUploadImagesOpen(false)
-                                  }>
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
                     </>
                   )}
+                  <div className="justify-self-center col-span-2">
+                    <button
+                      className="border border-sky-700 bg-sky-700 text-white py-2 px-4 text-sm rounded-lg"
+                      onClick={() => setModalUploadImagesOpen(true)}>
+                      Upload images
+                    </button>
+
+                    {modalUploadImagesOpen && (
+                      <div
+                        className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black`}>
+                        <div
+                          className={`rounded-2xl bg-white text-black mx-3 py-3 px-5`}>
+                          <div className="flex justify-between items-center py-3">
+                            <h3 className="text-lg leading-6 font-medium text-gray-900">
+                              Upload Tricycle Information
+                            </h3>
+                            <div className="mt-3 sm:mt-0 sm:ml-4 sm:text-right">
+                              <button
+                                className="text-2xl flex items-center justify-center"
+                                onClick={() => setModalUploadImagesOpen(false)}>
+                                <IoMdCloseCircleOutline />
+                              </button>
+                            </div>
+                          </div>
+                          <div className="rounded-lg border border-sky-700 py-3 px-5 grid grid-cols-3 gap-6">
+                            <ImageUploader
+                              title="Front View"
+                              setImage={setNewFrontViewImage}
+                              setPreview={setNewFrontViewPreview}
+                              preview={newFrontViewPreview}
+                            />
+                            <ImageUploader
+                              title="Left Side View"
+                              setImage={setNewLeftSideViewImage}
+                              setPreview={setNewLeftSideViewPreview}
+                              preview={newLeftSideViewPreview}
+                            />
+                            <ImageUploader
+                              title="Right Side View"
+                              setImage={setNewRightSideViewImage}
+                              setPreview={setNewRightSideViewPreview}
+                              preview={newRightSideViewPreview}
+                            />
+                            <ImageUploader
+                              title="Inside Front View"
+                              setImage={setNewInsideFrontViewImage}
+                              setPreview={setNewInsideFrontViewPreview}
+                              preview={newInsideFrontViewPreview}
+                            />
+                            <ImageUploader
+                              title="Back View"
+                              setImage={setNewBackViewImage}
+                              setPreview={setNewBackViewPreview}
+                              preview={newBackViewPreview}
+                            />
+                          </div>
+                          <div className="bg-gray-50 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-4">
+                            <button
+                              disabled={
+                                !newFrontViewImage ||
+                                !newBackViewImage ||
+                                !newLeftSideViewImage ||
+                                !newRightSideViewImage ||
+                                !newInsideFrontViewImage
+                              }
+                              className={`${
+                                !newFrontViewImage ||
+                                !newBackViewImage ||
+                                !newLeftSideViewImage ||
+                                !newRightSideViewImage ||
+                                !newInsideFrontViewImage
+                                  ? "border-gray-600 bg-gray-600"
+                                  : "border-sky-700 bg-sky-700"
+                              } text-white border py-2 px-4 text-sm rounded-lg`}
+                              onClick={() => setModalUploadImagesOpen(false)}>
+                              Upload
+                            </button>
+                            <button
+                              className="border-red-700 bg-red-700 text-white border py-2 px-4 text-sm rounded-lg"
+                              onClick={() => setModalUploadImagesOpen(false)}>
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </div>
@@ -807,11 +1053,9 @@ const OperatorsProfile = () => {
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     {record.id}
                   </td>
+
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.plate_num}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.body_num}
+                    {new Date(record.date_registered).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     {record.last_name +
@@ -910,16 +1154,82 @@ const OperatorsProfile = () => {
               {currentPageRegister === 1 ? "Cancel" : "Back"}
             </button>
             <button
+              disabled={
+                currentPageRegister === 1
+                  ? (!newOperator && !selectedOperator) ||
+                    (newOperator &&
+                      (!newDateRegistered ||
+                        !newLastName ||
+                        !newFirstName ||
+                        !newBirthdate ||
+                        !newAddress ||
+                        !newCivilStatus ||
+                        !newContactNum ||
+                        !newFaceImage ||
+                        !newSignatureImage))
+                  : currentPageRegister === 2
+                  ? (newOperator && !newDateRegisteredVehicle) ||
+                    // !newOperatorId ||
+                    !newChassisNumber ||
+                    !newLTOPlateNumber ||
+                    !newColorCode ||
+                    !newMotorNumber ||
+                    !newType ||
+                    !newVehicleType ||
+                    !newZone ||
+                    !newFrontViewImage ||
+                    !newLeftSideViewImage ||
+                    !newRightSideViewImage ||
+                    !newInsideFrontViewImage ||
+                    !newBackViewImage
+                  : false
+              }
               className={`${
                 currentPageRegister === 1
                   ? "border-sky-700 text-black"
-                  : "bg-green-700 border-green-700 text-white"
-              } border py-2 px-4 text-sm rounded-lg`}
+                  : "bg-gray-600 border-gray-600 text-white"
+              } ${
+                currentPageRegister === 1
+                  ? (!newOperator && !selectedOperator) ||
+                    (newOperator &&
+                      (!newDateRegistered ||
+                        !newLastName ||
+                        !newFirstName ||
+                        !newBirthdate ||
+                        !newAddress ||
+                        !newCivilStatus ||
+                        !newContactNum ||
+                        !newFaceImage ||
+                        !newSignatureImage))
+                    ? "bg-gray-600"
+                    : "bg-sky-700"
+                  : currentPageRegister === 2
+                  ? (newOperator && !newDateRegisteredVehicle) ||
+                    // !newOperatorId ||
+                    !newChassisNumber ||
+                    !newLTOPlateNumber ||
+                    !newColorCode ||
+                    !newMotorNumber ||
+                    !newType ||
+                    !newVehicleType ||
+                    !newZone ||
+                    !newFrontViewImage ||
+                    !newLeftSideViewImage ||
+                    !newRightSideViewImage ||
+                    !newInsideFrontViewImage ||
+                    !newBackViewImage
+                    ? "bg-gray-600"
+                    : "bg-sky-700"
+                  : "bg-sky-700"
+              }
+              text-white border py-2 px-4 text-sm rounded-lg`}
               onClick={() => {
                 if (currentPageRegister === 1) {
                   setCurrentPageRegister(currentPageRegister + 1);
                 } else {
-                  console.log("saved");
+                  // console.log("saved");
+                  handleSubmissionWithoutEvent();
+                  setRegisterPermitView(false);
                 }
               }}>
               {currentPageRegister === 1 ? "Next" : "Save"}
