@@ -35,6 +35,7 @@ import {
 import { supabase } from "@/utils/supabase";
 import {
   editVehicleOwnershipReportData,
+  fetchPVehicleOwnershipReportById,
   insertVehicleOwnershipReportData,
 } from "@/api/vehicleOwnership";
 import ImageUploader from "./ImageUploader";
@@ -42,10 +43,15 @@ import ImageUploader from "./ImageUploader";
 const OperatorsProfile = () => {
   const [searchValue, setSearchValue] = useState("");
   const [currentPageDetailsSection, setCurrentPageDetailsSection] = useState(1);
+  const [currentPageMoreDetailsSection, setCurrentPageMoreDetailsSection] =
+    useState(1);
   const [numOfEntries, setNumOfEntries] = useState(1);
   const entriesPerPage = 10;
   type Record = any;
+  type RecordVehicle = any;
   const [records, setRecords] = useState<Record[]>([]);
+  const [recordVehicles, setRecordVehicles] = useState<RecordVehicle[]>([]);
+  const [currentVehicleOwnerId, setCurrentVehicleOwnerId] = useState("");
 
   // adding new data record
   const [toggleNewRecordButton, setToggleNewRecordButton] = useState(false);
@@ -54,6 +60,7 @@ const OperatorsProfile = () => {
   const [registerPermitViewPage, setRegisterPermitViewPage] = useState(1);
   const [currentPageRegister, setCurrentPageRegister] = useState(1);
 
+  // registering new operator
   const [newOperatorId, setNewOperatorId] = useState<number | null>(null);
   const [newDateRegistered, setNewDateRegistered] = useState("");
   const [newLastName, setNewLastName] = useState("");
@@ -65,9 +72,15 @@ const OperatorsProfile = () => {
   const [newCivilStatus, setNewCivilStatus] = useState("");
   const [newIsActive, setNewIsActive] = useState(false);
   const [newContactNum, setNewContactNum] = useState("");
-  const [newFaceImage, setNewFaceImage] = useState<File | null>(null);
-  const [newSignatureImage, setNewSignatureImage] = useState<File | null>(null);
 
+  const [newFaceImage, setNewFaceImage] = useState<File | null>(null);
+  const [newFacePreview, setNewFacePreview] = useState<string | null>(null);
+  const [newSignatureImage, setNewSignatureImage] = useState<File | null>(null);
+  const [newSignaturePreview, setNewSignaturePreview] = useState<string | null>(
+    null
+  );
+
+  // registering new vehicle
   const [newBodyNumber, setNewBodyNumber] = useState("");
   const [newDateRegisteredVehicle, setNewDateRegisteredVehicle] = useState("");
   const [newChassisNumber, setNewChassisNumber] = useState("");
@@ -81,14 +94,15 @@ const OperatorsProfile = () => {
     value: number;
     label: string;
   } | null>(null);
-  const [selectedRoute, setSelectedRoute] = useState("");
-  const [selectedRouteObj, setSelectedRouteObj] = useState<{
+  const [newSelectedRoute, setNewSelectedRoute] = useState("");
+  const [newSelectedRouteObj, setNewSelectedRouteObj] = useState<{
     zone: number;
     route: string;
     adult: number;
     student: number;
     sp: number;
   } | null>(null);
+
   const options = routes.map((route) => ({
     value: route.zone,
     label: `Zone ${route.zone}`,
@@ -130,31 +144,65 @@ const OperatorsProfile = () => {
     null
   );
 
-  // const config: ImagePickerConf = {
-  //   borderRadius: "8px",
-  //   language: "en",
-  //   width: "160px",
-  //   height: "150px",
-  //   objectFit: "contain",
-  //   compressInitial: null,
-  // };
-  // // const initialImage: string = '/assets/images/8ptAya.webp';
-  // const [imageSrc, setImageSrc] = useState<string | undefined>(); // [string, React.Dispatch<React.SetStateAction<string>>
-  // useEffect(() => {
-  //   if (newFrontView instanceof File) {
-  //     const reader = new FileReader();
-  //     reader.onloadend = () => {
-  //       setImageSrc(reader.result as string);
-  //     };
-  //     reader.readAsDataURL(newFrontView);
-  //   } else {
-  //     setImageSrc(undefined);
-  //   }
-  // }, [newFrontView]);
-  // const initialImage = "";
+  // displaying data
+  const [dateRegistered, setDateRegistered] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [extensionName, setExtensionName] = useState("");
+  const [birthDate, setBirthdate] = useState("");
+  const [address, setAddress] = useState("");
+  const [civilStatus, setCivilStatus] = useState("");
+  const [isActive, setIsActive] = useState(false);
+  const [contactNum, setContactNum] = useState("");
+
+  const [faceImage, setFaceImage] = useState<File | null>(null);
+  const [facePreview, setFacePreview] = useState<string | null>(null);
+  const [signatureImage, setSignatureImage] = useState<File | null>(null);
+  const [signaturePreview, setSignaturePreview] = useState<string | null>(null);
+
+  const [bodyNumber, setBodyNumber] = useState("");
+  const [dateRegisteredVehicle, setDateRegisteredVehicle] = useState("");
+  const [chassisNumber, setChassisNumber] = useState("");
+  const [ltoPlateNumber, setLtoPlateNumber] = useState("");
+  const [colorCode, setColorCode] = useState("");
+  const [motorNumber, setMotorNumber] = useState("");
+  const [type, setType] = useState("");
+  const [vehicleType, setVehicleType] = useState("");
+  const [association, setAssociation] = useState("");
+  const [zone, setZone] = useState<{
+    value: number;
+    label: string;
+  } | null>(null);
+  const [selectedRoute, setSelectedRoute] = useState("");
+  const [selectedRouteObj, setSelectedRouteObj] = useState<{
+    zone: number;
+    route: string;
+    adult: number;
+    student: number;
+    sp: number;
+  } | null>(null);
+
+  const [frontView, setFrontView] = useState<File | null>(null);
+  const [frontViewPreview, setFrontViewPreview] = useState<string | null>(null);
+  const [leftSideView, setLeftSideView] = useState<File | null>(null);
+  const [leftSideViewPreview, setLeftSideViewPreview] = useState<string | null>(
+    null
+  );
+  const [rightSideView, setRightSideView] = useState<File | null>(null);
+  const [rightSideViewPreview, setRightSideViewPreview] = useState<
+    string | null
+  >(null);
+  const [insideFrontView, setInsideFrontView] = useState<File | null>(null);
+  const [insideFrontViewPreview, setInsideFrontViewPreview] = useState<
+    string | null
+  >(null);
+  const [backView, setBackView] = useState<File | null>(null);
+  const [backViewPreview, setBackViewPreview] = useState<string | null>(null);
 
   // viewing existing data record
   const [toggleMoreDetails, setToggleMoreDetails] = useState(false);
+
   const headerNames = [
     "ID",
     "Date Registered",
@@ -290,6 +338,23 @@ const OperatorsProfile = () => {
     };
   }, [searchValue, entriesPerPage, currentPageDetailsSection]);
 
+  const memoizedFetchVehicleOwnershipReportByIDData = useCallback(async () => {
+    try {
+      const response = await fetchPVehicleOwnershipReportById(
+        currentVehicleOwnerId
+      );
+      setRecordVehicles(response?.data || []);
+      // console.log("response?.data", response?.data);
+      // setNumOfEntries(response?.count || 1); // This line is not needed unless you have a count property in your data
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  }, [currentVehicleOwnerId]);
+
+  useEffect(() => {
+    memoizedFetchVehicleOwnershipReportByIDData();
+  }, [currentVehicleOwnerId]);
+
   const handleSubmissionWithoutEvent = () => {
     if (!newOperator) {
       handleInsertExistingOperatorProfile({ preventDefault: () => {} });
@@ -363,6 +428,7 @@ const OperatorsProfile = () => {
   const handleInsertVehicleOwnershipRecord = async (ownerId: any) => {
     const newRecord = {
       operator_id: ownerId,
+      body_num: newBodyNumber,
       date_registered: newDateRegisteredVehicle,
       chassis_num: newChassisNumber,
       lto_plate_num: newLTOPlateNumber,
@@ -445,6 +511,7 @@ const OperatorsProfile = () => {
 
       setNewOperator(false);
       setNewOperatorId(null);
+      setNewBodyNumber("");
       setNewDateRegisteredVehicle("");
       setNewChassisNumber("");
       setNewLTOPlateNumber("");
@@ -470,6 +537,90 @@ const OperatorsProfile = () => {
   //   console.log("newOperator", newOperator);
   // }, [newOperator]);
 
+  const handleViewClick = (id: string) => {
+    const record = records.find((record) => record.id === id);
+
+    if (record) {
+      setDateRegistered(record.date_registered);
+      setLastName(record.last_name);
+      setFirstName(record.first_name);
+      setMiddleName(record.middle_name);
+      setExtensionName(record.extension_name);
+      setBirthdate(record.birth_date);
+      setAddress(record.address);
+      setCivilStatus(record.civil_status);
+      setIsActive(record.is_active);
+      setContactNum(record.contact_num);
+
+      const STORAGE_BUCKET_OPERATOR_FACE_PHOTO_VIEW = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/face_photo/`;
+      const STORAGE_BUCKET_OPERATOR_SIGNATURE_VIEW = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/signature_photo/`;
+
+      setFacePreview(
+        `${STORAGE_BUCKET_OPERATOR_FACE_PHOTO_VIEW}${record.face_photo}`
+      );
+      setSignaturePreview(
+        `${STORAGE_BUCKET_OPERATOR_SIGNATURE_VIEW}${record.signature_photo}`
+      );
+
+      setToggleMoreDetails(true);
+    }
+  };
+
+  const handleSelectedVehicle = (id: string) => {
+    const record = recordVehicles.find((record) => record.id === Number(id));
+
+    if (record) {
+      setBodyNumber(record.body_num);
+      setDateRegisteredVehicle(record.date_registered);
+      setChassisNumber(record.chassis_num);
+      setLtoPlateNumber(record.lto_plate_num);
+      setColorCode(record.color_code);
+      setMotorNumber(record.motor_num);
+      setType(record.type);
+      setVehicleType(record.vehicle_type);
+      setAssociation(record.association);
+      const initialValue =
+        options.find((option) => option.value === record.zone) || null;
+      setZone(initialValue);
+
+      const STORAGE_BUCKET_OPERATOR_VEHICLES = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/vehicles/`;
+
+      setFrontViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.front_view_image}`
+      );
+      setLeftSideViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.left_side_view_image}`
+      );
+      setRightSideViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.right_side_view_image}`
+      );
+      setInsideFrontViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.inside_front_image}`
+      );
+      setBackViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.back_view_image}`
+      );
+
+      // setToggleMoreDetails(true);
+    }
+  };
+
+  useEffect(() => {
+    if (recordVehicles.length > 0) {
+      handleSelectedVehicle(recordVehicles[0].id.toString());
+    }
+  }, [recordVehicles]);
+
+  useEffect(() => {
+    if (zone !== null) {
+      const route = routes.find((route) => route.zone === zone.value);
+      setSelectedRoute(route ? route.route : "");
+      if (route) {
+        setSelectedRouteObj(route);
+      }
+    }
+  }, [zone, routes]);
+
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
       <div className="flex justify-between items-center flex-col md:flex-row">
@@ -479,7 +630,7 @@ const OperatorsProfile = () => {
               ? "List of Operators/Owner"
               : "Register Tricycle Operator's Owner"}
           </h1>
-          {!registerPermitView && (
+          {!registerPermitView && !toggleMoreDetails && (
             <div className="relative" ref={dropdownRef}>
               <button
                 type="submit"
@@ -514,7 +665,7 @@ const OperatorsProfile = () => {
             </div>
           )}
         </div>
-        {!registerPermitView && (
+        {!registerPermitView && !toggleMoreDetails && (
           <div className="relative">
             <MdOutlineSearch className="z-0 absolute text-gray-400 right-3 top-1/2 transform -translate-y-1/2 text-2xl" />
             <input
@@ -614,8 +765,8 @@ const OperatorsProfile = () => {
                         />
                         <input
                           type="checkbox"
-                          id="middleNameNone"
-                          name="middleNameNone"
+                          id="newMiddleNameNone"
+                          name="newMiddleNameNone"
                           value="none"
                           checked={newMiddleName === ""}
                           onChange={(e) =>
@@ -625,7 +776,7 @@ const OperatorsProfile = () => {
                           }
                           className="mt-3"
                         />
-                        <label htmlFor="middleNameNone">
+                        <label htmlFor="newMiddleNameNone">
                           {" "}
                           I have no middle name
                         </label>
@@ -650,7 +801,7 @@ const OperatorsProfile = () => {
                         onChange={(e) => setNewBirthdate(e.target.value)}
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
-                      <label htmlFor="newBirthdate">Permanent Address</label>
+                      <label htmlFor="newAddress">Permanent Address</label>
                       <input
                         type="text"
                         name="newAddress"
@@ -710,7 +861,7 @@ const OperatorsProfile = () => {
                         />
                         <label htmlFor="newIsActiveNo">No</label>
                       </div>
-                      <label htmlFor="newFaceImage">Face Image</label>
+                      {/* <label htmlFor="newFaceImage">Face Image</label>
                       <div className="relative">
                         <input
                           type="file"
@@ -754,6 +905,20 @@ const OperatorsProfile = () => {
                             ? `Selected file: ${newSignatureImage.name}`
                             : "No File Chosen"}
                         </div>
+                      </div> */}
+                      <div className="col-span-2 w-full flex justify-around">
+                        <ImageUploader
+                          title="Face Image"
+                          setImage={setNewFaceImage}
+                          setPreview={setNewFacePreview}
+                          preview={newFacePreview}
+                        />
+                        <ImageUploader
+                          title="Signature Image"
+                          setImage={setNewSignatureImage}
+                          setPreview={setNewSignaturePreview}
+                          preview={newSignaturePreview}
+                        />
                       </div>
                     </>
                   )}
@@ -886,9 +1051,9 @@ const OperatorsProfile = () => {
                         const route = routes.find(
                           (route) => route.zone === selectedOption.value
                         );
-                        setSelectedRoute(route ? route.route : "");
+                        setNewSelectedRoute(route ? route.route : "");
                         if (route) {
-                          setSelectedRouteObj(route);
+                          setNewSelectedRouteObj(route);
                         }
                       }
                     }}
@@ -898,15 +1063,15 @@ const OperatorsProfile = () => {
                   />
                   {newZone && (
                     <>
-                      <label htmlFor="selectedRoute">Route</label>
+                      <label htmlFor="newSelectedRoute">Route</label>
                       <input
                         type="text"
-                        id="selectedRoute"
-                        value={selectedRoute}
+                        id="newSelectedRoute"
+                        value={newSelectedRoute}
                         readOnly
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
-                      {selectedRouteObj && (
+                      {newSelectedRouteObj && (
                         <>
                           <h1>Minimum Fare Rate</h1>
                           <div className="">
@@ -917,7 +1082,7 @@ const OperatorsProfile = () => {
                                     Student / Senior Citizen / PWD / Solo Parent
                                   </td>
                                   <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
-                                    {selectedRouteObj.student}
+                                    {newSelectedRouteObj.student}
                                   </td>
                                 </tr>
                                 <tr className="bg-white border border-sky-700">
@@ -925,7 +1090,7 @@ const OperatorsProfile = () => {
                                     Adult
                                   </td>
                                   <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
-                                    {selectedRouteObj.adult}
+                                    {newSelectedRouteObj.adult}
                                   </td>
                                 </tr>
                               </tbody>
@@ -1029,7 +1194,423 @@ const OperatorsProfile = () => {
             "Ownership Vehicle Information"
           )
         ) : toggleMoreDetails ? (
-          "More Details of Operator's Profile"
+          // More Details of Operator's Profile
+          <div
+            className="grid grid-cols-2 items-center pt-7 px-20 pb-20 gap-5 overflow-y-auto w-full h-full"
+            style={{ gridTemplateColumns: "auto 1fr" }}>
+            {currentPageMoreDetailsSection === 1 ? (
+              <>
+                <label htmlFor="dateRegistered">Date Registered</label>
+                <input
+                  type="date"
+                  name="dateRegistered"
+                  id="dateRegistered"
+                  value={new Date(dateRegistered).toISOString().slice(0, 10)}
+                  placeholder="Date Registered"
+                  onChange={(e) => setDateRegistered(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="lastName">Last Name</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  id="lastName"
+                  value={lastName}
+                  placeholder="Last Name"
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="firstName">First Name</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  id="firstName"
+                  value={firstName}
+                  placeholder="First Name"
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="middleName">Middle Name</label>
+                <div>
+                  <input
+                    type="text"
+                    name="middleName"
+                    id="middleName"
+                    required
+                    value={middleName}
+                    placeholder="Middle Name"
+                    onChange={(e) => setMiddleName(e.target.value)}
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                  />
+                  <input
+                    type="checkbox"
+                    id="middleNameNone"
+                    name="middleNameNone"
+                    value="none"
+                    checked={middleName === ""}
+                    onChange={(e) =>
+                      setMiddleName(e.target.checked ? "" : "defaultMiddleName")
+                    }
+                    className="mt-3"
+                  />
+                  <label htmlFor="middleNameNone"> I have no middle name</label>
+                </div>
+                <label htmlFor="extensionName">Extension Name</label>
+                <input
+                  type="text"
+                  name="extensionName"
+                  id="extensionName"
+                  value={extensionName}
+                  placeholder="Extension Name"
+                  onChange={(e) => setExtensionName(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="birthDate">Date of Birth</label>
+                <input
+                  type="date"
+                  name="birthDate"
+                  id="birthDate"
+                  value={birthDate}
+                  placeholder="Birthdate"
+                  onChange={(e) => setBirthdate(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="address">Permanent Address</label>
+                <input
+                  type="text"
+                  name="address"
+                  id="address"
+                  value={address}
+                  placeholder="Address"
+                  onChange={(e) => setAddress(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="civilStatus">Civil Status</label>
+                <select
+                  name="civilStatus"
+                  id="civilStatus"
+                  value={civilStatus}
+                  onChange={(e) => setCivilStatus(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
+                  <option value=""> -- Select --</option>
+                  <option value="single">Single</option>
+                  <option value="married">Married</option>
+                </select>
+                <label htmlFor="contactNum">Contact Number</label>
+                <input
+                  type="text"
+                  name="contactNum"
+                  id="contactNum"
+                  value={contactNum}
+                  placeholder="Contact Number"
+                  onChange={(e) => setContactNum(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="isActive">Active</label>
+                <div className="flex items-center">
+                  <input
+                    type="radio"
+                    name="isActive"
+                    id="isActiveYes"
+                    value="true"
+                    checked={isActive === true}
+                    onChange={(e) => setIsActive(e.target.value === "true")}
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 mr-2"
+                  />
+                  <label htmlFor="isActiveYes" className="mr-4">
+                    Yes
+                  </label>
+                  <input
+                    type="radio"
+                    name="isActive"
+                    id="isActiveNo"
+                    value="false"
+                    checked={isActive === false}
+                    onChange={(e) => setIsActive(e.target.value !== "true")}
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 mr-2"
+                  />
+                  <label htmlFor="isActiveYes">No</label>
+                </div>
+                <div className="col-span-2 w-full flex justify-around">
+                  <ImageUploader
+                    title="Face Image"
+                    setImage={setFaceImage}
+                    setPreview={setFacePreview}
+                    preview={facePreview}
+                  />
+                  <ImageUploader
+                    title="Signature Image"
+                    setImage={setSignatureImage}
+                    setPreview={setSignaturePreview}
+                    preview={signaturePreview}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-full flex justify-end col-span-2">
+                  <select
+                    name="vehicleSelect"
+                    id="vehicleSelect"
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg py-2 px-10"
+                    onChange={(event) =>
+                      handleSelectedVehicle(event.target.value)
+                    }>
+                    {recordVehicles.map((vehicle, index) => (
+                      <option key={index} value={vehicle.id}>
+                        {vehicle.chassis_num}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <label htmlFor="bodyNumber">Body Number</label>
+                <input
+                  type="number"
+                  max={9999}
+                  maxLength={4}
+                  name="bodyNumber"
+                  id="bodyNumber"
+                  value={bodyNumber || ""}
+                  placeholder="Body Number"
+                  onChange={(e) => setBodyNumber(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="dateRegisteredVehicle">Date Registered</label>
+                <input
+                  type="date"
+                  name="dateRegisteredVehicle"
+                  id="dateRegisteredVehicle"
+                  value={
+                    dateRegisteredVehicle &&
+                    !isNaN(new Date(dateRegisteredVehicle).valueOf())
+                      ? new Date(dateRegisteredVehicle)
+                          .toISOString()
+                          .slice(0, 10)
+                      : ""
+                  }
+                  placeholder="Date Registered"
+                  onChange={(e) => setDateRegisteredVehicle(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="chassisNumber">Chassis Number</label>
+                <input
+                  type="text"
+                  name="chassisNumber"
+                  id="chassisNumber"
+                  value={chassisNumber}
+                  placeholder="Chassis Number"
+                  onChange={(e) => setChassisNumber(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="ltoPlateNumber">LTO Plate Number</label>
+                <input
+                  type="text"
+                  name="ltoPlateNumber"
+                  id="ltoPlateNumber"
+                  value={ltoPlateNumber}
+                  placeholder="LTO Plate Number"
+                  onChange={(e) => setLtoPlateNumber(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="colorCode">Color</label>
+                <Select
+                  name="colorCode"
+                  id="colorCode"
+                  value={colorOptions.find(
+                    (option) => option.value === colorCode
+                  )}
+                  onChange={(selectedOption) => {
+                    if (selectedOption !== null) {
+                      setColorCode(selectedOption.value);
+                    }
+                  }}
+                  options={colorOptions}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                />
+                <label htmlFor="motorNumber">Motor Number</label>
+                <input
+                  type="text"
+                  name="motorNumber"
+                  id="motorNumber"
+                  value={motorNumber}
+                  placeholder="Motor Number"
+                  onChange={(e) => setMotorNumber(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="type">Make/Type</label>
+                <Select
+                  name="type"
+                  id="type"
+                  value={brandMotorCycleOptions.find(
+                    (option) => option.value === type
+                  )}
+                  onChange={(selectedOption) => {
+                    if (selectedOption !== null) {
+                      setType(selectedOption.value);
+                    }
+                  }}
+                  options={brandMotorCycleOptions}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                />
+                <label htmlFor="vehicleType">Vehicle Type</label>
+                <input
+                  type="text"
+                  name="vehicleType"
+                  id="vehicleType"
+                  value={vehicleType}
+                  disabled
+                  placeholder="Vehicle Type"
+                  onChange={(e) => setVehicleType(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="newAssociation">Name of Association</label>
+                <Select
+                  name="association"
+                  id="association"
+                  value={associationOptions.find(
+                    (option) => option.value === association
+                  )}
+                  onChange={(selectedOption) => {
+                    if (selectedOption !== null) {
+                      setAssociation(selectedOption.value);
+                    }
+                  }}
+                  options={associationOptions}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                />
+                <label htmlFor="zone">Zone</label>
+                <Select
+                  name="zone"
+                  id="zone"
+                  value={zone}
+                  onChange={(selectedOption) => {
+                    if (selectedOption !== null) {
+                      setZone(selectedOption);
+                      const route = routes.find(
+                        (route) => route.zone === selectedOption.value
+                      );
+                      setSelectedRoute(route ? route.route : "");
+                      if (route) {
+                        setSelectedRouteObj(route);
+                      }
+                    }
+                  }}
+                  options={options}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                />
+                {zone && (
+                  <>
+                    <label htmlFor="newSelectedRoute">Route</label>
+                    <input
+                      type="text"
+                      id="route"
+                      value={selectedRoute}
+                      readOnly
+                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                    />
+                    {selectedRouteObj && (
+                      <>
+                        <h1>Minimum Fare Rate</h1>
+                        <div className="">
+                          <table className="w-full text-sm">
+                            <tbody>
+                              <tr className="bg-white border border-sky-700">
+                                <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
+                                  Student / Senior Citizen / PWD / Solo Parent
+                                </td>
+                                <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
+                                  {selectedRouteObj.student}
+                                </td>
+                              </tr>
+                              <tr className="bg-white border border-sky-700">
+                                <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
+                                  Adult
+                                </td>
+                                <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
+                                  {selectedRouteObj.adult}
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </>
+                    )}
+                  </>
+                )}
+                <div className="justify-self-center col-span-2">
+                  <button
+                    className="border border-sky-700 bg-sky-700 text-white py-2 px-4 text-sm rounded-lg"
+                    onClick={() => setModalUploadImagesOpen(true)}>
+                    Vehicle Images
+                  </button>
+
+                  {modalUploadImagesOpen && (
+                    <div
+                      className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black`}>
+                      <div
+                        className={`rounded-2xl bg-white text-black mx-3 py-3 px-5`}>
+                        <div className="flex justify-between items-center py-3">
+                          <h3 className="text-lg leading-6 font-medium text-gray-900">
+                            Upload Tricycle Information
+                          </h3>
+                          <div className="mt-3 sm:mt-0 sm:ml-4 sm:text-right">
+                            <button
+                              className="text-2xl flex items-center justify-center"
+                              onClick={() => setModalUploadImagesOpen(false)}>
+                              <IoMdCloseCircleOutline />
+                            </button>
+                          </div>
+                        </div>
+                        <div className="rounded-lg border border-sky-700 py-3 px-5 grid grid-cols-3 gap-6">
+                          <ImageUploader
+                            title="Front View"
+                            setImage={setFrontView}
+                            setPreview={setFrontViewPreview}
+                            preview={frontViewPreview}
+                          />
+                          <ImageUploader
+                            title="Left Side View"
+                            setImage={setLeftSideView}
+                            setPreview={setLeftSideViewPreview}
+                            preview={setLeftSideViewPreview}
+                          />
+                          <ImageUploader
+                            title="Right Side View"
+                            setImage={setRightSideView}
+                            setPreview={setRightSideViewPreview}
+                            preview={rightSideViewPreview}
+                          />
+                          <ImageUploader
+                            title="Inside Front View"
+                            setImage={setInsideFrontView}
+                            setPreview={setInsideFrontViewPreview}
+                            preview={insideFrontViewPreview}
+                          />
+                          <ImageUploader
+                            title="Back View"
+                            setImage={setBackView}
+                            setPreview={setBackViewPreview}
+                            preview={backViewPreview}
+                          />
+                        </div>
+                        <div className="bg-gray-50 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-4">
+                          <button
+                            className="border-sky-700 bg-sky-700 text-white border py-2 px-4 text-sm rounded-lg"
+                            onClick={() => setModalUploadImagesOpen(false)}>
+                            Okay
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         ) : (
           // details
           <table className="w-full text-sm text-center ">
@@ -1075,7 +1656,9 @@ const OperatorsProfile = () => {
                     {record.address}
                   </td>
                   <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
-                    <button className="bg-sky-200 text-sky-700 py-2 px-5 text-sm rounded-lg">
+                    <button
+                      className="bg-sky-200 text-sky-700 py-2 px-5 text-sm rounded-lg"
+                      onClick={() => handleViewClick(record.id)}>
                       View
                     </button>
                   </td>
@@ -1094,46 +1677,99 @@ const OperatorsProfile = () => {
         )}
       </div>
 
-      {!registerPermitView && !toggleMoreDetails ? (
+      {!registerPermitView ? (
         <div className="flex justify-end items-center w-full">
-          <div className="flex select-none gap-0">
-            <button
-              className={`${
-                currentPageDetailsSection === 1 ? "text-gray-400" : "text-black"
-              } border border-sky-700 py-2 px-2 text-sm`}
-              onClick={() =>
-                setCurrentPageDetailsSection(currentPageDetailsSection - 1)
-              }
-              disabled={currentPageDetailsSection === 1}>
-              Prev
-            </button>
-            <input
-              type="number"
-              min="1"
-              max={Math.ceil(numOfEntries / 10)}
-              value={currentPageDetailsSection}
-              onChange={(e) => {
-                const pageNumber = Number(e.target.value);
-                if (
-                  pageNumber >= 1 &&
-                  pageNumber <= Math.ceil(numOfEntries / 10)
-                ) {
-                  setCurrentPageDetailsSection(pageNumber);
-                }
-              }}
-              className="bg-sky-700 text-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 text-center text-sm"
-            />
-            <button
-              className={`${
-                records.length < entriesPerPage ? "text-gray-400" : "text-black"
-              } border border-sky-700 py-1 px-2 text-sm`}
-              onClick={() =>
-                setCurrentPageDetailsSection(currentPageDetailsSection + 1)
-              }
-              disabled={records.length < entriesPerPage}>
-              Next
-            </button>
-          </div>
+          {toggleMoreDetails ? (
+            <>
+              <div className="flex justify-end items-center w-full">
+                <div className="flex select-none gap-4">
+                  <button
+                    className={`${
+                      currentPageMoreDetailsSection === 1
+                        ? "border-red-700 bg-red-700 text-white"
+                        : "border-sky-700 text-black"
+                    } border py-2 px-4 text-sm rounded-lg`}
+                    onClick={() => {
+                      if (currentPageMoreDetailsSection === 1) {
+                        setToggleMoreDetails(false);
+                      } else {
+                        setCurrentPageMoreDetailsSection(
+                          currentPageMoreDetailsSection - 1
+                        );
+                      }
+                    }}>
+                    {currentPageMoreDetailsSection === 1 ? "Cancel" : "Back"}
+                  </button>
+                  <button
+                    disabled={currentPageMoreDetailsSection !== 1}
+                    className={`${
+                      currentPageMoreDetailsSection === 1
+                        ? "bg-sky-700 text-white"
+                        : "bg-gray-600 text-gray-300"
+                    } border py-2 px-4 text-sm rounded-lg`}
+                    onClick={() => {
+                      if (currentPageMoreDetailsSection === 1) {
+                        setCurrentPageMoreDetailsSection(
+                          currentPageMoreDetailsSection + 1
+                        );
+                      } else {
+                        // console.log("saved");
+                        // handleSubmissionWithoutEvent();
+                        // setRegisterPermitView(false);
+                      }
+                    }}>
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              {" "}
+              <div className="flex select-none gap-0">
+                <button
+                  className={`${
+                    currentPageDetailsSection === 1
+                      ? "text-gray-400"
+                      : "text-black"
+                  } border border-sky-700 py-2 px-2 text-sm`}
+                  onClick={() =>
+                    setCurrentPageDetailsSection(currentPageDetailsSection - 1)
+                  }
+                  disabled={currentPageDetailsSection === 1}>
+                  Prev
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max={Math.ceil(numOfEntries / 10)}
+                  value={currentPageDetailsSection}
+                  onChange={(e) => {
+                    const pageNumber = Number(e.target.value);
+                    if (
+                      pageNumber >= 1 &&
+                      pageNumber <= Math.ceil(numOfEntries / 10)
+                    ) {
+                      setCurrentPageDetailsSection(pageNumber);
+                    }
+                  }}
+                  className="bg-sky-700 text-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 text-center text-sm"
+                />
+                <button
+                  className={`${
+                    records.length < entriesPerPage
+                      ? "text-gray-400"
+                      : "text-black"
+                  } border border-sky-700 py-1 px-2 text-sm`}
+                  onClick={() =>
+                    setCurrentPageDetailsSection(currentPageDetailsSection + 1)
+                  }
+                  disabled={records.length < entriesPerPage}>
+                  Next
+                </button>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <div className="flex justify-end items-center w-full">

@@ -1,5 +1,27 @@
 import { supabase } from "@/utils/supabase";
 
+export const fetchPVehicleOwnershipReportById = async (id: string) => {
+  try {
+    let query = supabase
+      .from("VehicleOwnershipRecords")
+      .select(`*`, { count: "exact" });
+
+    if (id) {
+      query = query.eq("operator_id", id);
+    }
+
+    const response = await query;
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
 export const insertVehicleOwnershipReportData = async (data: any) => {
   try {
     const response = await supabase
