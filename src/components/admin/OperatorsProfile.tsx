@@ -633,7 +633,8 @@ const OperatorsProfile = () => {
           {!registerPermitView && !toggleMoreDetails && (
             <div className="relative" ref={dropdownRef}>
               <button
-                type="submit"
+                // type="submit"
+                type="button"
                 className="bg-sky-700 flex text-lg rounded-lg px-5 py-2 text-white"
                 onClick={() =>
                   setToggleNewRecordButton(!toggleNewRecordButton)
