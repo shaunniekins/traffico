@@ -1,6 +1,7 @@
 import React, { ChangeEvent } from "react";
 
 interface ImageUploaderProps {
+  isDisabled?: boolean;
   title: string;
   setImage: React.Dispatch<React.SetStateAction<File | null>>;
   setPreview: React.Dispatch<React.SetStateAction<string | null>>;
@@ -8,6 +9,7 @@ interface ImageUploaderProps {
 }
 
 const ImageUploader: React.FC<ImageUploaderProps> = ({
+  isDisabled = false,
   title,
   setImage,
   setPreview,
@@ -27,20 +29,26 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         <div className="flex flex-col items-center">
           {preview ? (
             <label
-              className="w-44 h-44 flex flex-col items-center rounded-lg shadow-lg tracking-wide uppercase border border-blue cursor-pointer hover:bg-blue"
+              className={`w-44 h-44 flex flex-col items-center rounded-lg shadow-lg tracking-wide uppercase border border-blue hover:bg-blue ${
+                !isDisabled && "cursor-pointer"
+              }`}
               style={{
                 backgroundImage: `url(${preview})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
               }}>
               <input
+                disabled={isDisabled}
                 type="file"
                 className="hidden"
                 onChange={handleImageChange}
               />
             </label>
           ) : (
-            <label className="w-44 h-44 flex flex-col items-center px-4 py-6 bg-gray-200 text-blue rounded-lg tracking-wide uppercase border border-blue cursor-pointer hover:bg-blue hover:text-white">
+            <label
+              className={`w-44 h-44 flex flex-col items-center px-4 py-6 bg-gray-200 text-blue rounded-lg tracking-wide uppercase border border-blue hover:bg-blue hover:text-white ${
+                !isDisabled && "cursor-pointer"
+              }`}>
               <div className="h-full w-full flex items-center justify-center">
                 <img
                   src="/add_photo.svg"
@@ -50,6 +58,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
               </div>
 
               <input
+                disabled={isDisabled}
                 type="file"
                 className="hidden"
                 onChange={handleImageChange}

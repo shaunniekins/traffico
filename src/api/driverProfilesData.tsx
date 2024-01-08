@@ -31,6 +31,26 @@ export const fetchDriverProfileData = async (
   }
 };
 
+export const fetchDriverProfileByName = async (name: string) => {
+  try {
+    const query = supabase
+      .from("DriverProfiles")
+      .select(`*`)
+      .or(`last_name.ilike.%${name}%,first_name.ilike.%${name}%`)
+      .order("last_name", { ascending: true });
+
+    const response = await query;
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
 export const insertDriverProfileData = async (data: any) => {
   try {
     const response = await supabase

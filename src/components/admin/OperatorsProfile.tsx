@@ -144,6 +144,14 @@ const OperatorsProfile = () => {
     null
   );
 
+  useEffect(() => {
+    const random4Digits = String(Math.floor(Math.random() * 10000)).padStart(
+      4,
+      "0"
+    );
+    setNewBodyNumber(random4Digits);
+  }, []);
+
   // displaying data
   const [dateRegistered, setDateRegistered] = useState("");
   const [lastName, setLastName] = useState("");
@@ -1367,13 +1375,10 @@ const OperatorsProfile = () => {
                 <label htmlFor="bodyNumber">Body Number</label>
                 <input
                   type="number"
-                  max={9999}
-                  maxLength={4}
                   name="bodyNumber"
                   id="bodyNumber"
-                  value={bodyNumber || ""}
-                  placeholder="Body Number"
-                  onChange={(e) => setBodyNumber(e.target.value)}
+                  value={bodyNumber}
+                  readOnly
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
                 <label htmlFor="dateRegisteredVehicle">Date Registered</label>
