@@ -1,8 +1,541 @@
+"use client";
+
+import { fetchApplicationData } from "@/api/applicationsData";
+import { documentDesc } from "@/api/dataValues";
+import { fetchRequirementDocumentDataByID } from "@/api/requirementsData";
+import { supabase } from "@/utils/supabase";
+import { useCallback, useEffect, useState } from "react";
+import { IoMdCloseCircleOutline } from "react-icons/io";
+import { MdOutlineSearch } from "react-icons/md";
+
 const Approval = () => {
+  const [searchValue, setSearchValue] = useState("");
+  const [selectedOption, setSelectedOption] = useState("trackCode");
+  const [currentDetailsPage, setCurrentDetailsPage] = useState(1);
+  type Record = any;
+  type Documents = any;
+  const [records, setRecords] = useState<Record[]>([]);
+  const [docsRecords, setDocsRecords] = useState<Documents[]>([]);
+  const [numOfEntries, setNumOfEntries] = useState(0);
+
+  const [currentID, setCurrentId] = useState("");
+  const [currentFranchiseNum, setCurrentFranchiseNum] = useState("");
+  const [currentOperator, setCurrentOperator] = useState("");
+  const [currentOperatorAddress, setCurrentOperatorAddress] = useState("");
+  const [currentStatus, setCurrentStatus] = useState("");
+
+  const headerNames = [
+    "Franchise No.",
+    "Applicant Name",
+    "Submission Date",
+    "Status",
+  ];
+
+  const headerDocumentNames = [
+    "No.",
+    "Description",
+    "File Name",
+    "Remarks",
+    "Action",
+  ];
+
+  const memoizedFetchApplicationData = useCallback(async () => {
+    try {
+      const response = await fetchApplicationData(searchValue, selectedOption);
+      if (response?.error) {
+        console.error(response.error);
+      } else {
+        setRecords(response?.data || []);
+        setNumOfEntries(response?.count || 1);
+        // console.log("response?.data", response?.data);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  }, [searchValue, selectedOption]);
+
+  useEffect(() => {
+    memoizedFetchApplicationData();
+
+    const channel = supabase
+      .channel(`realtime sessions`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "Applications",
+        },
+        (payload) => {
+          if (payload.new) {
+            setRecords((prevRecord: any) => [
+              payload.new as any,
+              ...prevRecord,
+            ]);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "Applications",
+        },
+        (payload) => {
+          if (payload.new) {
+            setRecords((prevRecord: any) =>
+              prevRecord.map((record: any) =>
+                record.id === payload.new.id ? payload.new : record
+              )
+            );
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "Applications",
+        },
+        (payload) => {
+          if (payload.old) {
+            setRecords((prevRecord: any) =>
+              prevRecord.filter((record: any) => record.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [searchValue, selectedOption]);
+
+  const memoizedFetchRequirementsDataByID = useCallback(async () => {
+    try {
+      const response = await fetchRequirementDocumentDataByID(currentID);
+      if (response?.error) {
+        console.error(response.error);
+      } else {
+        setDocsRecords(response?.data || []);
+        // console.log("response?.data", response?.data);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+  }, [currentID]);
+
+  useEffect(() => {
+    memoizedFetchRequirementsDataByID();
+
+    const channel = supabase
+      .channel(`realtime sessions`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "RequirementDocuments",
+        },
+        (payload) => {
+          if (payload.new) {
+            setDocsRecords((prevRecord: any) => [
+              payload.new as any,
+              ...prevRecord,
+            ]);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "RequirementDocuments",
+        },
+        (payload) => {
+          if (payload.new) {
+            setDocsRecords((prevRecord: any) =>
+              prevRecord.map((record: any) =>
+                record.id === payload.new.id ? payload.new : record
+              )
+            );
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "RequirementDocuments",
+        },
+        (payload) => {
+          if (payload.old) {
+            setDocsRecords((prevRecord: any) =>
+              prevRecord.filter((record: any) => record.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentID]);
+
+  function capitalizeFirstLetter(string: any) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  interface Document {
+    number: number;
+    description: string | undefined;
+    fileName: string;
+    fileLocation: any;
+  }
+
+  const [docsArray, setDocsArray] = useState<Document[]>([]);
+
+  const handleProcessApproval = (id: string, franchise_num: string) => {
+    const record = records.find(
+      (record) => record.id === id && record.franchise_num === franchise_num
+    );
+
+    if (record) {
+      setCurrentId(record.id);
+      setCurrentFranchiseNum(record.franchise_num);
+      setCurrentOperator(
+        `${record.OperatorProfiles.first_name} ${record.OperatorProfiles.last_name} ${record.OperatorProfiles.middle_name[0]}.`
+      );
+      setCurrentOperatorAddress(record.OperatorProfiles.address);
+      setCurrentStatus(record.status);
+
+      const newDocsArray = Object.keys(record)
+        .filter((key) => key.startsWith("doc_") && key.endsWith("_loc"))
+        .map((key, index) => {
+          const number = index + 1;
+          const description = documentDesc.find(
+            (doc) => doc.number === number
+          )?.description;
+          const fileName = `${new Date().getFullYear()}-DOCREQ-${number}`;
+          const fileLocation = record[key];
+          return { number, description, fileName, fileLocation };
+        });
+
+      console.log(newDocsArray);
+      setDocsArray(newDocsArray);
+    }
+
+    setCurrentDetailsPage(2);
+  };
+
+  type DocReqViewType = {
+    number: number;
+    description: string;
+    file: File;
+  };
+
+  const [currentViewDocReq, setCurrentViewDocReq] =
+    useState<DocReqViewType | null>(null);
+  const [modalViewUploadedDocument, setModalViewUploadedDocument] =
+    useState(false);
+
+  const handleViewFileUploaded = (
+    number: number,
+    description: string,
+    file: File
+  ) => {
+    setCurrentViewDocReq({ number, description, file });
+    setModalViewUploadedDocument(true);
+  };
+
   return (
-    <>
-      <div></div>
-    </>
+    <div className="z-0 flex flex-col gap-10 h-full">
+      <div className="flex justify-between items-center flex-col md:flex-row">
+        <div className="flex gap-5 items-center">
+          <h1 className="flex font-bold text-3xl text-sky-700 ">
+            Approval Process
+          </h1>
+        </div>
+        {currentDetailsPage === 1 ? (
+          <div className="flex gap-2">
+            <div className="relative">
+              <MdOutlineSearch className="z-0 absolute text-gray-400 right-3 top-1/2 transform -translate-y-1/2 text-2xl" />
+              <input
+                type="text"
+                value={searchValue}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                  setCurrentDetailsPage(1);
+                }}
+                placeholder="Search"
+                className="w-full border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg pl-3 pr-10 py-2"
+              />
+            </div>
+            <select
+              name="searchOption"
+              id="searchOption"
+              className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg py-2 text-sm"
+              value={selectedOption}
+              onChange={(e) => setSelectedOption(e.target.value)}>
+              <option value="trackCode">Tracking Code</option>
+              <option value="operator">Name</option>
+            </select>
+          </div>
+        ) : (
+          <div className="flex gap-2 items-center">
+            <label htmlFor="currentFranchiseNum" className=" whitespace-nowrap">
+              Tracking Code
+            </label>
+            <input
+              type="text"
+              name="currentFranchiseNum"
+              id="currentFranchiseNum"
+              value={currentFranchiseNum}
+              readOnly
+              className="w-full border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg pl-3 pr-10 py-2"
+            />
+          </div>
+        )}
+      </div>
+      {currentDetailsPage === 1 ? (
+        <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full sm:h-[78dvh] border border-sky-700 ">
+          <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">Details</h1>
+          <div className="flex items-start content-start overflow-y-auto w-full h-full">
+            <table className="w-full text-sm text-center ">
+              <thead className="text-xs uppercase bg-sky-700 text-white">
+                <tr>
+                  {headerNames.map((header, index) => (
+                    <th
+                      key={index}
+                      scope="col"
+                      className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+                      {header}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((record, index) => (
+                  <tr
+                    key={index}
+                    className="bg-white border-b border-sky-700 hover:bg-sky-100 cursor-pointer"
+                    onClick={() =>
+                      handleProcessApproval(record.id, record.franchise_num)
+                    }>
+                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {record.franchise_num}
+                    </td>
+                    <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
+                      {`${record?.OperatorProfiles?.first_name} ${record?.OperatorProfiles?.last_name} ${record?.OperatorProfiles?.middle_name?.[0]}.`}
+                    </td>
+                    <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
+                      {new Date(record.application_date)
+                        .toISOString()
+                        .slice(0, 10)}
+                    </td>
+                    <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
+                      <button
+                        className={`${
+                          record.status === "pending" &&
+                          "bg-sky-200 text-sky-700"
+                        } ${
+                          record.status === "approved" &&
+                          "bg-green-200 text-green-700"
+                        } ${
+                          record.status === "disappoved" &&
+                          "bg-red-200 text-red-700"
+                        } py-2 px-5 text-sm rounded-lg`}>
+                        {capitalizeFirstLetter(record.status)}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <>
+          {modalViewUploadedDocument && currentViewDocReq && (
+            <div
+              className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black`}>
+              <div className={`rounded-2xl bg-white text-black mx-3 py-3 px-5`}>
+                <div className="flex justify-between items-center py-3">
+                  <h3 className="text-lg leading-6 font-medium text-gray-900">
+                    Review Attached Document
+                  </h3>
+                  <div className="mt-3 sm:mt-0 sm:ml-4 sm:text-right">
+                    <button
+                      className="text-2xl flex items-center justify-center"
+                      onClick={() => setModalViewUploadedDocument(false)}>
+                      <IoMdCloseCircleOutline />
+                    </button>
+                  </div>
+                </div>
+                <div
+                  className="rounded-lg border border-sky-700 py-3 px-5 grid grid-cols-2 gap-6 items-center w-full h-full"
+                  style={{ gridTemplateColumns: "1fr 1fr" }}>
+                  <div>
+                    <label htmlFor="currentViewDocReq">Document Name</label>
+                    <input
+                      type="text"
+                      name="currentViewDocReq"
+                      id="currentViewDocReq"
+                      value={currentViewDocReq.description}
+                      readOnly
+                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="currentViewFileName">File Name</label>
+                    <input
+                      type="text"
+                      name="currentViewFileName"
+                      id="currentViewFileName"
+                      value={`${new Date().getFullYear()}-DOCREQ-${
+                        currentViewDocReq.number
+                      }`}
+                      readOnly
+                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                    />
+                  </div>
+
+                  {/* <div className="preview-here w-full col-span-2">
+                    <object
+                      data={URL.createObjectURL(currentViewDocReq.file)}
+                      type="application/pdf"
+                      width="100%"
+                      height="300px">
+                      <p>
+                        <a href={URL.createObjectURL(currentViewDocReq.file)}>
+                          click here to download the PDF file.
+                        </a>
+                      </p>
+                    </object>
+                  </div> */}
+                </div>
+                <div className="bg-gray-50 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-4">
+                  <button
+                    className="border-red-700 bg-red-700 text-white border py-2 px-4 text-sm rounded-lg"
+                    onClick={() => {
+                      setModalViewUploadedDocument(false);
+                      setCurrentViewDocReq(null);
+                    }}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col gap-5">
+            <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg border border-sky-700">
+              <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
+                OPERATOR{`’`}S INFORMATION
+              </h1>
+              <div className="flex flex-col items-start content-start overflow-y-auto w-full h-full py-2 sm:px-4">
+                <h1 className="text-xl text-sky-700 font-semibold">
+                  {currentOperator}
+                </h1>
+                <h1>{currentOperatorAddress}</h1>
+              </div>
+            </div>
+            <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg border border-sky-700">
+              <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
+                REQUIREMENTS - DOCUMENTS
+              </h1>
+              <div className="flex flex-col items-start content-start overflow-y-auto w-full h-full py-2 sm:px-4">
+                <table className="w-full text-sm text-center ">
+                  <thead className="text-md uppercase border-b border-sky-700 ">
+                    <tr style={{ gridTemplateColumns: "auto 1fr 1fr 1fr 1fr" }}>
+                      {headerDocumentNames.map((header, index) => (
+                        <th
+                          key={index}
+                          scope="col"
+                          className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap font-semibold">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {/* THIS IS SO IMPORTANT:
+                    CHANGE THIS :
+                      {docsRecords.length > 0 &&
+                          docsRecords[0][`doc_${index + 1}_loc`]}
+                    TO:
+                      {docsRecords.length > 0 &&
+                          docsRecords[0][`${index + 1}_loc`]} idk
+                  */}
+                    {documentDesc.map((desc, index) => (
+                      <tr
+                        key={index}
+                        className="bg-white border-b border-sky-700 hover:bg-sky-100 cursor-pointer">
+                        <td className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">
+                          {index + 1}
+                        </td>
+                        <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
+                          {desc.description}
+                        </td>
+                        <td className="px-6 font-medium text-gray-900 whitespace-nowrap">{`${new Date().getFullYear()}-DOCREQ-${
+                          index + 1
+                        }`}</td>
+                        <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
+                          {docsRecords.length > 0 &&
+                            docsRecords[0][`doc_${index + 1}_loc`]}
+                        </td>
+                        <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
+                          <button
+                            className={`border border-green-700 text-green-700 py-2 px-4 text-xs rounded-lg`}
+                            onClick={() => {
+                              handleViewFileUploaded(
+                                index + 1,
+                                desc.description,
+                                docsRecords[0][`doc_${index + 1}_loc`]
+                              );
+                            }}>
+                            View Attached File
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg border border-sky-700">
+              <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
+                APPLICATION STATUS -
+                <span className="italic font-semibold">
+                  {capitalizeFirstLetter(currentStatus)}
+                </span>
+              </h1>
+              <div className="flex items-center justify-start overflow-y-auto w-full h-full py-2 sm:px-4 gap-5">
+                {currentStatus === "pending" ? (
+                  <>
+                    <button className="bg-green-200 text-green-700 py-2 px-5 text-sm rounded-lg">
+                      Approve
+                    </button>
+                    <button className="bg-gray-200 text-gray-700 py-2 px-5 text-sm rounded-lg">
+                      Disappove
+                    </button>
+                  </>
+                ) : (
+                  <button className="bg-red-200 text-red-700 py-2 px-5 text-sm rounded-lg">
+                    Revoke Approval
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
   );
 };
 

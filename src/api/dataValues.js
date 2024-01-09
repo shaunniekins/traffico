@@ -318,3 +318,58 @@ export const insuranceOptions = [
   value: option.id,
   label: option.name,
 }));
+
+export const documentDesc = [
+  {
+    number: 1,
+    description: "Barangay Clearance",
+  },
+  {
+    number: 2,
+    description: "Barangay Certification",
+  },
+  {
+    number: 3,
+    description: "Picture of Side Car",
+  },
+  {
+    number: 4,
+    description: "Insurance TPL/PL",
+  },
+  {
+    number: 5,
+    description: "Xerox Copy Driver’s License",
+  },
+  {
+    number: 6,
+    description: "Stencil",
+  },
+  {
+    number: 7,
+    description: "MTOP Official Receipt",
+  },
+  {
+    number: 8,
+    description: "OR /CR Xerox Copy",
+  },
+  {
+    number: 9,
+    description: "Police Clearance",
+  },
+  {
+    number: 10,
+    description: "Medical Certificate (RHU)",
+  },
+  {
+    number: 11,
+    description: "Voter’s ID/ Voter’s Certificate",
+  },
+  {
+    number: 12,
+    description: "Certification of Road Worthiness  Inspection Form",
+  },
+  {
+    number: 13,
+    description: "Proof of Purchase of Side Card",
+  },
+];

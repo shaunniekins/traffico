@@ -8,7 +8,10 @@ import { useCallback, useEffect, useState } from "react";
 import Select from "react-select";
 import ImageUploader from "./ImageUploader";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-import { insertApplicationData } from "@/api/applicationsData";
+import {
+  checkFranchiseNumber,
+  insertApplicationData,
+} from "@/api/applicationsData";
 import { insertPaymentData } from "@/api/paymentsData";
 import { supabase } from "@/utils/supabase";
 import { insertRequirementDocumentData } from "@/api/requirementsData";
@@ -179,9 +182,27 @@ const Application = () => {
   }, []);
 
   useEffect(() => {
-    const year = new Date().getFullYear();
-    const random4Digits = Math.floor(1000 + Math.random() * 9000);
-    setNewFranchiseNumber(`MTOP-${year}-${random4Digits}`);
+    // const random4Digits = Math.floor(1000 + Math.random() * 9000);
+    // setNewFranchiseNumber(`MTOP-${year}-${random4Digits}`);
+  }, []);
+
+  useEffect(() => {
+    const generateFranchiseNumber = async () => {
+      const year = new Date().getFullYear();
+      let exists = true;
+      let random4Digits = "";
+
+      while (exists) {
+        random4Digits = Math.floor(1000 + Math.random() * 9000).toString();
+
+        const response = await checkFranchiseNumber(random4Digits);
+        exists = Boolean(response && response.data && response.data.length > 0);
+      }
+
+      setNewFranchiseNumber(`MTOP-${year}-${random4Digits}`);
+    };
+
+    generateFranchiseNumber();
   }, []);
 
   const [modalNewPaymentView, setModalNewPaymentView] = useState(false);
@@ -359,6 +380,9 @@ const Application = () => {
     handleSubmissionTricyclePermit({ preventDefault: () => {} });
   };
 
+  const [modalExit, setModalExit] = useState(false);
+  const router = useRouter();
+
   const handleSubmissionTricyclePermit = async (event: any) => {
     event.preventDefault();
 
@@ -422,38 +446,39 @@ const Application = () => {
         ) {
           const newDocsData = {
             application_id: Number(response.data[0].id) || null,
-            doc_1_loc: "doc1_" + response.data[0].id + ".pdf",
-            doc_2_loc: "doc2_" + response.data[0].id + ".pdf",
-            doc_3_loc: "doc3_" + response.data[0].id + ".pdf",
-            doc_4_loc: "doc4_" + response.data[0].id + ".pdf",
-            doc_5_loc: "doc5_" + response.data[0].id + ".pdf",
-            doc_6_loc: "doc6_" + response.data[0].id + ".pdf",
-            doc_7_loc: "doc7_" + response.data[0].id + ".pdf",
-            doc_8_loc: "doc8_" + response.data[0].id + ".pdf",
-            doc_9_loc: "doc9_" + response.data[0].id + ".pdf",
-            doc_10_loc: "doc10_" + response.data[0].id + ".pdf",
-            doc_11_loc: "doc11_" + response.data[0].id + ".pdf",
-            doc_12_loc: "doc12_" + response.data[0].id + ".pdf",
-            doc_13_loc: "doc13_" + response.data[0].id + ".pdf",
+            doc_1_loc: response.data[0].id + "_doc1.pdf",
+            doc_2_loc: response.data[0].id + "_doc2.pdf",
+            doc_3_loc: response.data[0].id + "_doc3.pdf",
+            doc_4_loc: response.data[0].id + "_doc4.pdf",
+            doc_5_loc: response.data[0].id + "_doc5.pdf",
+            doc_6_loc: response.data[0].id + "_doc6.pdf",
+            doc_7_loc: response.data[0].id + "_doc7.pdf",
+            doc_8_loc: response.data[0].id + "_doc8.pdf",
+            doc_9_loc: response.data[0].id + "_doc9.pdf",
+            doc_10_loc: response.data[0].id + "_doc10.pdf",
+            doc_11_loc: response.data[0].id + "_doc11.pdf",
+            doc_12_loc: response.data[0].id + "_doc12.pdf",
+            doc_13_loc: response.data[0].id + "_doc13.pdf",
           };
+
           await insertRequirementDocumentData(newDocsData);
 
           const STORAGE_BUCKET_APPLICATION_REQUIREMENTS =
             "assets/application/requirements_documents";
 
-          const DOC_1 = `doc1_${response.data[0].id}.pdf`;
-          const DOC_2 = `doc2_${response.data[0].id}.pdf`;
-          const DOC_3 = `doc3_${response.data[0].id}.pdf`;
-          const DOC_4 = `doc4_${response.data[0].id}.pdf`;
-          const DOC_5 = `doc5_${response.data[0].id}.pdf`;
-          const DOC_6 = `doc6_${response.data[0].id}.pdf`;
-          const DOC_7 = `doc7_${response.data[0].id}.pdf`;
-          const DOC_8 = `doc8_${response.data[0].id}.pdf`;
-          const DOC_9 = `doc9_${response.data[0].id}.pdf`;
-          const DOC_10 = `doc10_${response.data[0].id}.pdf`;
-          const DOC_11 = `doc11_${response.data[0].id}.pdf`;
-          const DOC_12 = `doc12_${response.data[0].id}.pdf`;
-          const DOC_13 = `doc13_${response.data[0].id}.pdf`;
+          const DOC_1 = `${response.data[0].id}_doc1.pdf`;
+          const DOC_2 = `${response.data[0].id}_doc2.pdf`;
+          const DOC_3 = `${response.data[0].id}_doc3.pdf`;
+          const DOC_4 = `${response.data[0].id}_doc4.pdf`;
+          const DOC_5 = `${response.data[0].id}_doc5.pdf`;
+          const DOC_6 = `${response.data[0].id}_doc6.pdf`;
+          const DOC_7 = `${response.data[0].id}_doc7.pdf`;
+          const DOC_8 = `${response.data[0].id}_doc8.pdf`;
+          const DOC_9 = `${response.data[0].id}_doc9.pdf`;
+          const DOC_10 = `${response.data[0].id}_doc10.pdf`;
+          const DOC_11 = `${response.data[0].id}_doc11.pdf`;
+          const DOC_12 = `${response.data[0].id}_doc12.pdf`;
+          const DOC_13 = `${response.data[0].id}_doc13.pdf`;
 
           const documents = [
             { name: DOC_1, file: newDocReq1 },
@@ -478,8 +503,8 @@ const Application = () => {
           }
         }
       }
+      setModalExit(true);
 
-      setModalExit(false);
       setApplicationCurrentPage(1);
       setNewApplicationDate(new Date().toISOString().split("T")[0]);
       setNewFranchiseNumber("");
@@ -522,13 +547,8 @@ const Application = () => {
       setNewDocReq12(null);
       setNewDocReq13(null);
       setCurrentFileUpload(null);
-
-      setModalExit(false);
     }
   };
-
-  const [modalExit, setModalExit] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     if (recordVehicles.length > 0) {
@@ -1115,6 +1135,7 @@ const Application = () => {
                 <div className="mt-3 sm:mt-0 sm:ml-4 sm:text-right">
                   <button
                     className="text-2xl flex items-center justify-center"
+                    // setModalViewUploadedDocument(false) ??
                     onClick={() => setModalNewUploadDocument(false)}>
                     <IoMdCloseCircleOutline />
                   </button>

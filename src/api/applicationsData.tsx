@@ -1,5 +1,22 @@
 import { supabase, supabaseAdmin } from "@/utils/supabase";
 
+export const checkFranchiseNumber = async (franchiseNum: string) => {
+  try {
+    const response = await supabase
+      .from("Applications")
+      .select("*")
+      .eq("franchise_num", franchiseNum);
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
 export const fetchApplicationData = async (
   searchValue: string,
   filterType: string
@@ -19,6 +36,7 @@ export const fetchApplicationData = async (
         insurance_expiry_date,
         body_num, 
         zone,
+        status,
         OperatorProfiles!inner(id, last_name, first_name, middle_name, birth_date, address, civil_status, contact_num, is_active,
           VehicleOwnershipRecords!inner(id, operator_id, date_registered, chassis_num, lto_plate_num, color_code, motor_num, body_num)
         ),
@@ -78,6 +96,8 @@ export const fetchApplicationData = async (
           "ilike",
           `%${searchValue}%`
         );
+      } else if (filterType === "trackCode") {
+        query = query.ilike("franchise_num", `%${searchValue}%`);
       }
     }
 
