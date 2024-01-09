@@ -22,6 +22,23 @@ export const fetchPVehicleOwnershipReportById = async (id: string) => {
   }
 };
 
+export const checkVehicleBodyNumber = async (bodyNumber: string) => {
+  try {
+    const response = await supabase
+      .from("VehicleOwnershipRecords")
+      .select("*")
+      .eq("body_num", bodyNumber);
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
 export const insertVehicleOwnershipReportData = async (data: any) => {
   try {
     const response = await supabase

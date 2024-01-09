@@ -530,6 +530,16 @@ const Application = () => {
   const [modalExit, setModalExit] = useState(false);
   const router = useRouter();
 
+  useEffect(() => {
+    if (recordVehicles.length > 0) {
+      setNewBodyNumber(recordVehicles[0].id);
+    }
+  }, [recordVehicles]);
+
+  // useEffect(() => {
+  //   console.log("body number", newBodyNumber);
+  // }, [newBodyNumber]);
+
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
       <div className="flex justify-between items-center flex-col md:flex-row">
@@ -553,7 +563,7 @@ const Application = () => {
               <label htmlFor="newApplicationDate">Application Date</label>
               <input
                 type="date"
-                name="newDateRegistered"
+                name="newApplicationDate"
                 id="newApplicationDate"
                 value={newApplicationDate}
                 placeholder="Application Date"
@@ -615,6 +625,7 @@ const Application = () => {
                   <select
                     name="newBodyNumber"
                     id="newBodyNumber"
+                    value={newBodyNumber}
                     onChange={(e) => setNewBodyNumber(e.target.value)}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2">
                     {recordVehicles.map((vehicle, index) => (

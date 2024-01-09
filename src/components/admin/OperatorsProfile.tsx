@@ -34,6 +34,7 @@ import {
 } from "@/api/operatorProfilesData";
 import { supabase } from "@/utils/supabase";
 import {
+  checkVehicleBodyNumber,
   editVehicleOwnershipReportData,
   fetchPVehicleOwnershipReportById,
   insertVehicleOwnershipReportData,
@@ -145,15 +146,28 @@ const OperatorsProfile = () => {
   );
 
   useEffect(() => {
-    const random4Digits = String(Math.floor(Math.random() * 10000)).padStart(
-      4,
-      "0"
-    );
-    setNewBodyNumber(random4Digits);
+    const generateBodyNumber = async () => {
+      let exists = true;
+      let random4Digits = "";
+
+      while (exists) {
+        const random3Digits = Math.floor(Math.random() * 900) + 100;
+        random4Digits = "0" + random3Digits;
+
+        const response = await checkVehicleBodyNumber(random4Digits);
+        exists = Boolean(response && response.data && response.data.length > 0);
+      }
+
+      setNewBodyNumber(random4Digits);
+    };
+
+    generateBodyNumber();
   }, []);
 
   // displaying data
-  const [dateRegistered, setDateRegistered] = useState("");
+  const [dateRegistered, setDateRegistered] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [middleName, setMiddleName] = useState("");
@@ -937,13 +951,10 @@ const OperatorsProfile = () => {
                   <label htmlFor="newBodyNumber">Body Number</label>
                   <input
                     type="number"
-                    max={9999}
-                    maxLength={4}
                     name="newBodyNumber"
                     id="newBodyNumber"
                     value={newBodyNumber}
-                    placeholder="Body Number"
-                    onChange={(e) => setNewBodyNumber(e.target.value)}
+                    readOnly
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
                   <label htmlFor="newDateRegisteredVehicle">
