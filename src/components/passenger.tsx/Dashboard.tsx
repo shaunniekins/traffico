@@ -11,13 +11,20 @@ import {
 import { RiSettings3Line } from "react-icons/ri";
 
 import QrScannerComponent from "./QrScanner";
+import dynamic from "next/dynamic";
+
+const MapContainerComponent = dynamic(() => import("./MapContainer"), {
+  ssr: false,
+});
 
 const DashboardPassengerComponent = () => {
   const [currentView, setCurrentView] = useState("fare");
 
   return (
     <div className="w-screen h-[100svh] flex flex-col relative">
-      <div>{currentView === "report" && <QrScannerComponent />}</div>
+      {currentView === "fare" && <MapContainerComponent />}
+      {currentView === "report" && <QrScannerComponent />}
+
       <div className="z-50 w-full absolute bottom-0 flex flex-col">
         <div className="bg-[#171A20] justify-around items-center gap-2 flex flex-row py-4 my-10 mx-20 rounded-2xl">
           <button
