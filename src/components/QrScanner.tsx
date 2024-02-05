@@ -12,8 +12,14 @@ import { supabase } from "@/utils/supabase";
 import Select from "react-select";
 import { routes } from "@/api/dataValues";
 import Image from "next/image";
+import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import { usePathname } from "next/navigation";
 
-const QrScannerComponent = () => {
+const QrScannerComponent = ({
+  setShowBottomBar,
+}: {
+  setShowBottomBar: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [color, setColor] = useState("#1F619F");
   const [isQRCodeDetected, setIsQRCodeDetected] = useState(false);
   //   const [displayScanResult, setDisplayScanResult] = useState(false);
@@ -21,6 +27,13 @@ const QrScannerComponent = () => {
   const [bodyNumberInput, setBodyNumberInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bodyNumberFinalValue, setBodyNumberFinalValue] = useState("");
+
+  const pathname = usePathname();
+  const userType = pathname.includes("/passenger/")
+    ? "passenger"
+    : pathname.includes("/personnel/")
+    ? "personnel"
+    : null;
 
   const [isError, setIsError] = useState(false);
 
@@ -85,6 +98,7 @@ const QrScannerComponent = () => {
 
     setIsQRCodeDetected(true);
     // setDisplayScanResult(true);
+    setShowBottomBar(false);
     setBodyNumberFinalValue(result);
     handleFetchpplicationData(result, "bodyNum");
   };
@@ -152,6 +166,19 @@ const QrScannerComponent = () => {
 
   const handleReportSubmit = () => {
     setToggleReportMessage(true);
+  };
+
+  const handleExit = () => {
+    if (window.confirm("Are you sure you want to exit?")) {
+      setShowBottomBar(true);
+      setRecords([]);
+      setCurrentDriver("");
+      setCurrentComplain(null);
+      setCurrentComplainantName("");
+      setCurrentContactNumber("");
+      setCurrentDate("");
+      setCurrentTime("");
+    }
   };
 
   return (
@@ -229,9 +256,10 @@ const QrScannerComponent = () => {
           />
         </div>
       ) : (
-        <div className="z-0 flex flex-col gap-10 h-full">
-          <div className="flex justify-between items-center flex-col md:flex-row m-5">
-            {/* <div className="rounded-[2rem] overflow-hidden flex justify-center items-center">
+        <div className="z-0 flex flex-col gap-10 h-full overflow-y-auto sm:overflow-y-hidden">
+          <div className="h-full w-full flex flex-col justify-between">
+            <div className="flex justify-between items-center flex-col m-5">
+              {/* <div className="rounded-[2rem] overflow-hidden flex justify-center items-center">
               <Image
                 src="/traffico-logo.jpeg"
                 alt="Traffico Logo"
@@ -239,128 +267,141 @@ const QrScannerComponent = () => {
                 height={200}
               />
             </div> */}
-            <h1 className="px-3 py-2 sm:px-4 mt-6 mb-10 font-semibold text-sky-700 text-2xl">
-              REPORT TRICYCLE
-            </h1>
-            <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full gap-3 flex flex-col">
-              <div>
-                <label htmlFor="currentBodyNum">Body Number</label>
-                <input
-                  type="text"
-                  name="currentBodyNum"
-                  id="currentBodyNum"
-                  value={currentBodyNum}
-                  readOnly
-                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                />
-              </div>
-              <div>
-                <label htmlFor="currentDriver">Driver's Name</label>
-                <input
-                  type="text"
-                  name="currentDriver"
-                  id="currentDriver"
-                  value={currentDriver}
-                  onChange={(e) => setCurrentDriver(e.target.value)}
-                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                />
-              </div>
-              <div>
-                <label htmlFor="currentComplain">Complain</label>
-                <Select
-                  name="currentComplain"
-                  id="currentComplain"
-                  value={currentComplain}
-                  onChange={(selectedOption: OptionType | null) => {
-                    if (selectedOption) {
-                      setCurrentComplain(selectedOption);
-                    }
-                  }}
-                  options={reportTypeOptions}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="currentComplainantName">Complainant Name</label>
-                <input
-                  type="text"
-                  name="currentComplainantName"
-                  id="currentComplainantName"
-                  value={currentComplainantName}
-                  placeholder="Enter complainant name"
-                  onChange={(e) => setCurrentComplainantName(e.target.value)}
-                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                />
-              </div>
-              <div>
-                <label htmlFor="currentContactNumber">
-                  Complainant Contact Number
-                </label>
-                <input
-                  type="text"
-                  name="currentContactNumber"
-                  id="currentContactNumber"
-                  value={currentContactNumber}
-                  placeholder="Enter complainant contact number"
-                  onChange={(e) => setCurrentContactNumber(e.target.value)}
-                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                />
-              </div>
-              <div
-                className="grid grid-cols-2 gap-x-3 items-center"
-                // style={{ gridTemplateColumns: "auto 1fr auto 1fr" }}
-              >
-                <label htmlFor="currentDate">Date</label>
-                <label htmlFor="currentTime">Time</label>
-
-                <input
-                  type="date"
-                  name="currentDate"
-                  id="currentDate"
-                  value={currentDate}
-                  onChange={(e) => setCurrentDate(e.target.value)}
-                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                />
-                <input
-                  type="time"
-                  name="currentTime"
-                  id="currentTime"
-                  value={currentTime}
-                  onChange={(e) => setCurrentTime(e.target.value)}
-                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                />
-              </div>
-              <div className="w-full flex justify-end space-x-3 text-lg mt-8">
+              <h1 className="py-2 sm:px-4 mb-6 font-semibold text-sky-700 text-2xl w-full flex justify-between items-center">
                 <button
                   onClick={() => {
-                    setRecords([]);
-                    setCurrentDriver("");
-                    setCurrentComplain(null);
-                    setCurrentComplainantName("");
-                    setCurrentContactNumber("");
-                    setCurrentDate("");
-                    setCurrentTime("");
-                  }}
-                  className="w-full p-2 bg-red-700 text-white rounded-md">
-                  Cancel
+                    handleExit();
+                  }}>
+                  <IoChevronBack />
                 </button>
-                <button
-                  onClick={handleReportSubmit}
-                  disabled={
-                    !currentComplain ||
-                    !currentComplainantName ||
-                    !currentContactNumber
-                  }
-                  className={`${
-                    !currentComplain ||
-                    !currentComplainantName ||
-                    !currentContactNumber
-                      ? "bg-gray-700 text-gray-300"
-                      : "bg-sky-700 text-white"
-                  } w-full p-2 rounded-md`}>
-                  Report
-                </button>
+                <span>REPORT TRICYCLE</span>
+                <span className="text-gray-50">
+                  {" "}
+                  <IoChevronForward />
+                </span>
+              </h1>
+              <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full gap-3 flex flex-col">
+                <div>
+                  <label htmlFor="currentBodyNum">Body Number</label>
+                  <input
+                    type="text"
+                    name="currentBodyNum"
+                    id="currentBodyNum"
+                    value={currentBodyNum}
+                    readOnly
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="currentDriver">Driver's Name</label>
+                  <input
+                    type="text"
+                    name="currentDriver"
+                    id="currentDriver"
+                    value={currentDriver}
+                    onChange={(e) => setCurrentDriver(e.target.value)}
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="currentComplain">Complain</label>
+                  <Select
+                    name="currentComplain"
+                    id="currentComplain"
+                    value={currentComplain}
+                    onChange={(selectedOption: OptionType | null) => {
+                      if (selectedOption) {
+                        setCurrentComplain(selectedOption);
+                      }
+                    }}
+                    options={reportTypeOptions}
+                  />
+                </div>
+
+                {userType === "passenger" && (
+                  <>
+                    <div>
+                      <label htmlFor="currentComplainantName">
+                        Complainant Name
+                      </label>
+                      <input
+                        type="text"
+                        name="currentComplainantName"
+                        id="currentComplainantName"
+                        value={currentComplainantName}
+                        placeholder="Enter complainant name"
+                        onChange={(e) =>
+                          setCurrentComplainantName(e.target.value)
+                        }
+                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="currentContactNumber">
+                        Complainant Contact Number
+                      </label>
+                      <input
+                        type="text"
+                        name="currentContactNumber"
+                        id="currentContactNumber"
+                        value={currentContactNumber}
+                        placeholder="Enter complainant contact number"
+                        onChange={(e) =>
+                          setCurrentContactNumber(e.target.value)
+                        }
+                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                      />
+                    </div>
+                  </>
+                )}
+
+                <div className="grid grid-cols-2 gap-x-3 items-center">
+                  <label htmlFor="currentDate">Date</label>
+                  <label htmlFor="currentTime">Time</label>
+
+                  <input
+                    type="date"
+                    name="currentDate"
+                    id="currentDate"
+                    value={currentDate}
+                    onChange={(e) => setCurrentDate(e.target.value)}
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                  />
+                  <input
+                    type="time"
+                    name="currentTime"
+                    id="currentTime"
+                    value={currentTime}
+                    onChange={(e) => setCurrentTime(e.target.value)}
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                  />
+                </div>
               </div>
+            </div>
+            <div className="flex justify-end space-x-3 text-lg  m-5">
+              <button
+                onClick={() => {
+                  handleExit();
+                }}
+                className="w-full p-2 bg-red-700 text-white rounded-md">
+                Cancel
+              </button>
+              <button
+                onClick={handleReportSubmit}
+                disabled={
+                  !currentComplain ||
+                  !currentComplainantName ||
+                  !currentContactNumber
+                }
+                className={`${
+                  !currentComplain ||
+                  !currentComplainantName ||
+                  !currentContactNumber
+                    ? "bg-gray-700 text-gray-300"
+                    : "bg-sky-700 text-white"
+                } w-full p-2 rounded-md`}>
+                Report
+              </button>
             </div>
           </div>
         </div>

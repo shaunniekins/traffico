@@ -7,39 +7,38 @@ import {
   MdOutlineMyLocation,
   MdOutlineSettings,
   MdOutlineShareLocation,
+  MdOutlineChecklist,
 } from "react-icons/md";
 import { RiSettings3Line } from "react-icons/ri";
-
+import Reports from "./Reports";
+import TopbarFloat from "./TopbarFloat";
 import QrScannerComponent from "../QrScanner";
-import dynamic from "next/dynamic";
 
-const MapContainerComponent = dynamic(() => import("./MapContainer"), {
-  ssr: false,
-});
-
-const DashboardPassengerComponent = () => {
-  const [currentView, setCurrentView] = useState("fare");
+const EnforcerDashboardComponent = () => {
+  const [currentView, setCurrentView] = useState("lists");
   const [showBottomBar, setShowBottomBar] = useState(true);
 
   return (
     <div className="w-screen h-[100svh] flex flex-col relative">
-      {currentView === "fare" && <MapContainerComponent />}
-      {currentView === "report" && (
-        <QrScannerComponent setShowBottomBar={setShowBottomBar} />
-      )}
+      <div className="h-full flex flex-col bg-[#f2f2f2]">
+        {/* <TopbarFloat /> */}
+        {currentView === "lists" && <TopbarFloat />}
+        {currentView === "lists" && <Reports />}
+        {currentView === "report" && (
+          <QrScannerComponent setShowBottomBar={setShowBottomBar} />
+        )}
+      </div>
       {showBottomBar && (
         <div className="z-50 w-full absolute bottom-0 flex flex-col">
           <div className="bg-[#171A20] justify-around items-center gap-2 flex flex-row py-4 my-10 mx-20 rounded-2xl">
             <button
               className={`w-full flex flex-col items-center justify-center text-[38px] ${
-                currentView === "fare" ? "text-sky-700" : "text-white"
+                currentView === "lists" ? "text-sky-700" : "text-white"
               }`}
               onClick={() => {
-                setCurrentView("fare");
+                setCurrentView("lists");
               }}>
-              {/* <MdOutlineShareLocation /> */}
-              <MdOutlineMyLocation />
-              {/* <p className="text-sm">Profile</p> */}
+              <MdOutlineChecklist />
             </button>
             <button
               className={`w-full flex flex-col items-center justify-center text-[38px] ${
@@ -49,7 +48,6 @@ const DashboardPassengerComponent = () => {
                 setCurrentView("report");
               }}>
               <LuScanLine />
-              {/* <p className="text-sm">Orders</p> */}
             </button>
             <button
               className={`w-full flex flex-col items-center justify-center text-[38px] ${
@@ -58,9 +56,7 @@ const DashboardPassengerComponent = () => {
               onClick={() => {
                 setCurrentView("settings");
               }}>
-              {/* <MdOutlineSettings /> */}
-              <RiSettings3Line />
-              {/* <p className="text-sm">Orders</p> */}
+              <MdOutlineSettings />
             </button>
           </div>
         </div>
@@ -69,4 +65,4 @@ const DashboardPassengerComponent = () => {
   );
 };
 
-export default DashboardPassengerComponent;
+export default EnforcerDashboardComponent;

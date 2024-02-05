@@ -11,7 +11,7 @@ module.exports = {
       {
         source: "/admin",
         destination: "/admin/dashboard/dashboard",
-        permanent: true,
+        permanent: false,
       },
       //   {
       //     source: "/dashboard",

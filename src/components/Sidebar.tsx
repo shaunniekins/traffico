@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
     <div
       className={`${
         isMenuOpen ? "visible" : "hidden"
-      } bg-[#03396C] rounded-r-3xl font-RobotoCondensed select-none transition-all duration-500 z-10`}>
+      } bg-[#03396C] rounded-r-3xl font-RobotoCondensed select-none transition-all duration-500 z-10 overflow-y-auto md:overflow-y-hidden`}>
       <div
         className={`
         ${isMenuOpen ? "flex" : "hidden"}
