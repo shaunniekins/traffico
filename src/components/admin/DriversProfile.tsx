@@ -409,7 +409,7 @@ const DriversProfile = () => {
                     value={newCivilStatus}
                     onChange={(e) => setNewCivilStatus(e.target.value)}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
-                    <option value=""> -- Select --</option>
+                    <option value=""> Select...</option>
                     <option value="single">Single</option>
                     <option value="married">Married</option>
                   </select>
@@ -641,7 +641,7 @@ const DriversProfile = () => {
                   value={civilStatus}
                   onChange={(e) => setCivilStatus(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
-                  <option value=""> -- Select --</option>
+                  <option value=""> Select...</option>
                   <option value="single">Single</option>
                   <option value="married">Married</option>
                 </select>

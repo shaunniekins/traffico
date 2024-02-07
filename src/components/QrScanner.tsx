@@ -14,6 +14,7 @@ import { routes } from "@/api/dataValues";
 import Image from "next/image";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { usePathname } from "next/navigation";
+import { insertReportViolations } from "@/api/reportViolationsData";
 
 const QrScannerComponent = ({
   setShowBottomBar,
@@ -31,8 +32,8 @@ const QrScannerComponent = ({
   const pathname = usePathname();
   const userType = pathname.includes("/passenger/")
     ? "passenger"
-    : pathname.includes("/personnel/")
-    ? "personnel"
+    : pathname.includes("/enforcer/")
+    ? "enforcer"
     : null;
 
   const [isError, setIsError] = useState(false);
@@ -123,6 +124,7 @@ const QrScannerComponent = ({
   const [currentTime, setCurrentTime] = useState(
     () => new Date().toTimeString().split(" ")[0]
   );
+  const [violation, setViolation] = useState("");
 
   const handleFetchpplicationData = async (
     bodyNum: string,
@@ -164,21 +166,52 @@ const QrScannerComponent = ({
   const [reportMessage, setReportMessage] = useState("");
   const [toggleReportMessage, setToggleReportMessage] = useState(false);
 
-  const handleReportSubmit = () => {
+  const handleReportSubmit = async () => {
+    const reportPassengerData = {
+      body_num: currentBodyNum,
+      complain: currentComplain?.label,
+      date: currentDate,
+      time: currentTime,
+      // passenger_id:
+      complainant_name: currentComplainantName,
+      complainant_contact_num: currentContactNumber,
+      // route:
+    };
+
+    const reportEnforcerData = {
+      body_num: currentBodyNum,
+      complain: currentComplain?.label,
+      date: currentDate,
+      time: currentTime,
+      violation: violation,
+      // enforcer_id:
+    };
+
+    if (userType === "passenger") {
+      await insertReportViolations(reportPassengerData);
+    } else if (userType === "enforcer") {
+      await insertReportViolations(reportEnforcerData);
+    }
+
     setToggleReportMessage(true);
   };
 
   const handleExit = () => {
     if (window.confirm("Are you sure you want to exit?")) {
-      setShowBottomBar(true);
-      setRecords([]);
-      setCurrentDriver("");
-      setCurrentComplain(null);
-      setCurrentComplainantName("");
-      setCurrentContactNumber("");
-      setCurrentDate("");
-      setCurrentTime("");
+      resetValues();
     }
+  };
+
+  const resetValues = () => {
+    setShowBottomBar(true);
+    setRecords([]);
+    setCurrentDriver("");
+    setCurrentComplain(null);
+    setCurrentComplainantName("");
+    setCurrentContactNumber("");
+    setCurrentDate("");
+    setCurrentTime("");
+    setViolation("");
   };
 
   return (
@@ -258,7 +291,7 @@ const QrScannerComponent = ({
       ) : (
         <div className="z-0 flex flex-col gap-10 h-full overflow-y-auto sm:overflow-y-hidden">
           <div className="h-full w-full flex flex-col justify-between">
-            <div className="flex justify-between items-center flex-col m-5">
+            <div className="flex justify-between items-center flex-col m-5 h-full">
               {/* <div className="rounded-[2rem] overflow-hidden flex justify-center items-center">
               <Image
                 src="/traffico-logo.jpeg"
@@ -275,7 +308,7 @@ const QrScannerComponent = ({
                   <IoChevronBack />
                 </button>
                 <span>REPORT TRICYCLE</span>
-                <span className="text-gray-50">
+                <span className="text-[#f2f2f2]">
                   {" "}
                   <IoChevronForward />
                 </span>
@@ -299,6 +332,7 @@ const QrScannerComponent = ({
                     name="currentDriver"
                     id="currentDriver"
                     value={currentDriver}
+                    readOnly
                     onChange={(e) => setCurrentDriver(e.target.value)}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
@@ -376,9 +410,30 @@ const QrScannerComponent = ({
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
                 </div>
+                {userType === "enforcer" && (
+                  <div>
+                    <label htmlFor="violation">Violation</label>
+                    <select
+                      name="violation"
+                      id="violation"
+                      value={violation}
+                      onChange={(e) => setViolation(e.target.value)}
+                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-white">
+                      <option value="">Select...</option>
+                      <option value="first-offense">1st Offense: Php300</option>
+                      <option value="second-offense">
+                        2nd Offense: Php400
+                      </option>
+                      <option value="third-offense">3rd Offense: Php500</option>
+                      <option value="cancel-permit">
+                        Cancellation of Permit
+                      </option>
+                    </select>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="flex justify-end space-x-3 text-lg  m-5">
+            <div className="flex justify-end space-x-3 text-lg m-5">
               <button
                 onClick={() => {
                   handleExit();
@@ -390,13 +445,15 @@ const QrScannerComponent = ({
                 onClick={handleReportSubmit}
                 disabled={
                   !currentComplain ||
-                  !currentComplainantName ||
-                  !currentContactNumber
+                  (userType === "passenger"
+                    ? !currentComplainantName || !currentContactNumber
+                    : !violation)
                 }
                 className={`${
                   !currentComplain ||
-                  !currentComplainantName ||
-                  !currentContactNumber
+                  (userType === "passenger"
+                    ? !currentComplainantName || !currentContactNumber
+                    : !violation)
                     ? "bg-gray-700 text-gray-300"
                     : "bg-sky-700 text-white"
                 } w-full p-2 rounded-md`}>
@@ -420,14 +477,8 @@ const QrScannerComponent = ({
             </div>
             <button
               onClick={() => {
+                resetValues();
                 setToggleReportMessage(false);
-                setRecords([]);
-                setCurrentDriver("");
-                setCurrentComplain(null);
-                setCurrentComplainantName("");
-                setCurrentContactNumber("");
-                setCurrentDate("");
-                setCurrentTime("");
               }}
               className="w-full p-2 bg-sky-700 text-white rounded-md">
               Okay

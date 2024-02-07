@@ -11,7 +11,7 @@ import {
 } from "react-icons/md";
 import { RiSettings3Line } from "react-icons/ri";
 import Reports from "./Reports";
-import TopbarFloat from "./TopbarFloat";
+import TopbarFloat from "../TopbarFloat";
 import QrScannerComponent from "../QrScanner";
 
 const EnforcerDashboardComponent = () => {
@@ -23,7 +23,9 @@ const EnforcerDashboardComponent = () => {
       <div className="h-full flex flex-col bg-[#f2f2f2]">
         {/* <TopbarFloat /> */}
         {currentView === "lists" && <TopbarFloat />}
-        {currentView === "lists" && <Reports />}
+        {currentView === "lists" && (
+          <Reports setShowBottomBar={setShowBottomBar} />
+        )}
         {currentView === "report" && (
           <QrScannerComponent setShowBottomBar={setShowBottomBar} />
         )}
