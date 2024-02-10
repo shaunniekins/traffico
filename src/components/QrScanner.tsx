@@ -15,6 +15,11 @@ import Image from "next/image";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import { insertReportViolations } from "@/api/reportViolationsData";
+import dynamic from "next/dynamic";
+
+const MapContainerComponent = dynamic(() => import("./MapContainer"), {
+  ssr: false,
+});
 
 const QrScannerComponent = ({
   setShowBottomBar,
@@ -35,6 +40,14 @@ const QrScannerComponent = ({
     : pathname.includes("/enforcer/")
     ? "enforcer"
     : null;
+
+  const [position, setPosition] = useState<[number, number]>([0, 0]);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      setPosition([position.coords.latitude, position.coords.longitude]);
+    });
+  }, []);
 
   const [isError, setIsError] = useState(false);
 
@@ -125,6 +138,8 @@ const QrScannerComponent = ({
     () => new Date().toTimeString().split(" ")[0]
   );
   const [violation, setViolation] = useState("");
+
+  const [toggleSearchLoc, setToggleSearchLoc] = useState(false);
 
   const handleFetchpplicationData = async (
     bodyNum: string,
@@ -289,179 +304,205 @@ const QrScannerComponent = ({
           />
         </div>
       ) : (
-        <div className="z-0 flex flex-col gap-10 h-full overflow-y-auto sm:overflow-y-hidden">
-          <div className="h-full w-full flex flex-col justify-between">
-            <div className="flex justify-between items-center flex-col m-5 h-full">
-              {/* <div className="rounded-[2rem] overflow-hidden flex justify-center items-center">
-              <Image
-                src="/traffico-logo.jpeg"
-                alt="Traffico Logo"
-                width={200}
-                height={200}
-              />
-            </div> */}
-              <h1 className="py-2 sm:px-4 mb-6 font-semibold text-sky-700 text-2xl w-full flex justify-between items-center">
-                <button
-                  onClick={() => {
-                    handleExit();
-                  }}>
-                  <IoChevronBack />
-                </button>
-                <span>REPORT TRICYCLE</span>
-                <span className="text-[#f2f2f2]">
-                  {" "}
-                  <IoChevronForward />
-                </span>
-              </h1>
-              <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full gap-3 flex flex-col">
-                <div>
-                  <label htmlFor="currentBodyNum">Body Number</label>
-                  <input
-                    type="text"
-                    name="currentBodyNum"
-                    id="currentBodyNum"
-                    value={currentBodyNum}
-                    readOnly
-                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+        <>
+          {!toggleSearchLoc ? (
+            <div className="z-0 flex flex-col gap-10 h-full overflow-y-auto sm:overflow-y-hidden">
+              <div className="h-full w-full flex flex-col justify-between">
+                <div className="flex justify-between items-center flex-col m-5 h-full overflow-x-hidden sm:overflow-y-hidden">
+                  {/* <div className="rounded-[2rem] overflow-hidden flex justify-center items-center">
+                  <Image
+                    src="/traffico-logo.jpeg"
+                    alt="Traffico Logo"
+                    width={200}
+                    height={200}
                   />
-                </div>
-                <div>
-                  <label htmlFor="currentDriver">Driver's Name</label>
-                  <input
-                    type="text"
-                    name="currentDriver"
-                    id="currentDriver"
-                    value={currentDriver}
-                    readOnly
-                    onChange={(e) => setCurrentDriver(e.target.value)}
-                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="currentComplain">Complain</label>
-                  <Select
-                    name="currentComplain"
-                    id="currentComplain"
-                    value={currentComplain}
-                    onChange={(selectedOption: OptionType | null) => {
-                      if (selectedOption) {
-                        setCurrentComplain(selectedOption);
-                      }
-                    }}
-                    options={reportTypeOptions}
-                  />
-                </div>
-
-                {userType === "passenger" && (
-                  <>
+                </div> */}
+                  <h1 className="py-2 sm:px-4 mb-6 font-semibold text-sky-700 text-2xl w-full flex justify-between items-center">
+                    <button
+                      onClick={() => {
+                        handleExit();
+                      }}>
+                      <IoChevronBack />
+                    </button>
+                    <span>REPORT TRICYCLE</span>
+                    <span className="text-[#f2f2f2]">
+                      {" "}
+                      <IoChevronForward />
+                    </span>
+                  </h1>
+                  <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full gap-3 flex flex-col">
                     <div>
-                      <label htmlFor="currentComplainantName">
-                        Complainant Name
-                      </label>
+                      <label htmlFor="currentBodyNum">Body Number</label>
                       <input
                         type="text"
-                        name="currentComplainantName"
-                        id="currentComplainantName"
-                        value={currentComplainantName}
-                        placeholder="Enter complainant name"
-                        onChange={(e) =>
-                          setCurrentComplainantName(e.target.value)
-                        }
+                        name="currentBodyNum"
+                        id="currentBodyNum"
+                        value={currentBodyNum}
+                        readOnly
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
                     </div>
                     <div>
-                      <label htmlFor="currentContactNumber">
-                        Complainant Contact Number
-                      </label>
+                      <label htmlFor="currentDriver">Driver's Name</label>
                       <input
                         type="text"
-                        name="currentContactNumber"
-                        id="currentContactNumber"
-                        value={currentContactNumber}
-                        placeholder="Enter complainant contact number"
-                        onChange={(e) =>
-                          setCurrentContactNumber(e.target.value)
-                        }
+                        name="currentDriver"
+                        id="currentDriver"
+                        value={currentDriver}
+                        readOnly
+                        onChange={(e) => setCurrentDriver(e.target.value)}
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
                     </div>
-                  </>
-                )}
+                    <div>
+                      <label htmlFor="currentComplain">Complain</label>
+                      <Select
+                        name="currentComplain"
+                        id="currentComplain"
+                        value={currentComplain}
+                        onChange={(selectedOption: OptionType | null) => {
+                          if (selectedOption) {
+                            setCurrentComplain(selectedOption);
+                          }
+                        }}
+                        options={reportTypeOptions}
+                      />
+                    </div>
 
-                <div className="grid grid-cols-2 gap-x-3 items-center">
-                  <label htmlFor="currentDate">Date</label>
-                  <label htmlFor="currentTime">Time</label>
+                    {userType === "passenger" && (
+                      <>
+                        <div>
+                          <label htmlFor="currentComplainantName">
+                            Complainant Name
+                          </label>
+                          <input
+                            type="text"
+                            name="currentComplainantName"
+                            id="currentComplainantName"
+                            value={currentComplainantName}
+                            placeholder="Enter complainant name"
+                            onChange={(e) =>
+                              setCurrentComplainantName(e.target.value)
+                            }
+                            className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="currentContactNumber">
+                            Complainant Contact Number
+                          </label>
+                          <input
+                            type="text"
+                            name="currentContactNumber"
+                            id="currentContactNumber"
+                            value={currentContactNumber}
+                            placeholder="Enter complainant contact number"
+                            onChange={(e) =>
+                              setCurrentContactNumber(e.target.value)
+                            }
+                            className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                          />
+                        </div>
+                      </>
+                    )}
+                    <div className="grid grid-cols-2 gap-x-3 items-center">
+                      <label htmlFor="currentDate">Date</label>
+                      <label htmlFor="currentTime">Time</label>
 
-                  <input
-                    type="date"
-                    name="currentDate"
-                    id="currentDate"
-                    value={currentDate}
-                    onChange={(e) => setCurrentDate(e.target.value)}
-                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                  />
-                  <input
-                    type="time"
-                    name="currentTime"
-                    id="currentTime"
-                    value={currentTime}
-                    onChange={(e) => setCurrentTime(e.target.value)}
-                    className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                  />
-                </div>
-                {userType === "enforcer" && (
-                  <div>
-                    <label htmlFor="violation">Violation</label>
-                    <select
-                      name="violation"
-                      id="violation"
-                      value={violation}
-                      onChange={(e) => setViolation(e.target.value)}
-                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-white">
-                      <option value="">Select...</option>
-                      <option value="first-offense">1st Offense: Php300</option>
-                      <option value="second-offense">
-                        2nd Offense: Php400
-                      </option>
-                      <option value="third-offense">3rd Offense: Php500</option>
-                      <option value="cancel-permit">
-                        Cancellation of Permit
-                      </option>
-                    </select>
+                      <input
+                        type="date"
+                        name="currentDate"
+                        id="currentDate"
+                        value={currentDate}
+                        onChange={(e) => setCurrentDate(e.target.value)}
+                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                      />
+                      <input
+                        type="time"
+                        name="currentTime"
+                        id="currentTime"
+                        value={currentTime}
+                        onChange={(e) => setCurrentTime(e.target.value)}
+                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                      />
+                    </div>
+                    {userType === "enforcer" && (
+                      <div>
+                        <label htmlFor="violation">Violation</label>
+                        <select
+                          name="violation"
+                          id="violation"
+                          value={violation}
+                          onChange={(e) => setViolation(e.target.value)}
+                          className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-white">
+                          <option value="">Select...</option>
+                          <option value="first-offense">
+                            1st Offense: Php300
+                          </option>
+                          <option value="second-offense">
+                            2nd Offense: Php400
+                          </option>
+                          <option value="third-offense">
+                            3rd Offense: Php500
+                          </option>
+                          <option value="cancel-permit">
+                            Cancellation of Permit
+                          </option>
+                        </select>
+                      </div>
+                    )}
+                    {userType === "passenger" && (
+                      <button
+                        onClick={() => setToggleSearchLoc(true)}
+                        className="bg-sky-700 text-white focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
+                        Search Location
+                      </button>
+                    )}
                   </div>
-                )}
+                </div>
+                <div className="flex justify-end space-x-3 text-lg m-5">
+                  <button
+                    onClick={() => {
+                      handleExit();
+                    }}
+                    className="w-full p-2 bg-red-700 text-white rounded-md">
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleReportSubmit}
+                    disabled={
+                      !currentComplain ||
+                      (userType === "passenger"
+                        ? !currentComplainantName || !currentContactNumber
+                        : !violation)
+                    }
+                    className={`${
+                      !currentComplain ||
+                      (userType === "passenger"
+                        ? !currentComplainantName || !currentContactNumber
+                        : !violation)
+                        ? "bg-gray-700 text-gray-300"
+                        : "bg-sky-700 text-white"
+                    } w-full p-2 rounded-md`}>
+                    Report
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex justify-end space-x-3 text-lg m-5">
-              <button
-                onClick={() => {
-                  handleExit();
-                }}
-                className="w-full p-2 bg-red-700 text-white rounded-md">
-                Cancel
-              </button>
-              <button
-                onClick={handleReportSubmit}
-                disabled={
-                  !currentComplain ||
-                  (userType === "passenger"
-                    ? !currentComplainantName || !currentContactNumber
-                    : !violation)
-                }
-                className={`${
-                  !currentComplain ||
-                  (userType === "passenger"
-                    ? !currentComplainantName || !currentContactNumber
-                    : !violation)
-                    ? "bg-gray-700 text-gray-300"
-                    : "bg-sky-700 text-white"
-                } w-full p-2 rounded-md`}>
-                Report
-              </button>
+          ) : (
+            <div className="relative">
+              <div className="w-full mx-5 text-lg my-5 z-10 absolute">
+                <button
+                  onClick={() => setToggleSearchLoc(false)}
+                  className="bg-sky-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+                  <IoChevronBack /> <span className="text-sm">back</span>
+                </button>
+              </div>
+
+              <MapContainerComponent key={1} position={position} />
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
       {toggleReportMessage && (
         <div

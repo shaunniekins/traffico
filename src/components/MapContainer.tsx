@@ -2,15 +2,26 @@
 
 import { divIcon, icon } from "leaflet";
 import { Polyline, Tooltip, useMap, useMapEvents } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Map } from "leaflet";
 import L from "leaflet";
 import { MdLocationPin } from "react-icons/md";
-import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine";
+import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
+import "leaflet/dist/images/layers-2x.png";
+import "leaflet/dist/images/layers.png";
+import "leaflet/dist/images/marker-icon-2x.png";
+import "leaflet/dist/images/marker-icon.png";
+import "leaflet/dist/images/marker-shadow.png";
+import "leaflet/src/images/marker.svg";
+import "leaflet/src/images/logo.svg";
+import "leaflet/src/images/layers.svg";
+
+// import "leaflet-routing-machine.js";
+// import "leaflet-routing-machine.css";
+// import "leaflet.routing.icons.png";
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -31,13 +42,23 @@ const TileLayer = dynamic(
   { ssr: false }
 );
 
-const ClickableMap = ({ userPosition }: { userPosition: [number, number] }) => {
+interface ClickableMapProps {
+  userPosition: [number, number];
+  marker: [number, number] | null;
+  setMarker: React.Dispatch<React.SetStateAction<[number, number] | null>>;
+}
+
+const ClickableMap: React.FC<ClickableMapProps> = ({
+  userPosition,
+  marker,
+  setMarker,
+}) => {
   const iconSizeOther: [number, number] = [60, 60];
-  const ICON_OTHER = icon({
-    iconUrl: "/location.png",
-    iconSize: iconSizeOther,
-  });
-  const [marker, setMarker] = useState<[number, number] | null>(null);
+  // const ICON_OTHER = icon({
+  //   iconUrl: "/location.png",
+  //   iconSize: iconSizeOther,
+  // });
+
   const [distance, setDistance] = useState<number | null>(null);
 
   useMapEvents({
@@ -72,8 +93,9 @@ const ClickableMap = ({ userPosition }: { userPosition: [number, number] }) => {
           extendToWaypoints: true,
           missingRouteTolerance: 0.02,
         },
+        show: true,
         addWaypoints: false,
-        fitSelectedRoutes: false,
+        fitSelectedRoutes: true,
         showAlternatives: false,
         routeWhileDragging: false,
         // here
@@ -98,16 +120,23 @@ const ClickableMap = ({ userPosition }: { userPosition: [number, number] }) => {
   );
 };
 
-const MapContainerComponent = () => {
+const MapContainerComponent = ({
+  position,
+}: {
+  position: [number, number];
+}) => {
   const iconSize: [number, number] = [100, 100];
   const iconSizeOther: [number, number] = [60, 60];
-  const [position, setPosition] = useState<[number, number]>([0, 0]);
 
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      setPosition([position.coords.latitude, position.coords.longitude]);
-    });
-  }, []);
+  const [marker, setMarker] = useState<[number, number] | null>(null);
+
+  // const [position, setPosition] = useState<[number, number]>([0, 0]);
+
+  // useEffect(() => {
+  //   navigator.geolocation.getCurrentPosition((position) => {
+  //     setPosition([position.coords.latitude, position.coords.longitude]);
+  //   });
+  // }, []);
 
   const ICON = divIcon({
     className: "custom-icon",
@@ -135,7 +164,7 @@ const MapContainerComponent = () => {
         <MapContainer
           center={position}
           zoom={17}
-          //   zoomControl={false}
+          zoomControl={false}
           attributionControl={false}
           scrollWheelZoom={false}
           className="h-full"
@@ -143,12 +172,18 @@ const MapContainerComponent = () => {
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // OpenStreetMap tile layer URL
           />
-          <Marker
-            position={position}
-            icon={ICON}
-            // icon={ICON_OTHER}
+          {marker === null && (
+            <Marker
+              position={position}
+              icon={ICON}
+              // icon={ICON_OTHER}
+            />
+          )}
+          <ClickableMap
+            userPosition={position}
+            marker={marker}
+            setMarker={setMarker}
           />
-          <ClickableMap userPosition={position} />
         </MapContainer>
       </div>
     </div>

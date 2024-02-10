@@ -1,24 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { IoListOutline, IoPersonCircleOutline } from "react-icons/io5";
 import { LuScanLine } from "react-icons/lu";
-import {
-  MdOutlineChecklist,
-  MdOutlineMyLocation,
-  MdOutlineSettings,
-  MdOutlineShareLocation,
-} from "react-icons/md";
+import { MdOutlineChecklist, MdOutlineMyLocation } from "react-icons/md";
 import { RiSettings3Line } from "react-icons/ri";
 
 import QrScannerComponent from "../QrScanner";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 import Reports from "../enforcer/Reports";
 import TopbarFloat from "../TopbarFloat";
 
-const MapContainerComponent = dynamic(() => import("./MapContainer"), {
-  ssr: false,
-});
+// const MapContainerComponent = dynamic(() => import("../MapContainer"), {
+//   ssr: false,
+// });
 
 const DashboardPassengerComponent = () => {
   const [currentView, setCurrentView] = useState("lists");
@@ -30,7 +24,7 @@ const DashboardPassengerComponent = () => {
       {currentView === "lists" && (
         <Reports setShowBottomBar={setShowBottomBar} />
       )}
-      {currentView === "fare" && <MapContainerComponent />}
+      {/* {currentView === "fare" && <MapContainerComponent />} */}
       {currentView === "report" && (
         <QrScannerComponent setShowBottomBar={setShowBottomBar} />
       )}
