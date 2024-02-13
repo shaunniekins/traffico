@@ -41,11 +41,12 @@ const QrScannerComponent = ({
     ? "enforcer"
     : null;
 
-  const [position, setPosition] = useState<[number, number]>([0, 0]);
+  const [origin, setOrigin] = useState<[number, number]>([0, 0]);
+  const [destination, setDestination] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
-      setPosition([position.coords.latitude, position.coords.longitude]);
+      setOrigin([position.coords.latitude, position.coords.longitude]);
     });
   }, []);
 
@@ -490,7 +491,7 @@ const QrScannerComponent = ({
               </div>
             </div>
           ) : (
-            <div className="relative">
+            <div className="relative overflow-hidden">
               <div className="w-full mx-5 text-lg my-5 z-10 absolute">
                 <button
                   onClick={() => setToggleSearchLoc(false)}
@@ -499,7 +500,13 @@ const QrScannerComponent = ({
                 </button>
               </div>
 
-              <MapContainerComponent key={1} position={position} />
+              <MapContainerComponent
+                key={1}
+                origin={origin}
+                destination={destination}
+                setOrigin={setOrigin}
+                setDestination={setDestination}
+              />
             </div>
           )}
         </>

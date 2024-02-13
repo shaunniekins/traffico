@@ -1,27 +1,13 @@
 "use client";
 
-import { divIcon, icon } from "leaflet";
-import { Polyline, Tooltip, useMap, useMapEvents } from "react-leaflet";
+import { divIcon, icon, marker } from "leaflet";
+import { useMap, useMapEvents } from "react-leaflet";
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Map } from "leaflet";
 import L from "leaflet";
-import { MdLocationPin } from "react-icons/md";
 import "leaflet-routing-machine";
 import "leaflet/dist/leaflet.css";
 import "leaflet-routing-machine/dist/leaflet-routing-machine.css";
-import "leaflet/dist/images/layers-2x.png";
-import "leaflet/dist/images/layers.png";
-import "leaflet/dist/images/marker-icon-2x.png";
-import "leaflet/dist/images/marker-icon.png";
-import "leaflet/dist/images/marker-shadow.png";
-import "leaflet/src/images/marker.svg";
-import "leaflet/src/images/logo.svg";
-import "leaflet/src/images/layers.svg";
-
-// import "leaflet-routing-machine.js";
-// import "leaflet-routing-machine.css";
-// import "leaflet.routing.icons.png";
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
@@ -43,29 +29,61 @@ const TileLayer = dynamic(
 );
 
 interface ClickableMapProps {
-  userPosition: [number, number];
-  marker: [number, number] | null;
-  setMarker: React.Dispatch<React.SetStateAction<[number, number] | null>>;
+  userOrigin: [number, number];
+  destination: [number, number] | null;
+  setOrigin: React.Dispatch<React.SetStateAction<[number, number]>>;
+  setDestination: React.Dispatch<React.SetStateAction<[number, number] | null>>;
+  // destinationMarker: [number, number] | null;
+  // setDestinationMarker: React.Dispatch<
+  //   React.SetStateAction<[number, number] | null>
+  // >;
 }
 
 const ClickableMap: React.FC<ClickableMapProps> = ({
-  userPosition,
-  marker,
-  setMarker,
+  userOrigin,
+  destination,
+  setOrigin,
+  setDestination,
+  // destinationMarker,
+  // setDestinationMarker,
 }) => {
   const iconSizeOther: [number, number] = [60, 60];
-  // const ICON_OTHER = icon({
-  //   iconUrl: "/location.png",
+  // const ORIGIN_ICON = icon({
+  //   iconUrl: "/origin-icon.svg",
   //   iconSize: iconSizeOther,
   // });
+
+  const ORIGIN_ICON = L.icon({
+    iconUrl: "/origin-icon.svg",
+    iconSize: iconSizeOther,
+  });
+
+  const DESTINATION_ICON = L.icon({
+    iconUrl: "/destination-icon.svg",
+    iconSize: iconSizeOther,
+  });
+
+  const [isMounted, setIsMounted] = useState(true);
+
+  useEffect(() => {
+    // Set isMounted to false when the component unmounts
+    return () => setIsMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && routingControlRef.current) {
+      map.removeControl(routingControlRef.current);
+      routingControlRef.current = null;
+    }
+  }, [destination, isMounted]);
 
   const [distance, setDistance] = useState<number | null>(null);
 
   useMapEvents({
     click: (e) => {
-      setMarker([e.latlng.lat, e.latlng.lng]);
-      //   const distanceInMeters = e.latlng.distanceTo(userPosition);
-      //   setDistance(distanceInMeters);
+      setDestination([e.latlng.lat, e.latlng.lng]);
+      const distanceInMeters = e.latlng.distanceTo(userOrigin);
+      setDistance(distanceInMeters);
     },
   });
 
@@ -73,62 +91,115 @@ const ClickableMap: React.FC<ClickableMapProps> = ({
   const routingControlRef = useRef<L.Routing.Control | null>(null);
 
   useEffect(() => {
-    if (marker) {
-      // Remove the old routing control if it exists
-      if (routingControlRef.current) {
-        map.removeControl(routingControlRef.current);
+    try {
+      if (destination) {
+        // Remove the old routing control if it exists
+        if (routingControlRef.current) {
+          map.removeControl(routingControlRef.current);
+          routingControlRef.current = null;
+        }
+
+        // Create a new routing control and add it to the map
+
+        const waypoints = [
+          L.latLng(userOrigin[0], userOrigin[1]),
+          L.latLng(destination[0], destination[1]),
+        ];
+
+        const routingControl = L.Routing.control({
+          // waypoints: [
+          //   L.latLng(userPosition[0], userPosition[1]),
+          //   L.latLng(marker[0], marker[1]),
+          // ],
+          // waypoints: waypoints,
+
+          router: new (L.Routing.osrmv1 as any)({
+            serviceUrl: "https://router.project-osrm.org/route/v1",
+          }),
+          lineOptions: {
+            styles: [{ color: "blue", opacity: 1, weight: 5 }],
+            extendToWaypoints: true,
+            missingRouteTolerance: 0.02,
+          },
+          show: false,
+          collapsible: false,
+          addWaypoints: false,
+          fitSelectedRoutes: true,
+          routeWhileDragging: false,
+          showAlternatives: true,
+          plan: L.Routing.plan(waypoints, {
+            createMarker: function (i, waypoint, n) {
+              const marker = L.marker(waypoint.latLng, {
+                icon: i === 0 ? ORIGIN_ICON : DESTINATION_ICON,
+                draggable: true,
+              });
+
+              marker.on("dragend", function (e) {
+                const newLatLng = e.target.getLatLng();
+                if (i === 0) {
+                  setOrigin([newLatLng.lat, newLatLng.lng]);
+                } else if (i === 1) {
+                  setDestination([newLatLng.lat, newLatLng.lng]);
+                }
+
+                // Calculate the distance between the origin and destination
+                const originLatLng =
+                  i === 0 ? newLatLng : L.latLng(userOrigin[0], userOrigin[1]);
+                const destinationLatLng =
+                  i === 1
+                    ? newLatLng
+                    : L.latLng(destination[0], destination[1]);
+                const distanceInMeters =
+                  originLatLng.distanceTo(destinationLatLng);
+                setDistance(distanceInMeters);
+              });
+
+              return marker;
+            },
+          }),
+        }).addTo(map);
+
+        routingControlRef.current = routingControl;
+
+        // Return a cleanup function
+        return () => {
+          if (routingControlRef.current) {
+            map.removeControl(routingControlRef.current);
+            map.removeLayer(routingControlRef.current.getPlan());
+
+            routingControlRef.current = null;
+          }
+        };
       }
-
-      // Create a new routing control and add it to the map
-      const routingControl = L.Routing.control({
-        waypoints: [
-          L.latLng(userPosition[0], userPosition[1]),
-          L.latLng(marker[0], marker[1]),
-        ],
-        router: new (L.Routing.osrmv1 as any)({
-          serviceUrl: "https://router.project-osrm.org/route/v1",
-        }),
-        lineOptions: {
-          styles: [{ color: "blue", opacity: 1, weight: 5 }],
-          extendToWaypoints: true,
-          missingRouteTolerance: 0.02,
-        },
-        show: true,
-        addWaypoints: false,
-        fitSelectedRoutes: true,
-        showAlternatives: false,
-        routeWhileDragging: false,
-        // here
-      }).addTo(map);
-
-      routingControlRef.current = routingControl;
+    } catch (error) {
+      console.log("error", error);
     }
-  }, [marker]);
+  }, [destination]);
 
   useEffect(() => {
     console.log("distance", distance);
   }, [distance]);
 
-  return (
-    <>
-      {/* {marker ? <Marker position={marker} icon={ICON_OTHER} /> : null} */}
-      {/* {marker ? (
-        <Polyline positions={[userPosition, marker]} color="red" />
-      ) : null} */}
-      {/* {distance ? <p>Distance: {distance} meters</p> : null} */}
-    </>
-  );
+  return null;
 };
 
 const MapContainerComponent = ({
-  position,
+  origin,
+  destination,
+  setOrigin,
+  setDestination,
 }: {
-  position: [number, number];
+  origin: [number, number];
+  destination: [number, number] | null;
+  setOrigin: React.Dispatch<React.SetStateAction<[number, number]>>;
+  setDestination: React.Dispatch<React.SetStateAction<[number, number] | null>>;
 }) => {
   const iconSize: [number, number] = [100, 100];
   const iconSizeOther: [number, number] = [60, 60];
 
-  const [marker, setMarker] = useState<[number, number] | null>(null);
+  // const [destinationMarker, setDestinationMarker] = useState<
+  //   [number, number] | null
+  // >(null);
 
   // const [position, setPosition] = useState<[number, number]>([0, 0]);
 
@@ -153,16 +224,16 @@ const MapContainerComponent = ({
     iconSize: iconSize,
   });
 
-  const ICON_OTHER = icon({
-    iconUrl: "/location.png",
+  const ORIGIN_ICON = icon({
+    iconUrl: "/origin-icon.svg",
     iconSize: iconSizeOther,
   });
 
   return (
-    <div className="z-0 w-screen h-[100svh] flex flex-col relative">
-      <div className="w-full bg-white shadow-lg flex justify-between rounded-xl h-full">
+    <div className="z-0 w-screen h-full flex flex-col relative overflow-hidden">
+      <div className="w-full bg-white shadow-lg flex justify-between rounded-xl h-full overflow-hidden">
         <MapContainer
-          center={position}
+          center={origin}
           zoom={17}
           zoomControl={false}
           attributionControl={false}
@@ -172,17 +243,20 @@ const MapContainerComponent = ({
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" // OpenStreetMap tile layer URL
           />
-          {marker === null && (
+          {destination === null && (
             <Marker
-              position={position}
+              position={origin}
               icon={ICON}
-              // icon={ICON_OTHER}
+              // icon={ORIGIN_ICON}
             />
           )}
           <ClickableMap
-            userPosition={position}
-            marker={marker}
-            setMarker={setMarker}
+            userOrigin={origin}
+            destination={destination}
+            setOrigin={setOrigin}
+            setDestination={setDestination}
+            // destinationMarker={destinationMarker}
+            // setDestinationMarker={setDestinationMarker}
           />
         </MapContainer>
       </div>
@@ -191,20 +265,3 @@ const MapContainerComponent = ({
 };
 
 export default MapContainerComponent;
-
-// const ClickableMap = () => {
-//   const iconSizeOther: [number, number] = [60, 60];
-//   const ICON_OTHER = icon({
-//     iconUrl: "/location.png",
-//     iconSize: iconSizeOther,
-//   });
-//   const [marker, setMarker] = useState<[number, number] | null>(null);
-
-//   useMapEvents({
-//     click: (e) => {
-//       setMarker([e.latlng.lat, e.latlng.lng]);
-//     },
-//   });
-
-//   return marker ? <Marker position={marker} icon={ICON_OTHER} /> : null;
-// };
