@@ -7,6 +7,7 @@ import {
 } from "@/api/userListsData";
 import { supabase } from "@/utils/supabase";
 import { useCallback, useEffect, useState } from "react";
+import { IoChevronBack } from "react-icons/io5";
 import { MdOutlineSearch } from "react-icons/md";
 
 const Users = () => {
@@ -26,7 +27,7 @@ const Users = () => {
 
   const headerNames = ["Name", "Role", "Email", "Password", "More Details"];
 
-  const memoizedFetchDriverProfileData = useCallback(async () => {
+  const memoizedFetchUserListsData = useCallback(async () => {
     try {
       const response = await fetchUserListsData(
         searchValue,
@@ -45,7 +46,7 @@ const Users = () => {
   }, [searchValue, entriesPerPage, currentPageDetailsSection]);
 
   useEffect(() => {
-    memoizedFetchDriverProfileData();
+    memoizedFetchUserListsData();
 
     const channel = supabase
       .channel(`realtime sessions`)
@@ -406,7 +407,7 @@ const Users = () => {
             />
           </div>
         ) : (
-          <table className="w-full text-sm text-center ">
+          <table className="w-full text-sm text-center">
             <thead className="text-xs uppercase bg-sky-700 text-white">
               <tr>
                 {headerNames.map((header, index) => (
@@ -466,13 +467,13 @@ const Users = () => {
             <div className="flex justify-end items-center w-full">
               <div className="flex select-none gap-4">
                 <button
-                  className={`
-                      border-sky-700 bg-sky-700 text-white 
-                   border py-2 px-4 text-sm rounded-lg`}
+                  className={`border-sky-700 bg-sky-700 text-white 
+                   border py-2 px-4 text-sm rounded-lg flex items-center gap-2`}
                   onClick={() => {
                     setToggleMoreDetails(false);
                   }}>
-                  Okay
+                  <IoChevronBack />
+                  <span>Go back</span>
                 </button>
               </div>
             </div>
