@@ -57,8 +57,14 @@ export const fetchReportViolations = async () => {
 
 // export const fetchViolatorDetails = async () => {
 //   try {
-//     const query = supabase.from("ViewTricycleDriverViolations").select();
-//     const response = await query;
+//     const currentYear = new Date().getFullYear();
+//     // const currentYear = 2025;
+
+//     const response = await supabase
+//       .from("ViewTricycleDriverViolationsAdmin")
+//       .select()
+//       .filter("date", "gte", `${currentYear}-01-01T00:00:00Z`)
+//       .filter("date", "lt", `${currentYear + 1}-01-01T00:00:00Z`);
 
 //     if (response.error) {
 //       throw response.error;
