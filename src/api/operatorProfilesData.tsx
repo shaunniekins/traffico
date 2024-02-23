@@ -51,6 +51,26 @@ export const fetchOperatorProfileByName = async (name: string) => {
   }
 };
 
+export const fetchOperatorUniqueBodyNum = async () => {
+  try {
+    const query = supabase
+      .from("ViewUniqueBodyNumYear")
+      .select(`*`)
+      .order("last_name", { ascending: true })
+      .order("first_name", { ascending: true });
+
+    const response = await query;
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
 export const insertOperatorProfileData = async (data: any) => {
   try {
     const response = await supabase

@@ -2,7 +2,10 @@
 
 import { insuranceOptions, routes } from "@/api/dataValues";
 import { fetchDriverProfileByName } from "@/api/driverProfilesData";
-import { fetchOperatorProfileByName } from "@/api/operatorProfilesData";
+import {
+  fetchOperatorProfileByName,
+  fetchOperatorUniqueBodyNum,
+} from "@/api/operatorProfilesData";
 import { fetchVehicleOwnershipReportById } from "@/api/vehicleOwnership";
 import { useCallback, useEffect, useState } from "react";
 import Select from "react-select";
@@ -17,6 +20,8 @@ import { supabase } from "@/utils/supabase";
 import { insertRequirementDocumentData } from "@/api/requirementsData";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { RotatingLines } from "react-loader-spinner";
+import { LoadingScreenSection } from "../LoadingScreen";
 
 const Application = () => {
   const [applicationCurrentPage, setApplicationCurrentPage] = useState(1);
@@ -30,7 +35,7 @@ const Application = () => {
     new Date().toISOString().split("T")[0]
   );
   const [newFranchiseNumber, setNewFranchiseNumber] = useState("");
-  const [newFranchiseStatus, setNewFranchiseStatus] = useState("");
+  const [newFranchiseStatus, setNewFranchiseStatus] = useState("new");
   const [newSelectedOperator, setNewSelectedOperator] = useState<{
     value: any;
     label: string;
@@ -142,7 +147,7 @@ const Application = () => {
 
   useEffect(() => {
     const fetchOperators = async () => {
-      const response = await fetchOperatorProfileByName("");
+      const response = await fetchOperatorUniqueBodyNum();
       if (response && response.data) {
         setOperators(
           response.data.map((operator) => ({
@@ -151,8 +156,7 @@ const Application = () => {
               `${operator.last_name}, ${operator.first_name}` +
               (operator.middle_name
                 ? " " + operator.middle_name.charAt(0) + "."
-                : "") +
-              (operator.extension_name ? " " + operator.extension_name : ""),
+                : ""),
           }))
         );
       }
@@ -243,7 +247,7 @@ const Application = () => {
   const [newDocReq12, setNewDocReq12] = useState<File | null>(null);
   const [newDocReq13, setNewDocReq13] = useState<File | null>(null);
 
-  const docReqs = [
+  const documentDesc = [
     {
       number: 1,
       description: "Barangay Clearance",
@@ -350,7 +354,7 @@ const Application = () => {
     new Date().toISOString().split("T")[0]
   );
 
-  const [currentYear, setCurrentyear] = useState(new Date().getFullYear());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
 
   const [currentFileUpload, setCurrentFileUpload] = useState<File | null>(null);
 
@@ -376,15 +380,13 @@ const Application = () => {
     setModalViewUploadedDocument(true);
   };
 
-  const handleSubmissionWithoutEvent = () => {
-    handleSubmissionTricyclePermit({ preventDefault: () => {} });
-  };
-
   const [modalExit, setModalExit] = useState(false);
   const router = useRouter();
 
-  const handleSubmissionTricyclePermit = async (event: any) => {
-    event.preventDefault();
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmissionTricyclePermit = async () => {
+    setLoading(true);
 
     const newApprovalRecord = {
       application_date: newApplicationDate,
@@ -503,12 +505,14 @@ const Application = () => {
           }
         }
       }
+
       setModalExit(true);
+      setLoading(false);
 
       setApplicationCurrentPage(1);
       setNewApplicationDate(new Date().toISOString().split("T")[0]);
       setNewFranchiseNumber("");
-      setNewFranchiseStatus("");
+      setNewFranchiseStatus("new");
       setNewSelectedOperator(null);
       setNewSelectedDriver(null);
       setNewBodyNumber("");
@@ -552,7 +556,7 @@ const Application = () => {
 
   useEffect(() => {
     if (recordVehicles.length > 0) {
-      setNewBodyNumber(recordVehicles[0].id);
+      setNewBodyNumber(recordVehicles[0].body_num);
     }
   }, [recordVehicles]);
 
@@ -561,7 +565,8 @@ const Application = () => {
   // }, [newBodyNumber]);
 
   return (
-    <div className="z-0 flex flex-col gap-10 h-full">
+    <div className="z-0 flex flex-col gap-10 h-full w-full">
+      {loading && <LoadingScreenSection />}
       <div className="flex justify-between items-center flex-col md:flex-row">
         <div className="flex gap-5 items-center">
           <h1 className="flex font-bold text-3xl text-sky-700 ">
@@ -1026,7 +1031,15 @@ const Application = () => {
                 <div className="mt-3 sm:mt-0 sm:ml-4 sm:text-right">
                   <button
                     className="text-2xl flex items-center justify-center"
-                    onClick={() => setModalNewUploadDocument(false)}>
+                    onClick={() => {
+                      if (currentFileUpload) {
+                        currentDocReq.setFile(currentFileUpload);
+                        setModalNewUploadDocument(false);
+                        setCurrentFileUpload(null);
+                      } else {
+                        setModalNewUploadDocument(false);
+                      }
+                    }}>
                     <IoMdCloseCircleOutline />
                   </button>
                 </div>
@@ -1116,6 +1129,7 @@ const Application = () => {
                   className="border-red-700 bg-red-700 text-white border py-2 px-4 text-sm rounded-lg"
                   onClick={() => {
                     setModalNewUploadDocument(false);
+                    setCurrentFileUpload(null);
                     setCurrentDocReq(null);
                   }}>
                   Cancel
@@ -1259,8 +1273,8 @@ const Application = () => {
           </div>
         )}
         {applicationCurrentPage === 3 && (
-          <div className="w-full h-full overflow-y-auto">
-            <table className="w-full text-sm text-center">
+          <div className="w-full h-full overflow-y-auto pb-11">
+            <table className="h-full w-full text-sm text-center">
               <thead className="text-xs uppercase bg-sky-700 text-white">
                 <tr>
                   <th
@@ -1275,7 +1289,7 @@ const Application = () => {
                   </th>
                   <th
                     scope="col"
-                    className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap text-start">
+                    className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
                     File Name
                   </th>
                   <th
@@ -1291,7 +1305,7 @@ const Application = () => {
                 </tr>
               </thead>
               <tbody>
-                {docReqs.map((docReq) => (
+                {documentDesc.map((docReq) => (
                   <tr
                     key={docReq.number}
                     className="bg-white border border-sky-700 text-center text-sky-700 font-semibold">
@@ -1301,7 +1315,7 @@ const Application = () => {
                     <td className="px-3 py-2 sm:px-4 text-start">
                       {docReq.description}
                     </td>
-                    <td className="px-3 py-2 sm:px-4 whitespace-nowrap text-start">
+                    <td className="px-3 py-2 sm:px-4 whitespace-nowrap">
                       {new Date().getFullYear()}-DOCREQ-{docReq.number}
                     </td>
                     {/* <td className="px-3 py-2 sm:px-4 whitespace-nowrap">
@@ -1351,7 +1365,7 @@ const Application = () => {
             </table>
           </div>
         )}
-        {modalExit && (
+        {modalExit && !loading && (
           <div
             className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black`}>
             <div
@@ -1472,8 +1486,7 @@ const Application = () => {
               if (applicationCurrentPage !== 3) {
                 setApplicationCurrentPage(applicationCurrentPage + 1);
               } else {
-                // console.log("saved");
-                handleSubmissionWithoutEvent();
+                handleSubmissionTricyclePermit();
               }
             }}>
             {applicationCurrentPage === 3 ? "Save" : "Next"}
