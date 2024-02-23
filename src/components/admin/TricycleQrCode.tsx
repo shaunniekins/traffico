@@ -158,10 +158,22 @@ const TricycleQrCode = () => {
       setCurrentBodyNum(record.body_num);
       setCurrentApplicationDate(record.application_date);
       setCurrentOperator(
-        `${record.OperatorProfiles.first_name} ${record.OperatorProfiles.last_name} ${record.OperatorProfiles.middle_name[0]}.`
+        `${record.OperatorProfiles.first_name} ${
+          record.OperatorProfiles.last_name
+        } ${
+          record.OperatorProfiles.middle_name
+            ? record.OperatorProfiles.middle_name[0] + "."
+            : ""
+        }`
       );
       setCurrentDriver(
-        `${record.DriverProfiles.first_name} ${record.DriverProfiles.last_name} ${record.DriverProfiles.middle_name[0]}.`
+        `${record.DriverProfiles.first_name} ${
+          record.DriverProfiles.last_name
+        } ${
+          record.DriverProfiles.middle_name
+            ? record.DriverProfiles.middle_name[0] + "."
+            : ""
+        }`
       );
       record.OperatorProfiles.VehicleOwnershipRecords.forEach(
         (vehicleRecord: { body_num: any; lto_plate_num: any }) => {
@@ -185,6 +197,29 @@ const TricycleQrCode = () => {
         setCurrentRoute(matchingRoute.route);
         setCurrentFareRate([matchingRoute.adult, matchingRoute.student]);
       }
+
+      const STORAGE_BUCKET_OPERATOR_VEHICLES = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/vehicles/`;
+
+      setFrontViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].front_view_image}`
+      );
+      setLeftSideViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].left_side_view_image}`
+      );
+      setRightSideViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].right_side_view_image}`
+      );
+      setInsideFrontViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].inside_front_image}`
+      );
+      setBackViewPreview(
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].back_view_image}`
+      );
+
+      // console.log(
+      //   "frontViewPreview",
+      //   `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].left_side_view_image}`
+      // );
 
       setCurrentDetailsPage(2);
     }
@@ -303,8 +338,20 @@ const TricycleQrCode = () => {
               <Card
                 key={index}
                 bodyNum={record.body_num}
-                operator={`${record.OperatorProfiles.first_name} ${record.OperatorProfiles.last_name} ${record.OperatorProfiles.middle_name[0]}.`}
-                driver={`${record.DriverProfiles.first_name} ${record.DriverProfiles.last_name} ${record.DriverProfiles.middle_name[0]}.`}
+                operator={`${record.OperatorProfiles.first_name} ${
+                  record.OperatorProfiles.last_name
+                } ${
+                  record.OperatorProfiles.middle_name
+                    ? record.OperatorProfiles.middle_name[0] + "."
+                    : ""
+                }`}
+                driver={`${record.DriverProfiles.first_name} ${
+                  record.DriverProfiles.last_name
+                } ${
+                  record.DriverProfiles.middle_name
+                    ? record.DriverProfiles.middle_name[0] + "."
+                    : ""
+                }`}
                 handleViewMoreDetailsPage={handleViewMoreDetailsPage}
                 qrBg={true}
               />
@@ -364,7 +411,7 @@ const TricycleQrCode = () => {
                           .slice(0, 10)
                       : ""
                   }
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentOperator">Operator's Name</label>
@@ -373,7 +420,7 @@ const TricycleQrCode = () => {
                   name="currentOperator"
                   id="currentOperator"
                   value={currentOperator}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentPlateNum">Plate Number</label>
@@ -382,7 +429,7 @@ const TricycleQrCode = () => {
                   name="currentPlateNum"
                   id="currentPlateNum"
                   value={currentPlateNum}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentDriver">Driver's Name</label>
@@ -391,7 +438,7 @@ const TricycleQrCode = () => {
                   name="currentDriver"
                   id="currentDriver"
                   value={currentDriver}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentDriverLicenseNum">
@@ -402,7 +449,7 @@ const TricycleQrCode = () => {
                   name="currentDriverLicenseNum"
                   id="currentDriverLicenseNum"
                   value={currentDriverLicenseNum}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentFranchiseNum">Franchise No.</label>
@@ -411,7 +458,7 @@ const TricycleQrCode = () => {
                   name="currentFranchiseNum"
                   id="currentFranchiseNum"
                   value={currentFranchiseNum}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentFranchiseExpiration">Expiry Date</label>
@@ -426,7 +473,7 @@ const TricycleQrCode = () => {
                           .slice(0, 10)
                       : ""
                   }
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
               </div>
@@ -440,7 +487,7 @@ const TricycleQrCode = () => {
                   name="currentBodyNum"
                   id="currentBodyNum"
                   value={currentBodyNum}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentZone">Zone</label>
@@ -449,7 +496,7 @@ const TricycleQrCode = () => {
                   name="currentZone"
                   id="currentZone"
                   value={currentZone}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentRoute">Route</label>
@@ -457,7 +504,7 @@ const TricycleQrCode = () => {
                   name="currentRoute"
                   id="currentRoute"
                   value={currentRoute}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700 resize-none"
                   style={{ whiteSpace: "pre-wrap" }}
                 />

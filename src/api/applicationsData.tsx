@@ -38,7 +38,7 @@ export const fetchApplicationData = async (
         zone,
         status,
         OperatorProfiles!inner(id, last_name, first_name, middle_name, birth_date, address, civil_status, contact_num, is_active,
-          VehicleOwnershipRecords!inner(id, operator_id, date_registered, chassis_num, lto_plate_num, color_code, motor_num, body_num)
+          VehicleOwnershipRecords!inner(id, operator_id, date_registered, chassis_num, lto_plate_num, color_code, motor_num, body_num, front_view_image, left_side_view_image, right_side_view_image, inside_front_image, back_view_image)
         ),
         DriverProfiles!inner(id, last_name, first_name, middle_name, birth_date, 
           address, civil_status, contact_num, is_active, license_num, license_expiration)`,
