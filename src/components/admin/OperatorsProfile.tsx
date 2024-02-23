@@ -709,7 +709,7 @@ const OperatorsProfile = () => {
   //   console.log("record len vehicle111:", updatedRecordVehicles.length);
   // }, [operatorId]);
 
-  // data manipulation (deletion and edit in vehicle ownership)
+  // DATA MANIPUATION (deletion and edit in vehicle ownership)
   const [toggleEditVehicle, setToggleEditVehicle] = useState(false);
   const [toggleDeleteVehicle, setToggleDeleteVehicle] = useState(false);
   // const [currentVehicleId, setCurrentVehicleId] = useState("");
@@ -842,6 +842,7 @@ const OperatorsProfile = () => {
         contact_num: contactNum,
         is_active: isActive,
       };
+
       try {
         await editOperatorProfileData(id, updatedRecordOperator);
 

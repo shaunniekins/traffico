@@ -1,15 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MdOutlineSearch } from "react-icons/md";
+import {
+  MdOutlineDelete,
+  MdOutlineEdit,
+  MdOutlinePublishedWithChanges,
+  MdOutlineSearch,
+} from "react-icons/md";
 import ImageUploader from "./ImageUploader";
-import { supabase } from "@/utils/supabase";
+import { supabase, supabaseAdmin } from "@/utils/supabase";
 import {
   editDriverProfileData,
   fetchDriverProfileData,
   insertDriverProfileData,
 } from "@/api/driverProfilesData";
 import { bloodTypeOptions } from "@/api/dataValues";
+import { register } from "module";
 
 const DriversProfile = () => {
   const [registerDriver, setRegisterDriver] = useState(false);
@@ -235,10 +241,12 @@ const DriversProfile = () => {
     }
   };
 
-  const handleViewClick = (id: string) => {
-    const record = records.find((record) => record.id === id);
+  const handleViewClick = (driverId: string) => {
+    const record = records.find((record) => record.id === driverId);
 
     if (record) {
+      setCurrentDriverId(driverId);
+
       setLastName(record.last_name);
       setFirstName(record.first_name);
       setMiddleName(record.middle_name);
@@ -269,6 +277,115 @@ const DriversProfile = () => {
       setToggleMoreDetails(true);
     }
   };
+
+  // DATA MANIPUATION
+  const [toggleEditDriverInfo, setToggleEditDriverInfo] = useState(false);
+  const [toggleDeleteDriverInfo, setToggleDeleteDriverInfo] = useState(false);
+  const [currentDriverId, setCurrentDriverId] = useState("");
+
+  const handleDeleteDriverRecord = async (driverId: string) => {
+    if (toggleDeleteDriverInfo) {
+      const response = await supabase
+        .from("DriverProfiles")
+        .delete()
+        .eq("id", driverId);
+
+      if (response.error) {
+        console.error("Error deleting data:", response.error);
+      } else {
+        setToggleDeleteDriverInfo(false);
+        setCurrentDriverId("");
+
+        setCurrentPageMoreDetailsSection(1);
+        setToggleMoreDetails(false);
+
+        await supabaseAdmin.storage
+          .from("assets")
+          .remove([`drivers/face_photo/face_${driverId}.jpeg`]);
+
+        await supabaseAdmin.storage
+          .from("assets")
+          .remove([`drivers/signature_photo/signature_${driverId}.jpeg`]);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (toggleDeleteDriverInfo) {
+      const confirmDelete = confirm(
+        "Are you sure you want to delete this record?"
+      );
+
+      if (confirmDelete && currentDriverId) {
+        handleDeleteDriverRecord(currentDriverId);
+      }
+    }
+  }, [toggleDeleteDriverInfo]);
+
+  const handleEditDriversProfile = async (driverId: string) => {
+    const record = records.find((record) => record.id === driverId);
+
+    if (record) {
+      const updateRecordDriver = {
+        last_name: lastName,
+        first_name: firstName,
+        middle_name: middleName,
+        birth_date: birthDate,
+        birth_place: birthPlace,
+        address: address,
+        civil_status: civilStatus,
+        blood_type: bloodType,
+        contact_num: phoneNumber,
+        license_num: licenseNumber,
+        license_expiration: licenseExpiration,
+        is_active: isActive,
+        contact_relationship_driver: contactRelationship,
+        contact_person: contactPerson,
+        contact_person_num: contactNumber,
+        contact_address: contactAddress,
+      };
+
+      try {
+        await editDriverProfileData(driverId, updateRecordDriver);
+
+        // images
+        const STORAGE_BUCKET_OPERATOR_FACE_PHOTO = "assets/drivers/face_photo";
+        const STORAGE_BUCKET_OPERATOR_SIGNATURE =
+          "assets/drivers/signature_photo";
+
+        const UPLOAD_FACE_PHOTO = `face_${driverId}.jpeg`;
+        const UPLOAD_SIGNATURE_PHOTO = `signature_${driverId}.jpeg`;
+
+        if (faceImage) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([`drivers/face_photo/face_${driverId}.jpeg`]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_FACE_PHOTO)
+            .upload(UPLOAD_FACE_PHOTO, faceImage);
+        }
+
+        if (signatureImage) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([`drivers/signature_photo/signature_${driverId}.jpeg`]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_SIGNATURE)
+            .upload(UPLOAD_SIGNATURE_PHOTO, signatureImage);
+        }
+
+        setToggleEditDriverInfo(false);
+      } catch (error) {
+        console.error("Error updating data:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    setToggleEditDriverInfo(false);
+  }, [currentPageMoreDetailsSection]);
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
@@ -305,15 +422,52 @@ const DriversProfile = () => {
         )}
       </div>
       <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-[70dvh] border border-sky-700">
-        <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
-          {registerPermitView
-            ? currentPageRegister === 1
-              ? "Drivers's Profile"
-              : "Driver's Contact Person / In Case of Emergency"
-            : toggleMoreDetails
-            ? "Personal Information"
-            : "Details"}
-        </h1>
+        <div className="w-full flex justify-between items-center border-b border-sky-700">
+          <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
+            {registerPermitView
+              ? currentPageRegister === 1
+                ? "Drivers's Profile"
+                : "Driver's Contact Person / In Case of Emergency"
+              : toggleMoreDetails
+              ? "Personal Information"
+              : "Details"}
+          </h1>
+          <div className="px-3 flex items-center gap-3">
+            {!registerPermitView && toggleMoreDetails && (
+              <>
+                {toggleEditDriverInfo && (
+                  <button
+                    className="bg-purple-700 text-white
+              border py-1 px-2 text-sm rounded-lg flex items-center gap-2"
+                    onClick={() => handleEditDriversProfile(currentDriverId)}>
+                    <MdOutlinePublishedWithChanges />
+                    <span>Apply Changes</span>
+                  </button>
+                )}
+                <button
+                  className={`${
+                    toggleEditDriverInfo
+                      ? "bg-sky-700 text-white"
+                      : "border-sky-700 text-sky-700"
+                  } border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() =>
+                    setToggleEditDriverInfo(!toggleEditDriverInfo)
+                  }>
+                  <MdOutlineEdit />
+                  <span>{toggleEditDriverInfo ? "Cancel" : "Edit"}</span>
+                </button>
+                <button
+                  className={`border-red-700 text-red-700 
+                   border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() => setToggleDeleteDriverInfo(true)}>
+                  <MdOutlineDelete />
+                  <span>Delete</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
         {registerPermitView ? (
           registerPermitViewPage === 1 ? (
             // driver's profile
@@ -420,6 +574,7 @@ const DriversProfile = () => {
                     value={newBloodType}
                     onChange={(e) => setNewBloodType(e.target.value)}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
+                    <option value=""> Select...</option>
                     {bloodTypeOptions.map((option, index) => (
                       <option key={index} value={option.value}>
                         {option.label}
@@ -566,6 +721,7 @@ const DriversProfile = () => {
                   id="lastName"
                   value={lastName}
                   placeholder="Last Name"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setLastName(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -576,6 +732,7 @@ const DriversProfile = () => {
                   id="firstName"
                   value={firstName}
                   placeholder="First Name"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setFirstName(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -588,6 +745,7 @@ const DriversProfile = () => {
                     required
                     value={middleName}
                     placeholder="Middle Name"
+                    disabled={!toggleEditDriverInfo}
                     onChange={(e) => setMiddleName(e.target.value)}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
@@ -596,6 +754,7 @@ const DriversProfile = () => {
                     id="middleNameNone"
                     name="middleNameNone"
                     value="none"
+                    disabled={!toggleEditDriverInfo}
                     checked={middleName === ""}
                     onChange={(e) =>
                       setMiddleName(e.target.checked ? "" : "defaultMiddleName")
@@ -611,6 +770,7 @@ const DriversProfile = () => {
                   id="birthDate"
                   value={birthDate}
                   placeholder="Birthdate"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setBirthDate(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -621,6 +781,7 @@ const DriversProfile = () => {
                   id="birthPlace"
                   value={birthPlace}
                   placeholder="Address"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setBirthPlace(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -631,6 +792,7 @@ const DriversProfile = () => {
                   id="address"
                   value={address}
                   placeholder="Address"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setAddress(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -639,6 +801,7 @@ const DriversProfile = () => {
                   name="civilStatus"
                   id="civilStatus"
                   value={civilStatus}
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setCivilStatus(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
                   <option value=""> Select...</option>
@@ -652,6 +815,7 @@ const DriversProfile = () => {
                   id="phoneNumber"
                   value={phoneNumber}
                   placeholder="Contact Number"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -662,6 +826,7 @@ const DriversProfile = () => {
                   id="licenseNumber"
                   value={licenseNumber}
                   placeholder="Contact Number"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setLicenseNumber(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -672,6 +837,7 @@ const DriversProfile = () => {
                   id="licenseExpiration"
                   value={licenseExpiration}
                   placeholder="Birthdate"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setLicenseExpiration(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -682,6 +848,7 @@ const DriversProfile = () => {
                     name="isActive"
                     id="isActiveYes"
                     value="true"
+                    disabled={!toggleEditDriverInfo}
                     checked={isActive === true}
                     onChange={(e) => setIsActive(e.target.value === "true")}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 mr-2"
@@ -694,6 +861,7 @@ const DriversProfile = () => {
                     name="issActive"
                     id="isActiveNo"
                     value="false"
+                    disabled={!toggleEditDriverInfo}
                     checked={isActive === false}
                     onChange={(e) => setIsActive(e.target.value !== "true")}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 mr-2"
@@ -712,6 +880,7 @@ const DriversProfile = () => {
                   id="contactRelationship"
                   value={contactRelationship}
                   placeholder="Relationship to Drive"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setContactRelationship(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -722,6 +891,7 @@ const DriversProfile = () => {
                   id="contactPerson"
                   value={contactPerson}
                   placeholder="Contact Person"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setContactPerson(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -732,6 +902,7 @@ const DriversProfile = () => {
                   id="contactNumber"
                   value={contactNumber}
                   placeholder="Contact Number"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setContactNumber(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -742,17 +913,20 @@ const DriversProfile = () => {
                   id="contactAddress"
                   value={contactAddress}
                   placeholder="Permanent Address"
+                  disabled={!toggleEditDriverInfo}
                   onChange={(e) => setContactAddress(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
                 <div className="col-span-2 w-full flex justify-around">
                   <ImageUploader
+                    isDisabled={!toggleEditDriverInfo}
                     title="Driver's Photo"
                     setImage={setFaceImage}
                     setPreview={setFacePreview}
                     preview={facePreview}
                   />
                   <ImageUploader
+                    isDisabled={!toggleEditDriverInfo}
                     title="Driver's Signature"
                     setImage={setSignatureImage}
                     setPreview={setSignaturePreview}
