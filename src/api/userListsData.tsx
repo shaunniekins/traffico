@@ -77,3 +77,61 @@ export const createNewUser = async (
     return { profileData, userID: user.id };
   }
 };
+
+export const editUserData = async (id: string, updatedRecord: any) => {
+  const { data: user, error } = await supabaseAdmin.auth.admin.updateUserById(
+    id,
+    {
+      email: updatedRecord.email,
+      password: updatedRecord.password,
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+
+  if (user) {
+    try {
+      const { data, error } = await supabase
+        .from("UserLists")
+        .update(updatedRecord)
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error updating user record:", error);
+      return null;
+    }
+  }
+};
+
+export const deleteUserData = async (id: string) => {
+  const { data: user, error } = await supabaseAdmin.auth.admin.deleteUser(id);
+
+  if (error) {
+    throw error;
+  }
+
+  if (user) {
+    try {
+      const { data, error } = await supabase
+        .from("UserLists")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return null;
+    }
+  }
+};

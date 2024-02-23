@@ -2,13 +2,21 @@
 
 import {
   createNewUser,
+  deleteUserData,
+  editUserData,
   fetchUserListsData,
   insertUserListsData,
 } from "@/api/userListsData";
+import { LoadingScreenSection } from "@/components/LoadingScreen";
 import { supabase } from "@/utils/supabase";
 import { useCallback, useEffect, useState } from "react";
 import { IoChevronBack } from "react-icons/io5";
-import { MdOutlineSearch } from "react-icons/md";
+import {
+  MdOutlineDelete,
+  MdOutlineEdit,
+  MdOutlinePublishedWithChanges,
+  MdOutlineSearch,
+} from "react-icons/md";
 
 const Users = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -105,7 +113,7 @@ const Users = () => {
     };
   }, [searchValue, entriesPerPage, currentPageDetailsSection]);
 
-  const [userId, setUserId] = useState("");
+  const [currentUserId, setCurrentUserId] = useState("");
   const [userLastName, setUserLastName] = useState("");
   const [userFirstName, setUserFirstName] = useState("");
   const [userGender, setUserGender] = useState("");
@@ -119,7 +127,8 @@ const Users = () => {
     const record = records.find((record) => record.id === id);
 
     if (record) {
-      setUserId(record.id);
+      setCurrentUserId(record.id);
+
       setUserLastName(record.last_name);
       setUserFirstName(record.first_name);
       setUserGender(record.gender);
@@ -144,6 +153,8 @@ const Users = () => {
   const [newRole, setNewRole] = useState("");
 
   const handleNewUserRecord = async () => {
+    setLoading(true);
+
     const newRecord = {
       last_name: newLastName,
       first_name: newFirstName,
@@ -169,6 +180,7 @@ const Users = () => {
       setNewRole("");
 
       setRegisterUserView(false);
+      setLoading(false);
     } catch (error) {
       alert(
         "Failed to create user: A user with this email address has already been registered."
@@ -176,8 +188,64 @@ const Users = () => {
     }
   };
 
+  // DATA MANIPUATION
+  const [toggleEditUser, setToggleEditUser] = useState(false);
+  const [toggleDeleteUser, setToggleDeleteUser] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleDeleteUserRecord = async (userId: string) => {
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this record?"
+    );
+
+    setLoading(true);
+    // toggleDeleteUser &&
+    if (currentUserId && confirmDelete) {
+      try {
+        await deleteUserData(userId);
+
+        setToggleDeleteUser(false);
+        setToggleMoreDetails(false);
+        setLoading(false);
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    }
+
+    return;
+  };
+
+  const handleEditUserRecord = async (userId: string) => {
+    setLoading(true);
+
+    const record = records.find((record) => record.id === userId);
+    if (record) {
+      const updatedRecord = {
+        last_name: userLastName,
+        first_name: userFirstName,
+        gender: userGender,
+        birth_date: userBirthdate,
+        address: userAddress,
+        phone_number: userPhoneNumber,
+        email: userEmail,
+        password: userPassword,
+      };
+
+      try {
+        await editUserData(userId, updatedRecord);
+
+        setToggleEditUser(false);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error updating data:", error);
+      }
+    }
+  };
+
   return (
-    <div className="z-0 flex flex-col gap-10 h-full">
+    <div className="z-0 flex flex-col gap-10 h-full w-full">
+      {loading && <LoadingScreenSection />}
+
       <div className="flex justify-between items-center flex-col md:flex-row">
         <div className="flex gap-5 items-center">
           <h1 className="flex font-bold text-3xl text-sky-700 ">
@@ -213,13 +281,51 @@ const Users = () => {
         )}
       </div>
       <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-[70dvh] border border-sky-700">
-        <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
-          {registerUserView
-            ? "User Profile"
-            : toggleMoreDetails
-            ? "Personal Information"
-            : "Details"}
-        </h1>
+        <div className="w-full flex justify-between items-center border-b border-sky-700">
+          <h1 className="px-3 py-2 sm:px-4">
+            {registerUserView
+              ? "User Profile"
+              : toggleMoreDetails
+              ? "Personal Information"
+              : "Details"}
+          </h1>
+          <div className="px-3 flex items-center gap-3">
+            {!registerUserView && toggleMoreDetails && (
+              <>
+                {toggleEditUser && (
+                  <button
+                    className="bg-purple-700 text-white
+              border py-1 px-2 text-sm rounded-lg flex items-center gap-2"
+                    onClick={() =>
+                      // console.log("current id: ", operatorId)
+                      handleEditUserRecord(currentUserId)
+                    }>
+                    <MdOutlinePublishedWithChanges />
+                    <span>Apply Changes</span>
+                  </button>
+                )}
+                <button
+                  className={`${
+                    toggleEditUser
+                      ? "bg-sky-700 text-white"
+                      : "border-sky-700 text-sky-700"
+                  } border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() => setToggleEditUser(!toggleEditUser)}>
+                  <MdOutlineEdit />
+                  <span>{toggleEditUser ? "Cancel" : "Edit"}</span>
+                </button>
+                <button
+                  className={`border-red-700 text-red-700 
+                   border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() => handleDeleteUserRecord(currentUserId)}>
+                  <MdOutlineDelete />
+                  <span>Delete</span>
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
         {registerUserView ? (
           <div
             className="grid grid-cols-2 items-center pt-7 px-20 pb-20 gap-5 overflow-y-auto w-full h-full"
@@ -330,6 +436,7 @@ const Users = () => {
               id="userLastName"
               value={userLastName}
               placeholder="Last Name"
+              disabled={!toggleEditUser}
               onChange={(e) => setUserLastName(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -340,6 +447,7 @@ const Users = () => {
               id="userFirstName"
               value={userFirstName}
               placeholder="First Name"
+              disabled={!toggleEditUser}
               onChange={(e) => setUserFirstName(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -348,6 +456,7 @@ const Users = () => {
               name="userGender"
               id="userGender"
               value={userGender}
+              disabled={!toggleEditUser}
               onChange={(e) => setUserGender(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
               {/* <option value=""> Select...</option> */}
@@ -362,6 +471,7 @@ const Users = () => {
               id="userBirthdate"
               value={userBirthdate}
               placeholder="Birthdate"
+              disabled={!toggleEditUser}
               onChange={(e) => setUserBirthdate(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -372,6 +482,7 @@ const Users = () => {
               id="userAddress"
               value={userAddress}
               placeholder="Address"
+              disabled={!toggleEditUser}
               onChange={(e) => setUserAddress(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -382,6 +493,7 @@ const Users = () => {
               id="userPhoneNumber"
               value={userPhoneNumber}
               placeholder="Contact Number"
+              disabled={!toggleEditUser}
               onChange={(e) => setUserPhoneNumber(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -392,6 +504,7 @@ const Users = () => {
               id="userEmail"
               value={userEmail}
               placeholder="Email"
+              disabled={!toggleEditUser}
               onChange={(e) => setUserEmail(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -402,6 +515,7 @@ const Users = () => {
               id="userPassword"
               value={userPassword}
               placeholder="Password"
+              disabled={!toggleEditUser}
               onChange={(e) => setUserPassword(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
