@@ -3,7 +3,7 @@
 import { insuranceOptions, routes } from "@/api/dataValues";
 import { fetchDriverProfileByName } from "@/api/driverProfilesData";
 import { fetchOperatorProfileByName } from "@/api/operatorProfilesData";
-import { fetchPVehicleOwnershipReportById } from "@/api/vehicleOwnership";
+import { fetchVehicleOwnershipReportById } from "@/api/vehicleOwnership";
 import { useCallback, useEffect, useState } from "react";
 import Select from "react-select";
 import ImageUploader from "./ImageUploader";
@@ -97,7 +97,7 @@ const Application = () => {
 
   const memoizedFetchVehicleOwnershipReportByIDData = useCallback(async () => {
     try {
-      const response = await fetchPVehicleOwnershipReportById(
+      const response = await fetchVehicleOwnershipReportById(
         newSelectedOperator?.value
       );
       setRecordVehicles(response?.data || []);
@@ -596,7 +596,7 @@ const Application = () => {
                 name="newFranchiseNumber"
                 id="newFranchiseNumber"
                 value={newFranchiseNumber}
-                readOnly
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
               <label htmlFor="newFranchiseStatus">Franchise Status</label>
@@ -699,7 +699,7 @@ const Application = () => {
                     type="text"
                     id="route"
                     value={newSelectedRoute}
-                    readOnly
+                    disabled
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
                   {newSelectedRouteObj && (
@@ -1040,7 +1040,7 @@ const Application = () => {
                   name="currentDocReq"
                   id="currentDocReq"
                   value={currentDocReq.description}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
                 <label htmlFor="currentDateUploaded">Date Uploaded</label>
@@ -1151,7 +1151,7 @@ const Application = () => {
                     name="currentViewDocReq"
                     id="currentViewDocReq"
                     value={currentViewDocReq.description}
-                    readOnly
+                    disabled
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
                 </div>
@@ -1162,7 +1162,7 @@ const Application = () => {
                     name="currentViewFileName"
                     id="currentViewFileName"
                     value={`${currentYear}-DOCREQ-${currentViewDocReq.number}`}
-                    readOnly
+                    disabled
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
                 </div>

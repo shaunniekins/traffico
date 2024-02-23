@@ -1,20 +1,16 @@
 "use client";
 
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  MdOutlineChangeHistory,
   MdOutlineDelete,
   MdOutlineEdit,
+  MdOutlinePublishedWithChanges,
   MdOutlineSearch,
   MdOutlineWarning,
 } from "react-icons/md";
 
-import { LuImagePlus } from "react-icons/lu";
-
 import { IoMdCloseCircleOutline } from "react-icons/io";
-
-import ReactImagePickerEditor, {
-  ImagePickerConf,
-} from "react-image-picker-editor";
 import "react-image-picker-editor/dist/index.css";
 
 import Select from "react-select";
@@ -32,11 +28,11 @@ import {
   fetchOperatorProfileData,
   insertOperatorProfileData,
 } from "@/api/operatorProfilesData";
-import { supabase } from "@/utils/supabase";
+import { supabase, supabaseAdmin } from "@/utils/supabase";
 import {
   checkVehicleBodyNumber,
   editVehicleOwnershipReportData,
-  fetchPVehicleOwnershipReportById,
+  fetchVehicleOwnershipReportById,
   insertVehicleOwnershipReportData,
 } from "@/api/vehicleOwnership";
 import ImageUploader from "./ImageUploader";
@@ -52,7 +48,6 @@ const OperatorsProfile = () => {
   type RecordVehicle = any;
   const [records, setRecords] = useState<Record[]>([]);
   const [recordVehicles, setRecordVehicles] = useState<RecordVehicle[]>([]);
-  const [currentVehicleOwnerId, setCurrentVehicleOwnerId] = useState("");
 
   // adding new data record
   const [toggleNewRecordButton, setToggleNewRecordButton] = useState(false);
@@ -63,7 +58,9 @@ const OperatorsProfile = () => {
 
   // registering new operator
   const [newOperatorId, setNewOperatorId] = useState<number | null>(null);
-  const [newDateRegistered, setNewDateRegistered] = useState("");
+  const [newDateRegistered, setNewDateRegistered] = useState(
+    new Date().toISOString().substring(0, 10)
+  );
   const [newLastName, setNewLastName] = useState("");
   const [newFirstName, setNewFirstName] = useState("");
   const [newMiddleName, setNewMiddleName] = useState("");
@@ -83,7 +80,9 @@ const OperatorsProfile = () => {
 
   // registering new vehicle
   const [newBodyNumber, setNewBodyNumber] = useState("");
-  const [newDateRegisteredVehicle, setNewDateRegisteredVehicle] = useState("");
+  const [newDateRegisteredVehicle, setNewDateRegisteredVehicle] = useState(
+    new Date().toISOString().substring(0, 10)
+  );
   const [newChassisNumber, setNewChassisNumber] = useState("");
   const [newLTOPlateNumber, setNewLTOPlateNumber] = useState("");
   const [newColorCode, setNewColorCode] = useState("");
@@ -165,6 +164,7 @@ const OperatorsProfile = () => {
   }, []);
 
   // displaying data
+  const [operatorId, setOperatorId] = useState("");
   const [dateRegistered, setDateRegistered] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -362,20 +362,74 @@ const OperatorsProfile = () => {
 
   const memoizedFetchVehicleOwnershipReportByIDData = useCallback(async () => {
     try {
-      const response = await fetchPVehicleOwnershipReportById(
-        currentVehicleOwnerId
-      );
+      const response = await fetchVehicleOwnershipReportById(operatorId);
       setRecordVehicles(response?.data || []);
       // console.log("response?.data", response?.data);
       // setNumOfEntries(response?.count || 1); // This line is not needed unless you have a count property in your data
     } catch (error) {
       console.error("An error occurred:", error);
     }
-  }, [currentVehicleOwnerId]);
+  }, [operatorId]);
 
   useEffect(() => {
     memoizedFetchVehicleOwnershipReportByIDData();
-  }, [currentVehicleOwnerId]);
+
+    const channel = supabase
+      .channel(`realtime sessions vehicle ownership`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "VehicleOwnershipRecords",
+        },
+        (payload) => {
+          if (payload.new) {
+            setRecordVehicles((prevRecord: any) => [
+              payload.new as any,
+              ...prevRecord,
+            ]);
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "VehicleOwnershipRecords",
+        },
+        (payload) => {
+          if (payload.new) {
+            setRecordVehicles((prevRecord: any) =>
+              prevRecord.map((record: any) =>
+                record.id === payload.new.id ? payload.new : record
+              )
+            );
+          }
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "VehicleOwnershipRecords",
+        },
+        (payload) => {
+          if (payload.old) {
+            setRecordVehicles((prevRecord: any) =>
+              prevRecord.filter((record: any) => record.id !== payload.old.id)
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [operatorId]);
 
   const handleSubmissionWithoutEvent = () => {
     if (!newOperator) {
@@ -485,24 +539,23 @@ const OperatorsProfile = () => {
           newInsideFrontViewImage &&
           newBackViewImage
         ) {
-          const { data: frontData, error: frontError } = await supabase.storage
+          await supabase.storage
             .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
             .upload(UPLOAD_FRONT, newFrontViewImage);
 
-          const { data: leftData, error: leftError } = await supabase.storage
+          await supabase.storage
             .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
             .upload(UPLOAD_LEFT, newLeftSideViewImage);
 
-          const { data: rightData, error: rightError } = await supabase.storage
+          await supabase.storage
             .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
             .upload(UPLOAD_RIGHT, newRightSideViewImage);
 
-          const { data: insideFrontData, error: insideFrontError } =
-            await supabase.storage
-              .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
-              .upload(UPLOAD_INSIDE, newInsideFrontViewImage);
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_INSIDE, newInsideFrontViewImage);
 
-          const { data: backData, error: backError } = await supabase.storage
+          await supabase.storage
             .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
             .upload(UPLOAD_BACK, newBackViewImage);
         }
@@ -518,7 +571,7 @@ const OperatorsProfile = () => {
         await editVehicleOwnershipReportData(vehicleId, updateRecord);
       }
 
-      setNewDateRegistered("");
+      setNewDateRegistered(new Date().toISOString().substring(0, 10));
       setNewLastName("");
       setNewFirstName("");
       setNewMiddleName("");
@@ -534,7 +587,7 @@ const OperatorsProfile = () => {
       setNewOperator(false);
       setNewOperatorId(null);
       setNewBodyNumber("");
-      setNewDateRegisteredVehicle("");
+      setNewDateRegisteredVehicle(new Date().toISOString().substring(0, 10));
       setNewChassisNumber("");
       setNewLTOPlateNumber("");
       setNewColorCode("");
@@ -563,6 +616,7 @@ const OperatorsProfile = () => {
     const record = records.find((record) => record.id === id);
 
     if (record) {
+      setOperatorId(id);
       setDateRegistered(record.date_registered);
       setLastName(record.last_name);
       setFirstName(record.first_name);
@@ -591,7 +645,11 @@ const OperatorsProfile = () => {
   const handleSelectedVehicle = (id: string) => {
     const record = recordVehicles.find((record) => record.id === Number(id));
 
+    setSelectedCurrentVehicle(id);
+
     if (record) {
+      // setCurrentVehicleId(id);
+
       setBodyNumber(record.body_num);
       setDateRegisteredVehicle(record.date_registered);
       setChassisNumber(record.chassis_num);
@@ -627,11 +685,12 @@ const OperatorsProfile = () => {
     }
   };
 
+  // default value for selected vehicle
   useEffect(() => {
     if (recordVehicles.length > 0) {
       handleSelectedVehicle(recordVehicles[0].id.toString());
     }
-  }, [recordVehicles]);
+  }, [operatorId, recordVehicles]);
 
   useEffect(() => {
     if (zone !== null) {
@@ -642,6 +701,294 @@ const OperatorsProfile = () => {
       }
     }
   }, [zone, routes]);
+
+  // useEffect(() => {
+  //   const updatedRecordVehicles = recordVehicles.filter(
+  //     (vehicle) => vehicle.operator_id === operatorId
+  //   );
+  //   console.log("record len vehicle111:", updatedRecordVehicles.length);
+  // }, [operatorId]);
+
+  // data manipulation (deletion and edit in vehicle ownership)
+  const [toggleEditVehicle, setToggleEditVehicle] = useState(false);
+  const [toggleDeleteVehicle, setToggleDeleteVehicle] = useState(false);
+  // const [currentVehicleId, setCurrentVehicleId] = useState("");
+  const [selectedCurrentVehicle, setSelectedCurrentVehicle] = useState("");
+
+  const handleDeleteVehicleOwnershipRecord = async (
+    ownerId: string,
+    vehicleId: string
+  ) => {
+    // console.log("ownerId", ownerId);
+    // console.log("vehicleId", vehicleId);
+
+    // return;
+
+    if (toggleDeleteVehicle) {
+      const response = await supabase
+        .from("VehicleOwnershipRecords")
+        .delete()
+        .eq("id", vehicleId)
+        .eq("operator_id", ownerId);
+
+      if (response.error) {
+        console.error("Error deleting data:", response.error);
+      } else {
+        // alert("Record deleted successfully!");
+        setToggleDeleteVehicle(false);
+
+        setCurrentPageMoreDetailsSection(1);
+        setToggleMoreDetails(false);
+
+        await supabaseAdmin.storage
+          .from("assets")
+          .remove([
+            `operators/vehicles/vehicle_${ownerId}-${vehicleId}-front.jpeg`,
+          ]);
+
+        await supabaseAdmin.storage
+          .from("assets")
+          .remove([
+            `operators/vehicles/vehicle_${ownerId}-${vehicleId}-left.jpeg`,
+          ]);
+
+        await supabaseAdmin.storage
+          .from("assets")
+          .remove([
+            `operators/vehicles/vehicle_${ownerId}-${vehicleId}-right.jpeg`,
+          ]);
+
+        await supabaseAdmin.storage
+          .from("assets")
+          .remove([
+            `operators/vehicles/vehicle_${ownerId}-${vehicleId}-inside.jpeg`,
+          ]);
+
+        await supabaseAdmin.storage
+          .from("assets")
+          .remove([
+            `operators/vehicles/vehicle_${ownerId}-${vehicleId}-back.jpeg`,
+          ]);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const deleteOwner = async () => {
+      if (operatorId) {
+        const updatedRecordVehicles = recordVehicles.filter(
+          (vehicle) => vehicle.operator_id === operatorId
+        );
+        // console.log("record len vehicle111:", updatedRecordVehicles.length);
+
+        if (updatedRecordVehicles.length === 0) {
+          const ownerResponse = await supabase
+            .from("OperatorProfiles")
+            .delete()
+            .eq("id", operatorId);
+
+          if (ownerResponse.error) {
+            console.error("Error deleting owner:", ownerResponse.error);
+          } else {
+            alert("Vehicle and Owner deleted successfully!");
+
+            await supabaseAdmin.storage
+              .from("assets")
+              .remove([`operators/face_photo/face_${operatorId}.jpeg`]);
+
+            await supabaseAdmin.storage
+              .from("assets")
+              .remove([
+                `operators/signature_photo/signature_${operatorId}.jpeg`,
+              ]);
+
+            // Update records state as needed
+            return; // might face probs
+          }
+        }
+        // alert("Vehicle deleted successfully!");
+      }
+    };
+
+    deleteOwner();
+  }, [recordVehicles, operatorId]);
+
+  useEffect(() => {
+    if (toggleDeleteVehicle) {
+      const confirmDelete = confirm(
+        "Are you sure you want to delete this record?"
+      );
+      if (confirmDelete) {
+        handleDeleteVehicleOwnershipRecord(operatorId, selectedCurrentVehicle);
+      }
+    }
+  }, [toggleDeleteVehicle]);
+
+  const handleEditOperatorsProfile = async (id: string) => {
+    // console.log("id", id);
+    const record = records.find((record) => record.id === Number(id));
+    // console.log("record", record);
+
+    if (record) {
+      const updatedRecordOperator = {
+        date_registered: dateRegistered,
+        last_name: lastName,
+        first_name: firstName,
+        middle_name: middleName,
+        extension_name: extensionName,
+        birth_date: birthDate,
+        address: address,
+        civil_status: civilStatus,
+        contact_num: contactNum,
+        is_active: isActive,
+      };
+      try {
+        await editOperatorProfileData(id, updatedRecordOperator);
+
+        // images
+        const STORAGE_BUCKET_OPERATOR_FACE_PHOTO =
+          "assets/operators/face_photo";
+        const STORAGE_BUCKET_OPERATOR_SIGNATURE =
+          "assets/operators/signature_photo";
+
+        const UPLOAD_FACE_PHOTO = `face_${id}.jpeg`;
+        const UPLOAD_SIGNATURE_PHOTO = `signature_${id}.jpeg`;
+
+        if (faceImage) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([`operators/face_photo/face_${id}.jpeg`]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_FACE_PHOTO)
+            .upload(UPLOAD_FACE_PHOTO, faceImage);
+        }
+
+        if (signatureImage) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([`operators/signature_photo/signature_${id}.jpeg`]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_SIGNATURE)
+            .upload(UPLOAD_SIGNATURE_PHOTO, signatureImage);
+        }
+
+        setToggleEditVehicle(false);
+      } catch (error) {
+        console.error("Error updating data:", error);
+      }
+    }
+  };
+
+  const handleEditVehicleOwnershipRecord = async (
+    ownerId: string,
+    vehicleId: string
+  ) => {
+    const record = recordVehicles.find(
+      (record) =>
+        record.operator_id === Number(ownerId) &&
+        record.id === Number(vehicleId)
+    );
+
+    // console.log("record exists?, ", record ? "true" : "false");
+    // console.log("vehicleId", vehicleId);
+    if (record) {
+      const updatedRecordVehicle = {
+        date_registered: dateRegisteredVehicle,
+        chassis_num: chassisNumber,
+        lto_plate_num: ltoPlateNumber,
+        color_code: colorCode,
+        motor_num: motorNumber,
+        type: type,
+        vehicle_type: vehicleType,
+        association: association,
+        zone: zone?.value,
+      };
+      // console.log("record: ", record);
+
+      try {
+        await editVehicleOwnershipReportData(vehicleId, updatedRecordVehicle);
+
+        // images
+        const STORAGE_BUCKET_OPERATOR_VEHICLE = "assets/operators/vehicles";
+
+        const UPLOAD_FRONT = `vehicle_${ownerId}-${vehicleId}-front.jpeg`;
+        const UPLOAD_LEFT = `vehicle_${ownerId}-${vehicleId}-left.jpeg`;
+        const UPLOAD_RIGHT = `vehicle_${ownerId}-${vehicleId}-right.jpeg`;
+        const UPLOAD_INSIDE = `vehicle_${ownerId}-${vehicleId}-inside.jpeg`;
+        const UPLOAD_BACK = `vehicle_${ownerId}-${vehicleId}-back.jpeg`;
+
+        if (frontView) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([
+              `operators/vehicles/vehicle_${ownerId}-${vehicleId}-front.jpeg`,
+            ]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_FRONT, frontView);
+        }
+
+        if (leftSideView) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([
+              `operators/vehicles/vehicle_${ownerId}-${vehicleId}-left.jpeg`,
+            ]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_LEFT, leftSideView);
+        }
+
+        if (rightSideView) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([
+              `operators/vehicles/vehicle_${ownerId}-${vehicleId}-right.jpeg`,
+            ]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_RIGHT, rightSideView);
+        }
+
+        if (insideFrontView) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([
+              `operators/vehicles/vehicle_${ownerId}-${vehicleId}-inside.jpeg`,
+            ]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_INSIDE, insideFrontView);
+        }
+
+        if (backView) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([
+              `operators/vehicles/vehicle_${ownerId}-${vehicleId}-back.jpeg`,
+            ]);
+
+          await supabase.storage
+            .from(STORAGE_BUCKET_OPERATOR_VEHICLE)
+            .upload(UPLOAD_BACK, backView);
+        }
+
+        setToggleEditVehicle(false);
+      } catch (error) {
+        console.error("Error updating data:", error);
+      }
+    }
+  };
+
+  useEffect(() => {
+    setToggleEditVehicle(false);
+  }, [currentPageMoreDetailsSection]);
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
@@ -705,15 +1052,64 @@ const OperatorsProfile = () => {
         )}
       </div>
       <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-[70dvh] border border-sky-700">
-        <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
-          {registerPermitView
-            ? currentPageRegister === 1
-              ? "Operator's Profile"
-              : "Ownership Vehicle Information"
-            : toggleMoreDetails
-            ? "More Details of Operator's Profile"
-            : "Details"}
-        </h1>
+        <div className="w-full flex justify-between items-center border-b border-sky-700">
+          <h1 className="px-3 py-2 sm:px-4">
+            {registerPermitView
+              ? currentPageRegister === 1
+                ? "Operator's Profile"
+                : "Ownership Vehicle Information"
+              : toggleMoreDetails
+              ? "More Details of Operator's Profile"
+              : "Details"}
+          </h1>
+          <div className="px-3 flex items-center gap-3">
+            {!registerPermitView &&
+              toggleMoreDetails &&
+              (currentPageMoreDetailsSection === 1 ||
+                currentPageMoreDetailsSection === 2) && (
+                <>
+                  {toggleEditVehicle && (
+                    <button
+                      className="bg-purple-700 text-white
+                    border py-1 px-2 text-sm rounded-lg flex items-center gap-2"
+                      onClick={() =>
+                        // console.log("current id: ", operatorId)
+                        currentPageMoreDetailsSection === 1
+                          ? handleEditOperatorsProfile(operatorId)
+                          : handleEditVehicleOwnershipRecord(
+                              operatorId,
+                              selectedCurrentVehicle
+                            )
+                      }>
+                      <MdOutlinePublishedWithChanges />
+                      <span>Apply Changes</span>
+                    </button>
+                  )}
+                  <button
+                    className={`${
+                      toggleEditVehicle
+                        ? "bg-sky-700 text-white"
+                        : "border-sky-700 text-sky-700"
+                    } border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                    onClick={() => setToggleEditVehicle(!toggleEditVehicle)}>
+                    <MdOutlineEdit />
+                    <span>{toggleEditVehicle ? "Cancel" : "Edit"}</span>
+                  </button>
+                </>
+              )}
+            {!registerPermitView &&
+              toggleMoreDetails &&
+              currentPageMoreDetailsSection === 2 && (
+                <button
+                  className={`border-red-700 text-red-700 
+                   border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() => setToggleDeleteVehicle(true)}>
+                  <MdOutlineDelete />
+                  <span>Delete</span>
+                </button>
+              )}
+          </div>
+        </div>
         {registerPermitView ? (
           registerPermitViewPage === 1 ? (
             // operator's profile
@@ -954,7 +1350,7 @@ const OperatorsProfile = () => {
                     name="newBodyNumber"
                     id="newBodyNumber"
                     value={newBodyNumber}
-                    readOnly
+                    disabled
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
                   <label htmlFor="newDateRegisteredVehicle">
@@ -1088,7 +1484,7 @@ const OperatorsProfile = () => {
                         type="text"
                         id="newSelectedRoute"
                         value={newSelectedRoute}
-                        readOnly
+                        disabled
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
                       {newSelectedRouteObj && (
@@ -1227,6 +1623,7 @@ const OperatorsProfile = () => {
                   id="dateRegistered"
                   value={new Date(dateRegistered).toISOString().slice(0, 10)}
                   placeholder="Date Registered"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setDateRegistered(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1237,6 +1634,7 @@ const OperatorsProfile = () => {
                   id="lastName"
                   value={lastName}
                   placeholder="Last Name"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setLastName(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1247,6 +1645,7 @@ const OperatorsProfile = () => {
                   id="firstName"
                   value={firstName}
                   placeholder="First Name"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setFirstName(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1259,6 +1658,7 @@ const OperatorsProfile = () => {
                     required
                     value={middleName}
                     placeholder="Middle Name"
+                    disabled={!toggleEditVehicle}
                     onChange={(e) => setMiddleName(e.target.value)}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
@@ -1267,6 +1667,7 @@ const OperatorsProfile = () => {
                     id="middleNameNone"
                     name="middleNameNone"
                     value="none"
+                    disabled={!toggleEditVehicle}
                     checked={middleName === ""}
                     onChange={(e) =>
                       setMiddleName(e.target.checked ? "" : "defaultMiddleName")
@@ -1282,6 +1683,7 @@ const OperatorsProfile = () => {
                   id="extensionName"
                   value={extensionName}
                   placeholder="Extension Name"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setExtensionName(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1292,6 +1694,7 @@ const OperatorsProfile = () => {
                   id="birthDate"
                   value={birthDate}
                   placeholder="Birthdate"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setBirthdate(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1302,6 +1705,7 @@ const OperatorsProfile = () => {
                   id="address"
                   value={address}
                   placeholder="Address"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setAddress(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1310,6 +1714,7 @@ const OperatorsProfile = () => {
                   name="civilStatus"
                   id="civilStatus"
                   value={civilStatus}
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setCivilStatus(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
                   <option value=""> Select...</option>
@@ -1323,6 +1728,7 @@ const OperatorsProfile = () => {
                   id="contactNum"
                   value={contactNum}
                   placeholder="Contact Number"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setContactNum(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1333,6 +1739,7 @@ const OperatorsProfile = () => {
                     name="isActive"
                     id="isActiveYes"
                     value="true"
+                    disabled={!toggleEditVehicle}
                     checked={isActive === true}
                     onChange={(e) => setIsActive(e.target.value === "true")}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 mr-2"
@@ -1345,6 +1752,7 @@ const OperatorsProfile = () => {
                     name="isActive"
                     id="isActiveNo"
                     value="false"
+                    disabled={!toggleEditVehicle}
                     checked={isActive === false}
                     onChange={(e) => setIsActive(e.target.value !== "true")}
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 mr-2"
@@ -1353,18 +1761,26 @@ const OperatorsProfile = () => {
                 </div>
                 <div className="col-span-2 w-full flex justify-around">
                   <ImageUploader
+                    isDisabled={!toggleEditVehicle}
                     title="Face Image"
                     setImage={setFaceImage}
                     setPreview={setFacePreview}
                     preview={facePreview}
                   />
                   <ImageUploader
+                    isDisabled={!toggleEditVehicle}
                     title="Signature Image"
                     setImage={setSignatureImage}
                     setPreview={setSignaturePreview}
                     preview={signaturePreview}
                   />
                 </div>
+                {toggleEditVehicle && (
+                  <h5 className="col-span-2 text-sm text-red-500 italic text-center">
+                    Due to processing, changes to the image may not appear
+                    instantly
+                  </h5>
+                )}
               </>
             ) : (
               <>
@@ -1378,7 +1794,8 @@ const OperatorsProfile = () => {
                     }>
                     {recordVehicles.map((vehicle, index) => (
                       <option key={index} value={vehicle.id}>
-                        {vehicle.chassis_num}
+                        {vehicle.lto_plate_num}
+                        {/* chassis_num */}
                       </option>
                     ))}
                   </select>
@@ -1389,7 +1806,7 @@ const OperatorsProfile = () => {
                   name="bodyNumber"
                   id="bodyNumber"
                   value={bodyNumber}
-                  readOnly
+                  disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
                 <label htmlFor="dateRegisteredVehicle">Date Registered</label>
@@ -1406,6 +1823,7 @@ const OperatorsProfile = () => {
                       : ""
                   }
                   placeholder="Date Registered"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setDateRegisteredVehicle(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1416,6 +1834,7 @@ const OperatorsProfile = () => {
                   id="chassisNumber"
                   value={chassisNumber}
                   placeholder="Chassis Number"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setChassisNumber(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1426,6 +1845,7 @@ const OperatorsProfile = () => {
                   id="ltoPlateNumber"
                   value={ltoPlateNumber}
                   placeholder="LTO Plate Number"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setLtoPlateNumber(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1441,6 +1861,7 @@ const OperatorsProfile = () => {
                       setColorCode(selectedOption.value);
                     }
                   }}
+                  isDisabled={!toggleEditVehicle}
                   options={colorOptions}
                   className="basic-multi-select"
                   classNamePrefix="select"
@@ -1452,6 +1873,7 @@ const OperatorsProfile = () => {
                   id="motorNumber"
                   value={motorNumber}
                   placeholder="Motor Number"
+                  disabled={!toggleEditVehicle}
                   onChange={(e) => setMotorNumber(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
@@ -1467,6 +1889,7 @@ const OperatorsProfile = () => {
                       setType(selectedOption.value);
                     }
                   }}
+                  isDisabled={!toggleEditVehicle}
                   options={brandMotorCycleOptions}
                   className="basic-multi-select"
                   classNamePrefix="select"
@@ -1494,6 +1917,7 @@ const OperatorsProfile = () => {
                       setAssociation(selectedOption.value);
                     }
                   }}
+                  isDisabled={!toggleEditVehicle}
                   options={associationOptions}
                   className="basic-multi-select"
                   classNamePrefix="select"
@@ -1515,6 +1939,7 @@ const OperatorsProfile = () => {
                       }
                     }
                   }}
+                  isDisabled={!toggleEditVehicle}
                   options={options}
                   className="basic-multi-select"
                   classNamePrefix="select"
@@ -1526,7 +1951,7 @@ const OperatorsProfile = () => {
                       type="text"
                       id="route"
                       value={selectedRoute}
-                      readOnly
+                      disabled
                       className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                     />
                     {selectedRouteObj && (
@@ -1584,30 +2009,35 @@ const OperatorsProfile = () => {
                         </div>
                         <div className="rounded-lg border border-sky-700 py-3 px-5 grid grid-cols-3 gap-6">
                           <ImageUploader
+                            isDisabled={!toggleEditVehicle}
                             title="Front View"
                             setImage={setFrontView}
                             setPreview={setFrontViewPreview}
                             preview={frontViewPreview}
                           />
                           <ImageUploader
+                            isDisabled={!toggleEditVehicle}
                             title="Left Side View"
                             setImage={setLeftSideView}
                             setPreview={setLeftSideViewPreview}
-                            preview={setLeftSideViewPreview}
+                            preview={leftSideViewPreview}
                           />
                           <ImageUploader
+                            isDisabled={!toggleEditVehicle}
                             title="Right Side View"
                             setImage={setRightSideView}
                             setPreview={setRightSideViewPreview}
                             preview={rightSideViewPreview}
                           />
                           <ImageUploader
+                            isDisabled={!toggleEditVehicle}
                             title="Inside Front View"
                             setImage={setInsideFrontView}
                             setPreview={setInsideFrontViewPreview}
                             preview={insideFrontViewPreview}
                           />
                           <ImageUploader
+                            isDisabled={!toggleEditVehicle}
                             title="Back View"
                             setImage={setBackView}
                             setPreview={setBackViewPreview}
@@ -1799,7 +2229,9 @@ const OperatorsProfile = () => {
               } border py-2 px-4 text-sm rounded-lg`}
               onClick={() => {
                 if (currentPageRegister === 1) {
-                  setRegisterPermitView(false);
+                  if (window.confirm("Are you sure you want to leave?")) {
+                    setRegisterPermitView(false);
+                  }
                 } else {
                   setCurrentPageRegister(currentPageRegister - 1);
                 }

@@ -72,6 +72,7 @@ export const editOperatorProfileData = async (
   id: string,
   updatedRecord: any
 ) => {
+  // console.log("editOperatorProfileData", id, updatedRecord)
   try {
     const { data, error } = await supabase
       .from("OperatorProfiles")

@@ -156,7 +156,7 @@ const TricycleDriverViolation = () => {
               name="body_num"
               id="body_num"
               value={currentComplaint?.body_num}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="date">Date</label>
@@ -165,7 +165,7 @@ const TricycleDriverViolation = () => {
               name="date"
               id="date"
               value={currentComplaint?.date}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="time">Time</label>
@@ -174,7 +174,7 @@ const TricycleDriverViolation = () => {
               name="time"
               id="time"
               value={currentComplaint?.time}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="complain">Complain</label>
@@ -182,7 +182,7 @@ const TricycleDriverViolation = () => {
               name="complain"
               id="complain"
               value={currentComplaint?.complain}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="action_taken">Action Taken</label>
@@ -191,7 +191,7 @@ const TricycleDriverViolation = () => {
               name="action_taken"
               id="action_taken"
               value={currentComplaint?.action_taken}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="driver_name">Driver Name</label>
@@ -200,7 +200,7 @@ const TricycleDriverViolation = () => {
               name="driver_name"
               id="driver_name"
               value={currentComplaint?.driver_name}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="driver_license_num">Driver License No</label>
@@ -209,7 +209,7 @@ const TricycleDriverViolation = () => {
               name="driver_license_num"
               id="driver_license_num"
               value={currentComplaint?.driver_license_num}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="operator_name">Operator Name</label>
@@ -218,7 +218,7 @@ const TricycleDriverViolation = () => {
               name="operator_name"
               id="operator_name"
               value={currentComplaint?.operator_name}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="vehicle_plate_num">Vehicle Plate No</label>
@@ -227,7 +227,7 @@ const TricycleDriverViolation = () => {
               name="vehicle_plate_num"
               id="vehicle_plate_num"
               value={currentComplaint?.vehicle_plate_num}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="vehicle_date_registered">
@@ -238,7 +238,7 @@ const TricycleDriverViolation = () => {
               name="vehicle_date_registered"
               id="vehicle_date_registered"
               value={currentComplaint?.vehicle_date_registered}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
             <label htmlFor="vehicle_zone">Zone</label>
@@ -247,7 +247,7 @@ const TricycleDriverViolation = () => {
               name="vehicle_zone"
               id="vehicle_zone"
               value={currentComplaint?.vehicle_zone}
-              readOnly
+              disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
           </div>

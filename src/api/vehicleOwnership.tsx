@@ -1,6 +1,6 @@
 import { supabase } from "@/utils/supabase";
 
-export const fetchPVehicleOwnershipReportById = async (id: string) => {
+export const fetchVehicleOwnershipReportById = async (id: string) => {
   try {
     let query = supabase
       .from("VehicleOwnershipRecords")
@@ -60,6 +60,9 @@ export const editVehicleOwnershipReportData = async (
   id: string,
   updatedRecord: any
 ) => {
+  // console.log("id", id);
+  // console.log("updatedRecord", updatedRecord);
+
   try {
     const { data, error } = await supabase
       .from("VehicleOwnershipRecords")
