@@ -2,7 +2,7 @@ import { supabase, supabaseAdmin } from "@/utils/supabase";
 
 export const fetchRequirementDocumentDataByID = async (id: any) => {
   try {
-    const query = supabase.from("RequirementDocuments").select(`*`);
+    const query = supabase.from("ViewRequirementDocsWithYear").select(`*`);
 
     const response = await query;
 

@@ -1,12 +1,17 @@
 "use client";
 
-import { fetchApplicationData } from "@/api/applicationsData";
+import {
+  deleteApplicationData,
+  editApplicationData,
+  fetchApplicationData,
+} from "@/api/applicationsData";
 import { documentDesc } from "@/api/dataValues";
 import { fetchRequirementDocumentDataByID } from "@/api/requirementsData";
+import { LoadingScreenSection } from "@/components/LoadingScreen";
 import { supabase } from "@/utils/supabase";
 import { useCallback, useEffect, useState } from "react";
 import { IoMdCloseCircleOutline } from "react-icons/io";
-import { MdOutlineSearch } from "react-icons/md";
+import { MdOutlineDelete, MdOutlineSearch } from "react-icons/md";
 
 const Approval = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -18,7 +23,7 @@ const Approval = () => {
   const [docsRecords, setDocsRecords] = useState<Documents[]>([]);
   const [numOfEntries, setNumOfEntries] = useState(0);
 
-  const [currentID, setCurrentId] = useState("");
+  const [currentId, setCurrentId] = useState("");
   const [currentFranchiseNum, setCurrentFranchiseNum] = useState("");
   const [currentOperator, setCurrentOperator] = useState("");
   const [currentOperatorAddress, setCurrentOperatorAddress] = useState("");
@@ -52,7 +57,7 @@ const Approval = () => {
     } catch (error) {
       console.error("An error occurred:", error);
     }
-  }, [searchValue, selectedOption]);
+  }, [searchValue, selectedOption, currentDetailsPage]);
 
   useEffect(() => {
     memoizedFetchApplicationData();
@@ -112,11 +117,11 @@ const Approval = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [searchValue, selectedOption]);
+  }, [searchValue, selectedOption, currentDetailsPage]);
 
   const memoizedFetchRequirementsDataByID = useCallback(async () => {
     try {
-      const response = await fetchRequirementDocumentDataByID(currentID);
+      const response = await fetchRequirementDocumentDataByID(currentId);
       if (response?.error) {
         console.error(response.error);
       } else {
@@ -126,7 +131,7 @@ const Approval = () => {
     } catch (error) {
       console.error("An error occurred:", error);
     }
-  }, [currentID]);
+  }, [currentId]);
 
   useEffect(() => {
     memoizedFetchRequirementsDataByID();
@@ -186,7 +191,7 @@ const Approval = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentID]);
+  }, [currentId]);
 
   function capitalizeFirstLetter(string: any) {
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -210,7 +215,13 @@ const Approval = () => {
       setCurrentId(record.id);
       setCurrentFranchiseNum(record.franchise_num);
       setCurrentOperator(
-        `${record.OperatorProfiles.first_name} ${record.OperatorProfiles.last_name} ${record.OperatorProfiles.middle_name[0]}.`
+        `${record.OperatorProfiles.first_name} ${
+          record.OperatorProfiles.last_name
+        } ${
+          record.OperatorProfiles.middle_name
+            ? record.OperatorProfiles.middle_name[0] + "."
+            : ""
+        }`
       );
       setCurrentOperatorAddress(record.OperatorProfiles.address);
       setCurrentStatus(record.status);
@@ -227,7 +238,7 @@ const Approval = () => {
           return { number, description, fileName, fileLocation };
         });
 
-      console.log(newDocsArray);
+      // console.log(newDocsArray);
       setDocsArray(newDocsArray);
     }
 
@@ -235,6 +246,7 @@ const Approval = () => {
   };
 
   type DocReqViewType = {
+    year: string;
     number: number;
     description: string;
     file: File;
@@ -246,12 +258,67 @@ const Approval = () => {
     useState(false);
 
   const handleViewFileUploaded = (
+    year: string,
     number: number,
     description: string,
     file: File
   ) => {
-    setCurrentViewDocReq({ number, description, file });
+    setCurrentViewDocReq({ year, number, description, file });
     setModalViewUploadedDocument(true);
+  };
+
+  const STORAGE_BUCKET_APPLICATION_REQUIREMENTS_VIEW = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/application/requirements_documents/`;
+
+  // const STORAGE_BUCKET_APPLICATION_REQUIREMENTS =
+  //   "assets/application/requirements_documents";
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [currentViewDocReq]);
+
+  const handleUpdateApplicationStatus = async (newStatus: string) => {
+    const applicationId: string = currentId;
+    const record = records.find((record) => record.id === applicationId);
+
+    if (record) {
+      // console.log("newStatus: ", newStatus);
+      // console.log("applicationId: ", applicationId);
+      try {
+        await editApplicationData(applicationId, newStatus);
+        setCurrentDetailsPage(1);
+      } catch (error) {
+        console.error("Error updating data:", error);
+      }
+    }
+  };
+
+  const [loading, setLoading] = useState(false);
+
+  const handleDeleteApplicationRecord = async (applicationId: string) => {
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this record?"
+    );
+
+    setLoading(true);
+    if (applicationId && confirmDelete) {
+      try {
+        await deleteApplicationData(applicationId);
+
+        setCurrentDetailsPage(1);
+        setLoading(false);
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    }
+
+    return;
   };
 
   return (
@@ -297,7 +364,7 @@ const Approval = () => {
               name="currentFranchiseNum"
               id="currentFranchiseNum"
               value={currentFranchiseNum}
-              readOnly
+              disabled
               className="w-full border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg pl-3 pr-10 py-2"
             />
           </div>
@@ -332,7 +399,13 @@ const Approval = () => {
                       {record.franchise_num}
                     </td>
                     <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
-                      {`${record?.OperatorProfiles?.first_name} ${record?.OperatorProfiles?.last_name} ${record?.OperatorProfiles?.middle_name?.[0]}.`}
+                      {`${record?.OperatorProfiles?.first_name} ${
+                        record?.OperatorProfiles?.last_name
+                      } ${
+                        record?.OperatorProfiles?.middle_name
+                          ? record?.OperatorProfiles?.middle_name?.[0] + "."
+                          : ""
+                      }`}
                     </td>
                     <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
                       {new Date(record.application_date)
@@ -348,7 +421,7 @@ const Approval = () => {
                           record.status === "approved" &&
                           "bg-green-200 text-green-700"
                         } ${
-                          record.status === "disappoved" &&
+                          record.status === "disapproved" &&
                           "bg-red-200 text-red-700"
                         } py-2 px-5 text-sm rounded-lg`}>
                         {capitalizeFirstLetter(record.status)}
@@ -380,7 +453,7 @@ const Approval = () => {
                 </div>
                 <div
                   className="rounded-lg border border-sky-700 py-3 px-5 grid grid-cols-2 gap-6 items-center w-full h-full"
-                  style={{ gridTemplateColumns: "1fr 1fr" }}>
+                  style={{ gridTemplateColumns: "0.50fr 1fr" }}>
                   <div>
                     <label htmlFor="currentViewDocReq">Document Name</label>
                     <input
@@ -388,8 +461,8 @@ const Approval = () => {
                       name="currentViewDocReq"
                       id="currentViewDocReq"
                       value={currentViewDocReq.description}
-                      readOnly
-                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                      disabled
+                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 1frw-full"
                     />
                   </div>
                   <div>
@@ -398,27 +471,40 @@ const Approval = () => {
                       type="text"
                       name="currentViewFileName"
                       id="currentViewFileName"
-                      value={`${new Date().getFullYear()}-DOCREQ-${
-                        currentViewDocReq.number
-                      }`}
-                      readOnly
+                      value={`${currentViewDocReq.year}-DOCREQ-${currentViewDocReq.number}`}
+                      disabled
                       className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                     />
                   </div>
-
                   {/* <div className="preview-here w-full col-span-2">
-                    <object
-                      data={URL.createObjectURL(currentViewDocReq.file)}
-                      type="application/pdf"
-                      width="100%"
-                      height="300px">
-                      <p>
-                        <a href={URL.createObjectURL(currentViewDocReq.file)}>
-                          click here to download the PDF file.
-                        </a>
-                      </p>
-                    </object>
+                    {STORAGE_BUCKET_APPLICATION_REQUIREMENTS_VIEW +
+                      currentViewDocReq.file}
                   </div> */}
+
+                  <div className="preview-here w-full col-span-2">
+                    {isLoading ? (
+                      <LoadingScreenSection />
+                    ) : (
+                      <object
+                        data={
+                          STORAGE_BUCKET_APPLICATION_REQUIREMENTS_VIEW +
+                          currentViewDocReq.file
+                        }
+                        type="application/pdf"
+                        width="100%"
+                        height="300px">
+                        <p>
+                          <a
+                            href={
+                              STORAGE_BUCKET_APPLICATION_REQUIREMENTS_VIEW +
+                              currentViewDocReq.file
+                            }>
+                            click here to download the PDF file.
+                          </a>
+                        </p>
+                      </object>
+                    )}
+                  </div>
                 </div>
                 <div className="bg-gray-50 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-4">
                   <button
@@ -435,9 +521,16 @@ const Approval = () => {
           )}
           <div className="flex flex-col gap-5">
             <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg border border-sky-700">
-              <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
-                OPERATOR{`’`}S INFORMATION
-              </h1>
+              <div className="w-full flex justify-between items-center border-b border-sky-700 px-3">
+                <h1 className="py-2">OPERATOR{`’`}S INFORMATION</h1>
+                <button
+                  className={`border-red-700 text-red-700 
+                   border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() => handleDeleteApplicationRecord(currentId)}>
+                  <MdOutlineDelete />
+                  <span>Delete</span>
+                </button>
+              </div>
               <div className="flex flex-col items-start content-start overflow-y-auto w-full h-full py-2 sm:px-4">
                 <h1 className="text-xl text-sky-700 font-semibold">
                   {currentOperator}
@@ -494,6 +587,9 @@ const Approval = () => {
                             className={`border border-green-700 text-green-700 py-2 px-4 text-xs rounded-lg`}
                             onClick={() => {
                               handleViewFileUploaded(
+                                new Date(docsRecords[0].application_date)
+                                  .getFullYear()
+                                  .toString(),
                                 index + 1,
                                 desc.description,
                                 docsRecords[0][`doc_${index + 1}_loc`]
@@ -510,23 +606,46 @@ const Approval = () => {
             </div>
             <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg border border-sky-700">
               <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
-                APPLICATION STATUS -
-                <span className="italic font-semibold">
+                APPLICATION STATUS -{" "}
+                <span
+                  className={`${
+                    currentStatus === "pending"
+                      ? "text-yellow-700"
+                      : currentStatus === "approved"
+                      ? "text-green-700"
+                      : "text-red-700"
+                  } italic font-semibold `}>
                   {capitalizeFirstLetter(currentStatus)}
                 </span>
               </h1>
               <div className="flex items-center justify-start overflow-y-auto w-full h-full py-2 sm:px-4 gap-5">
                 {currentStatus === "pending" ? (
                   <>
-                    <button className="bg-green-200 text-green-700 py-2 px-5 text-sm rounded-lg">
+                    <button
+                      className="bg-green-200 text-green-700 py-2 px-5 text-sm rounded-lg"
+                      onClick={() => handleUpdateApplicationStatus("approved")}>
                       Approve
                     </button>
-                    <button className="bg-gray-200 text-gray-700 py-2 px-5 text-sm rounded-lg">
-                      Disappove
+                    <button
+                      className="bg-gray-200 text-gray-700 py-2 px-5 text-sm rounded-lg"
+                      onClick={() =>
+                        handleUpdateApplicationStatus("disapproved")
+                      }>
+                      Disapprove
                     </button>
                   </>
+                ) : currentStatus === "disapproved" ? (
+                  <button
+                    className="bg-green-200 text-green-700 py-2 px-5 text-sm rounded-lg"
+                    onClick={() => handleUpdateApplicationStatus("approved")}>
+                    Approve
+                  </button>
                 ) : (
-                  <button className="bg-red-200 text-red-700 py-2 px-5 text-sm rounded-lg">
+                  <button
+                    className="bg-red-200 text-red-700 py-2 px-5 text-sm rounded-lg"
+                    onClick={() =>
+                      handleUpdateApplicationStatus("disapproved")
+                    }>
                     Revoke Approval
                   </button>
                 )}

@@ -171,3 +171,43 @@ export const fetchApplicationDataForQRScanner = async (
     }
   }
 };
+
+export const editApplicationData = async (
+  applicationId: string,
+  newStatus: string
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("Applications")
+      // .update([updatedRecord])
+      .update({ status: newStatus })
+      .eq("id", applicationId);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating data:", error);
+    return null;
+  }
+};
+
+export const deleteApplicationData = async (applicationId: string) => {
+  try {
+    const { data, error } = await supabase
+      .from("Applications")
+      .delete()
+      .eq("id", applicationId);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating data:", error);
+    return null;
+  }
+};
