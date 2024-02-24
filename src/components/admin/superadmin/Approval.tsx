@@ -8,7 +8,7 @@ import {
 import { documentDesc } from "@/api/dataValues";
 import { fetchRequirementDocumentDataByID } from "@/api/requirementsData";
 import { LoadingScreenSection } from "@/components/LoadingScreen";
-import { supabase } from "@/utils/supabase";
+import { supabase, supabaseAdmin } from "@/utils/supabase";
 import { useCallback, useEffect, useState } from "react";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import { MdOutlineDelete, MdOutlineSearch } from "react-icons/md";
@@ -311,6 +311,14 @@ const Approval = () => {
       try {
         await deleteApplicationData(applicationId);
 
+        for (let i = 1; i <= 13; i++) {
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([
+              `application/requirements_documents/${applicationId}_doc${i}.pdf`,
+            ]);
+        }
+
         setCurrentDetailsPage(1);
         setLoading(false);
       } catch (error) {
@@ -322,7 +330,8 @@ const Approval = () => {
   };
 
   return (
-    <div className="z-0 flex flex-col gap-10 h-full">
+    <div className="z-0 flex flex-col gap-10 h-full w-full">
+      {loading && <LoadingScreenSection />}
       <div className="flex justify-between items-center flex-col md:flex-row">
         <div className="flex gap-5 items-center">
           <h1 className="flex font-bold text-3xl text-sky-700 ">
