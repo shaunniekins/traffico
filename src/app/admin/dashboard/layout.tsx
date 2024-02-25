@@ -2,6 +2,7 @@ import { Inter } from "next/font/google";
 import Sidebar from "@/components/Sidebar";
 import Topbar from "@/components/Topbar";
 import Navigation from "@/components/Navigation";
+import Protected from "@/utils/Protected";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,5 +16,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <Navigation children={children} />;
+  return (
+    <Protected>
+      <Navigation children={children} />
+    </Protected>
+  );
 }

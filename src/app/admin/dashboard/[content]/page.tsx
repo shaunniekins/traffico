@@ -13,6 +13,7 @@ import TricycleDriverViolation from "@/components/admin/TricycleDriverViolation"
 import TricycleQrCode from "@/components/admin/TricycleQrCode";
 import Approval from "@/components/admin/superadmin/Approval";
 import Users from "@/components/admin/superadmin/Users";
+import SettingsComponent from "@/components/Settings";
 
 const Content = () => {
   const router = useRouter();
@@ -56,6 +57,10 @@ const Content = () => {
     case "/admin/dashboard/users":
       activePath = "Users List";
       activeComponent = <Users />;
+      break;
+    case "/admin/dashboard/settings":
+      activePath = "Settings";
+      activeComponent = <SettingsComponent />;
       break;
     default:
       activeComponent = null;
