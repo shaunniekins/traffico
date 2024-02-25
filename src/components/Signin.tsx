@@ -3,12 +3,8 @@
 import { supabase } from "@/utils/supabase";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
-import {
-  FidgetSpinner,
-  FidgetSpinnerProps,
-  TailSpin,
-} from "react-loader-spinner";
+import { useEffect, useState } from "react";
+import { LoadingScreenSection } from "./LoadingScreen";
 
 const SigninComponent = () => {
   const router = useRouter();
@@ -16,22 +12,30 @@ const SigninComponent = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [indicatorMsg, setIndicatorMsg] = useState("");
-  const [indicatorStatus, setIndicatorStatus] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  const userType = pathname.includes("/admin/")
+    ? "admin"
+    : pathname.includes("/passenger/")
+    ? "passenger"
+    : null;
 
   //roles: admin, personnel, enforcer, passenger
   const [role, setRole] = useState("admin");
 
-  const handleTimeout = () => {
-    setTimeout(() => {
-      setIndicatorMsg("");
-      setIndicatorStatus(true);
-    }, 5000);
-  };
+  useEffect(() => {
+    if (userType === "passenger") {
+      setRole("passenger");
+    } else {
+      setRole("admin");
+    }
+  }, [userType]);
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    // console.log("role", role);
+
+    setLoading(true);
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -40,22 +44,21 @@ const SigninComponent = () => {
       });
 
       if (error) {
-        setIndicatorMsg(`Login failed: ${error.message}`);
-        setIndicatorStatus(false);
-        handleTimeout();
+        setLoading(false);
+        alert(`Login failed: ${error.message}`);
       } else {
         if (role === "personnel") {
           const user = data?.user;
           const { data: userData, error: fetchError } = await supabase
-            .from("personnel_profiles")
+            .from("UserLists")
             .select("id")
-            .eq("id", user?.id);
+            .eq("id", user?.id)
+            .eq("role", "personnel");
 
           if (fetchError || userData.length === 0) {
-            setIndicatorMsg("You are not a personnel!");
-            setIndicatorStatus(false);
-            handleTimeout();
+            setLoading(false);
             await supabase.auth.signOut();
+            alert("You are not a personnel!");
             return;
           }
           setLoading(true);
@@ -63,15 +66,15 @@ const SigninComponent = () => {
         } else if (role === "enforcer") {
           const user = data?.user;
           const { data: userData, error: fetchError } = await supabase
-            .from("enforcer_profiles")
+            .from("UserLists")
             .select("id")
-            .eq("id", user?.id);
+            .eq("id", user?.id)
+            .eq("role", "enforcer");
 
           if (fetchError || userData.length === 0) {
-            setIndicatorMsg("You are not a traffic enforcer!");
-            setIndicatorStatus(false);
-            handleTimeout();
+            setLoading(false);
             await supabase.auth.signOut();
+            alert("You are not a traffic enforcer!");
             return;
           }
           setLoading(true);
@@ -79,15 +82,15 @@ const SigninComponent = () => {
         } else if (role === "passenger") {
           const user = data?.user;
           const { data: userData, error: fetchError } = await supabase
-            .from("passenger_profiles")
+            .from("UserLists")
             .select("id")
-            .eq("id", user?.id);
+            .eq("id", user?.id)
+            .eq("role", "passenger");
 
           if (fetchError || userData.length === 0) {
-            setIndicatorMsg("You are not a passenger!");
-            setIndicatorStatus(false);
-            handleTimeout();
+            setLoading(false);
             await supabase.auth.signOut();
+            alert("You are not a passenger!");
             return;
           }
           setLoading(true);
@@ -96,19 +99,22 @@ const SigninComponent = () => {
           const user = data?.user;
 
           const { data: userData1, error: fetchError1 } = await supabase
-            .from("personnel_profiles")
+            .from("UserLists")
             .select("id")
-            .eq("id", user?.id);
+            .eq("id", user?.id)
+            .eq("role", "personnel");
 
           const { data: userData2, error: fetchError2 } = await supabase
-            .from("enforcer_profiles")
+            .from("UserLists")
             .select("id")
-            .eq("id", user?.id);
+            .eq("id", user?.id)
+            .eq("role", "enforcer");
 
           const { data: userData3, error: fetchError3 } = await supabase
-            .from("passenger_profiles")
+            .from("UserLists")
             .select("id")
-            .eq("id", user?.id);
+            .eq("id", user?.id)
+            .eq("role", "passenger");
 
           if (
             (fetchError1 || userData1?.length === 0) &&
@@ -120,12 +126,12 @@ const SigninComponent = () => {
             router.push("/admin/dashboard/dashboard");
             return;
           }
-          setIndicatorMsg("You are not an admin!");
-          setIndicatorStatus(false);
-          handleTimeout();
+          setLoading(false);
+          alert("You are not an admin!");
           await supabase.auth.signOut();
         }
       }
+      // setLoading(false);
     } catch (error) {
       console.error("An unexpected error occurred:", error);
     }
@@ -134,12 +140,7 @@ const SigninComponent = () => {
   return (
     <>
       <div className="min-h-[100svh] h-[100svh] flex flex-col  bg-sky-100">
-        {loading && (
-          <div
-            className={`z-50 fixed inset-0 flex items-center justify-center bg-opacity-50 bg-black overflow-y-auto`}>
-            <FidgetSpinner />
-          </div>
-        )}
+        {loading && <LoadingScreenSection />}
         <div className="h-full flex items-center justify-center px-4 sm:px-6 lg:px-8 container mx-auto">
           <div className="max-w-md w-full space-y-8 ">
             <div className="flex flex-col items-center mt-[-5rem]">
@@ -196,17 +197,19 @@ const SigninComponent = () => {
                     placeholder="Password"
                   />
                 </div>
-                <select
-                  name="role"
-                  id="role"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="self-end border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-1 px-2 text-sm bg-sky-50">
-                  <option value="admin">Administrator</option>
-                  <option value="personnel">Personnel</option>
-                  <option value="enforcer">Traffic Enforcer</option>
-                  <option value="passenger">Passenger</option>
-                </select>
+                {userType === "admin" && (
+                  <select
+                    name="role"
+                    id="role"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="self-end border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-1 px-2 text-sm bg-sky-50">
+                    <option value="admin">Administrator</option>
+                    <option value="personnel">Personnel</option>
+                    <option value="enforcer">Traffic Enforcer</option>
+                    {/* <option value="passenger">Passenger</option> */}
+                  </select>
+                )}
               </div>
               <div>
                 <button
@@ -214,9 +217,6 @@ const SigninComponent = () => {
                   className="group relative w-full flex justify-center p-3 border border-transparent text-sm font-medium rounded-lg text-white bg-sky-700 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-700">
                   Sign in
                 </button>
-                <p className="h-[1px] mt-3 text-center text-xs text-red-600">
-                  {indicatorMsg ? indicatorMsg : ""}
-                </p>
               </div>
             </form>
           </div>
