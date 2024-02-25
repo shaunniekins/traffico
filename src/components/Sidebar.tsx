@@ -33,7 +33,50 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
     ? "personnel"
     : null;
 
-  let buttons: Button[] = [
+  const personnelButtons: Button[] = [
+    {
+      path: "/personnel/dashboard/dashboard",
+      label: "Dashboard",
+      icon: <IoHomeOutline />,
+    },
+    {
+      path: "/personnel/dashboard/operators",
+      label: "Operator's Profile",
+      icon: <IoPeopleOutline />,
+    },
+    {
+      path: "/personnel/dashboard/drivers",
+      label: "Driver's Profile",
+      icon: <IoClipboardOutline />,
+    },
+    {
+      path: "/personnel/dashboard/application",
+      label: "Application",
+      icon: <IoCalendarOutline />,
+    },
+    {
+      path: "/personnel/dashboard/tricycle-driver",
+      label: "Tricycle Driver's Violation",
+      icon: <IoSettingsOutline />,
+    },
+    {
+      path: "/personnel/dashboard/tricycle-qr",
+      label: "Tricycle Generated QR Code",
+      icon: <IoSettingsOutline />,
+    },
+    {
+      path: "/personnel/dashboard/settings",
+      label: "Settings",
+      icon: <IoHomeOutline />,
+    },
+  ];
+
+  const adminButtons: Button[] = [
+    {
+      path: "/admin/dashboard/approval",
+      label: "Approval",
+      icon: <IoHomeOutline />,
+    },
     {
       path: "/admin/dashboard/dashboard",
       label: "Dashboard",
@@ -64,20 +107,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
       label: "Tricycle Generated QR Code",
       icon: <IoSettingsOutline />,
     },
-  ];
-
-  if (userType === "admin") {
-    buttons.splice(1, 0, {
-      path: "/admin/dashboard/approval",
-      label: "Approval",
-      icon: <IoHomeOutline />,
-    });
-    buttons.push({
+    {
       path: "/admin/dashboard/users",
       label: "Users",
       icon: <IoHomeOutline />,
-    });
-  }
+    },
+    {
+      path: "/admin/dashboard/settings",
+      label: "Settings",
+      icon: <IoHomeOutline />,
+    },
+  ];
+
+  const buttons =
+    userType === "admin"
+      ? adminButtons
+      : userType === "personnel"
+      ? personnelButtons
+      : [];
 
   // Check if the current path matches the button's path
   const isCurrentPath = (buttonPath: string) => pathname === buttonPath;
@@ -98,14 +145,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
         </button>
       </div>
       <div
-        className={`${
-          isMenuOpen ? "flex" : "hidden"
-        }   h-[95dvh] md:h-[100dvh] flex-col rounded-r-3xl bg-[#03396C] text-white lg:justify-center space-y-10 lg:space-y-20 items-center `}>
+        className={`${isMenuOpen ? "flex" : "hidden"} ${
+          userType === "admin" ? "space-y-10" : "space-y-10 lg:space-y-20"
+        }  h-[95dvh] md:h-[100dvh] flex-col rounded-r-3xl bg-[#03396C] text-white lg:justify-center items-center `}>
         <div className="rounded-3xl overflow-hidden">
           <Image src="/logo.svg" alt="Traffico Logo" width={200} height={200} />
         </div>
 
-        <div className="flex flex-col space-y-5">
+        <div
+          className={`${
+            userType === "admin" ? "gap-y-2" : "gap-y-5"
+          } flex flex-col`}>
           {buttons.map((button, index) => (
             <button
               key={index}

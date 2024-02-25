@@ -13,6 +13,11 @@ module.exports = {
         destination: "/admin/dashboard/dashboard",
         permanent: false,
       },
+      {
+        source: "/personnel",
+        destination: "/personnel/dashboard/dashboard",
+        permanent: false,
+      },
       //   {
       //     source: "/dashboard",
       //     destination: "/dashboard/dashboard",
