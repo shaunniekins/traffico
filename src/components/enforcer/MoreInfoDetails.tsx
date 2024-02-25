@@ -1,4 +1,15 @@
+import {
+  deleteReportViolations,
+  updateReportViolations,
+} from "@/api/reportViolationsData";
+import { useState } from "react";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
+import {
+  MdOutlineDelete,
+  MdOutlineEdit,
+  MdOutlinePublishedWithChanges,
+} from "react-icons/md";
+import { LoadingScreenSection } from "../LoadingScreen";
 
 interface DriverProfile {
   first_name: string;
@@ -50,30 +61,95 @@ interface RecordType {
 }
 
 interface MoreInfoDetailsProps {
+  userType: any;
   record: any;
   setShowBottomBar: React.Dispatch<React.SetStateAction<boolean>>;
   setToggleMoreDetails: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
+  userType,
   record,
   setShowBottomBar,
   setToggleMoreDetails,
 }) => {
-  console.log("record here: ", record);
+  // console.log("record here: ", record);
 
   const handleExit = () => {
     // if (window.confirm("Are you sure you want to exit?")) {
     setShowBottomBar(true);
     setToggleMoreDetails(false);
+
+    setToggleUpdateReportStatus(false);
     // }
+  };
+
+  const [toggleUpdateReportStatus, setToggleUpdateReportStatus] =
+    useState(false);
+
+  const [actionTakenUpdate, setActionTakenUpdate] = useState("");
+  const [violationUpdate, setViolationUpdate] = useState("");
+
+  const handleUpdateStatusReport = async (currentReportId: string) => {
+    // console.log("currentReportId: ", currentReportId);
+
+    if (actionTakenUpdate === "penalty-imposed" && violationUpdate) {
+      // console.log("penalty-imposed: ", violationUpdate);
+
+      const updateData = {
+        action_taken: actionTakenUpdate,
+        violation: violationUpdate,
+      };
+
+      try {
+        await updateReportViolations(currentReportId, updateData);
+      } catch (error) {
+        console.error("Error updating data:", error);
+      }
+    } else {
+      // console.log("resolved: ", actionTakenUpdate);
+
+      const updateData = {
+        action_taken: actionTakenUpdate,
+      };
+
+      try {
+        await updateReportViolations(currentReportId, updateData);
+      } catch (error) {
+        console.error("Error updating data:", error);
+      }
+    }
+
+    setToggleUpdateReportStatus(false);
+  };
+
+  const [loading, setLoading] = useState(false);
+
+  const handleDeleteViolation = async (currentReportId: string) => {
+    const confirmDelete = confirm(
+      "Are you sure you want to delete this record?"
+    );
+
+    setLoading(true);
+
+    if (currentReportId && confirmDelete) {
+      try {
+        await deleteReportViolations(currentReportId);
+
+        handleExit();
+        setLoading(false);
+      } catch (error) {
+        console.error("Error deleting data:", error);
+      }
+    }
   };
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full overflow-y-auto">
+      {loading && <LoadingScreenSection />}
       <div className="h-full w-full flex flex-col justify-between">
         <div className="flex justify-between items-center flex-col mx-5 h-full overflow-y-hidden sm:overflow-y-auto">
-          <div className="w-full text-lg my-3">
+          <div className="w-full text-lg my-3 flex justify-between items-center">
             <button
               onClick={() => {
                 handleExit();
@@ -81,29 +157,149 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
               className="py-1 flex items-center gap-1">
               <IoChevronBack /> <span className="text-sm">back</span>
             </button>
-            {/* <button
-            //   onClick={handleReportSubmit}
-            //   disabled={
-            //     !currentComplain ||
-            //     (userType === "passenger"
-            //       ? !currentComplainantName || !currentContactNumber
-            //       : !violation)
-            //   }
-            //   className={`
-            //   ${
-            //     !currentComplain ||
-            //     (userType === "passenger"
-            //       ? !currentComplainantName || !currentContactNumber
-            //       : !violation)
-            //       ? "bg-gray-700 text-gray-300"
-            //       : "bg-sky-700 text-white"
-            //   }
-            //    bg-gray-700 text-gray-300 w-full p-2 rounded-md`}
-            className="bg-gray-700 text-gray-300 w-full p-2 rounded-md">
-            Report
-          </button> */}
+            {userType === "enforcer" && (
+              <div className="flex gap-3">
+                {record?.action_taken === "pending" && (
+                  <div className="flex gap-2">
+                    {toggleUpdateReportStatus && (
+                      <button
+                        className={`${
+                          (actionTakenUpdate === "penalty-imposed" &&
+                            violationUpdate) ||
+                          actionTakenUpdate === "resolved"
+                            ? "bg-green-700"
+                            : "bg-gray-700"
+                        } flex items-center gap-1 py-1 px-3 text-sm rounded-lg capitalize text-white`}
+                        disabled={
+                          !(
+                            (actionTakenUpdate === "penalty-imposed" &&
+                              violationUpdate) ||
+                            actionTakenUpdate === "resolved"
+                          )
+                        }
+                        onClick={() => handleUpdateStatusReport(record.id)}>
+                        <MdOutlinePublishedWithChanges />
+                        Submit Update
+                      </button>
+                    )}
+                    <button
+                      className={`${
+                        toggleUpdateReportStatus ? "bg-red-700" : "bg-sky-700 "
+                      }  flex items-center gap-1 py-1 px-3 text-sm rounded-lg capitalize text-white`}
+                      onClick={() => {
+                        setToggleUpdateReportStatus(!toggleUpdateReportStatus);
+                        if (toggleUpdateReportStatus) {
+                          setActionTakenUpdate("");
+                          setViolationUpdate("");
+                        }
+                      }}>
+                      <MdOutlineEdit />
+                      {!toggleUpdateReportStatus ? "Update Status" : "Cancel "}
+                    </button>
+                  </div>
+                )}
+                <button
+                  className={`border-red-700 text-red-700 
+                   border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() => handleDeleteViolation(record.id)}>
+                  <MdOutlineDelete />
+                  <span>Delete</span>
+                </button>
+              </div>
+            )}
           </div>
-          <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full gap-3 flex flex-col mb-5">
+          <div className="w-full overflow-x-hidden rounded-t-lg rounded-b-lg h-full gap-3 flex flex-col mb-5">
+            <div>
+              {toggleUpdateReportStatus && (
+                <div className="border-b-2 pb-5 border-sky-700">
+                  <div
+                    className={`${
+                      actionTakenUpdate === "penalty-imposed" ? "mb-3" : "mb-0"
+                    }`}>
+                    <label htmlFor="actionTakenUpdate">
+                      Action Taken <span className="text-red-700">*</span>
+                    </label>
+                    <select
+                      name="actionTakenUpdate"
+                      id="actionTakenUpdate"
+                      value={actionTakenUpdate}
+                      onChange={(e) => setActionTakenUpdate(e.target.value)}
+                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
+                      <option value="">Select...</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="penalty-imposed">Penalty Imposed</option>
+                    </select>
+                  </div>
+                  {actionTakenUpdate === "penalty-imposed" && (
+                    <div>
+                      <label htmlFor="violationUpdate">
+                        Type of Violation{" "}
+                        <span className="text-red-700">*</span>
+                      </label>
+                      <select
+                        name="violationUpdate"
+                        id="violationUpdate"
+                        value={violationUpdate}
+                        onChange={(e) => setViolationUpdate(e.target.value)}
+                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
+                        <option value="">Select...</option>
+                        <option value="first-offense">
+                          1st Offense: Php300
+                        </option>
+                        <option value="second-offense">
+                          2nd Offense: Php400
+                        </option>
+                        <option value="third-offense">
+                          3rd Offense: Php500
+                        </option>
+                        <option value="cancel-permit">
+                          Cancellation of Permit
+                        </option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {record?.action_taken !== "pending" && (
+              <div className="w-full flex border-b-2 pb-5 border-sky-700 gap-3">
+                <div className="w-full">
+                  <label htmlFor="actionTaken">Action Taken</label>
+                  <input
+                    type="text"
+                    name="actionTaken"
+                    id="actionTaken"
+                    value={record?.action_taken}
+                    disabled
+                    // ${
+                    //   record?.action_taken === "penalty-imposed"
+                    //     ? "mb-3"
+                    //     : "mb-0"
+                    // }
+                    className={`${
+                      record?.action_taken === "pending"
+                        ? "bg-yellow-200 text-yellow-700"
+                        : record?.action_taken === "resolved"
+                        ? "bg-green-200 text-green-700"
+                        : "bg-red-200 text-red-700"
+                    } capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full`}
+                  />
+                </div>
+                {record?.action_taken === "penalty-imposed" && (
+                  <div className="w-full">
+                    <label htmlFor="violation">Violation</label>
+                    <input
+                      type="text"
+                      name="violation"
+                      id="violation"
+                      value={record?.violation}
+                      disabled
+                      className="bg-red-200 text-red-700 capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             <div>
               <label htmlFor="currentBodyNum">Body Number</label>
               <input
@@ -111,7 +307,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 name="currentBodyNum"
                 id="currentBodyNum"
                 value={record?.body_num}
-                readOnly
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -121,12 +317,13 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 type="text"
                 name="currentDriver"
                 id="currentDriver"
-                value={`${
-                  record?.Applications?.DriverProfiles?.first_name || ""
-                } ${record?.Applications?.DriverProfiles?.middle_name || ""} ${
-                  record?.Applications?.DriverProfiles?.last_name || ""
-                }`}
-                readOnly
+                // value={`${
+                //   record?.Applications?.DriverProfiles?.first_name || ""
+                // } ${record?.Applications?.DriverProfiles?.middle_name || ""} ${
+                //   record?.Applications?.DriverProfiles?.last_name || ""
+                // }`}
+                value={record?.driver_name}
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -138,8 +335,8 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 type="text"
                 name="currentDriverLicenseNum"
                 id="currentDriverLicenseNum"
-                value={record?.Applications?.DriverProfiles?.license_num}
-                readOnly
+                value={record?.driver_license_num}
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -149,11 +346,12 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 type="text"
                 name="plate_num"
                 id="plate_num"
-                value={
-                  record?.Applications?.OperatorProfiles
-                    ?.VehicleOwnershipRecords[0]?.lto_plate_num
-                }
-                readOnly
+                // value={
+                //   record?.Applications?.OperatorProfiles
+                //     ?.VehicleOwnershipRecords[0]?.lto_plate_num
+                // }
+                value={record?.vehicle_plate_num}
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -163,8 +361,8 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 type="text"
                 name="franchise_status"
                 id="franchise_status"
-                value={record?.Applications?.franchise_status}
-                readOnly
+                value={record?.franchise_status}
+                disabled
                 className="capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -175,13 +373,13 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 name="date_registered"
                 id="date_registered"
                 value={new Date(
-                  record?.Applications?.OperatorProfiles?.VehicleOwnershipRecords[0]?.date_registered
+                  record?.vehicle_date_registered
                 ).toLocaleDateString("en-GB", {
                   day: "2-digit",
                   month: "long",
                   year: "numeric",
                 })}
-                readOnly
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -191,12 +389,8 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 type="text"
                 name="tricycle_operator"
                 id="tricycle_operator"
-                value={`${
-                  record?.Applications?.OperatorProfiles?.first_name || ""
-                } ${
-                  record?.Applications?.OperatorProfiles?.middle_name || ""
-                } ${record?.Applications?.OperatorProfiles?.last_name || ""}`}
-                readOnly
+                value={record?.operator_name}
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -206,8 +400,8 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 type="text"
                 name="operator_address"
                 id="operator_address"
-                value={record?.Applications?.OperatorProfiles?.address}
-                readOnly
+                value={record?.operator_address}
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
@@ -219,7 +413,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 name="currentDate"
                 id="currentDate"
                 value={record?.date}
-                readOnly
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
               <input
@@ -227,7 +421,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 name="currentTime"
                 id="currentTime"
                 value={record?.time}
-                readOnly
+                disabled
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>

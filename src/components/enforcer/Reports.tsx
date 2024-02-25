@@ -33,7 +33,7 @@ const Reports = ({
 
   const memoizedFetchReportViolations = useCallback(async () => {
     try {
-      const response = await fetchReportViolations();
+      const response = await fetchReportViolations(currentView);
       if (response?.error) {
         console.error(response.error);
       } else {
@@ -43,7 +43,7 @@ const Reports = ({
     } catch (error) {
       console.error("An error occurred:", error);
     }
-  }, []);
+  }, [currentView]);
 
   useEffect(() => {
     memoizedFetchReportViolations();
@@ -99,7 +99,11 @@ const Reports = ({
         }
       )
       .subscribe();
-  }, [memoizedFetchReportViolations]);
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentView, memoizedFetchReportViolations]);
 
   const headerNamesEnforcer = [
     "Body No.",
@@ -186,9 +190,7 @@ const Reports = ({
                     {record.body_num}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.Applications?.DriverProfiles?.last_name}
-                    {", "}
-                    {record.Applications?.DriverProfiles?.first_name}
+                    {record.driver_name}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     {record.complain}
@@ -198,7 +200,9 @@ const Reports = ({
                       className={`py-2 px-5 text-sm rounded-lg capitalize ${
                         record.action_taken === "pending"
                           ? "bg-yellow-200 text-yellow-700"
-                          : "bg-green-200 text-green-700"
+                          : record.action_taken === "resolved"
+                          ? "bg-green-200 text-green-700"
+                          : "bg-red-200 text-red-700"
                       }`}>
                       {record.action_taken}
                     </button>
@@ -210,6 +214,7 @@ const Reports = ({
         )}
         {toggleMoreDetails && (
           <MoreInfoDetailsComponent
+            userType={userType}
             record={currentRecord}
             setShowBottomBar={setShowBottomBar}
             setToggleMoreDetails={setToggleMoreDetails}

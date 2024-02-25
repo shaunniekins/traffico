@@ -1,12 +1,7 @@
+-- DEPENDENCY: "ViewViolatorsOverview" depends on "ViewTricycleDriverViolationsAdmin"
 CREATE VIEW "ViewTricycleDriverViolationsAdmin" AS
 SELECT
-    RV.id,
-    RV.complain,
-    RV.date,
-    RV.time,
-    Rv.violation,
-    RV.action_taken,
-    APP.body_num,
+    RV.*,
     APP.franchise_status,
     CONCAT(DP.first_name, ' ', DP.last_name) AS driver_name,
     DP.license_num AS driver_license_num,

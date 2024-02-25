@@ -27,7 +27,10 @@ const EnforcerDashboardComponent = () => {
           <Reports setShowBottomBar={setShowBottomBar} />
         )}
         {currentView === "report" && (
-          <QrScannerComponent setShowBottomBar={setShowBottomBar} />
+          <QrScannerComponent
+            setCurrentView={setCurrentView}
+            setShowBottomBar={setShowBottomBar}
+          />
         )}
       </div>
       {showBottomBar && (
