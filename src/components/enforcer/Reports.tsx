@@ -3,10 +3,11 @@
 import { fetchReportViolations } from "@/api/reportViolationsData";
 import { supabase } from "@/utils/supabase";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useContext, useEffect, useState } from "react";
+import { use, useCallback, useContext, useEffect, useState } from "react";
 import MoreInfoDetailsComponent from "./MoreInfoDetails";
 import { IoLogOutOutline } from "react-icons/io5";
 import { UserContext } from "@/utils/UserContext";
+import { LoadingScreenSection } from "../LoadingScreen";
 
 const Reports = ({
   setShowBottomBar,
@@ -20,12 +21,25 @@ const Reports = ({
   const router = useRouter();
 
   const { userName, userId, userRole } = useContext(UserContext);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (userRole === "passenger") {
       setCurrentView("passenger");
     }
   }, [userRole]);
+
+  useEffect(() => {
+    setRecords([]);
+  }, [currentView]);
+
+  useEffect(() => {
+    if (records.length > 0) {
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+  }, [records]);
 
   // const [records, setRecords] = useState<any[]>([
   //   {
@@ -94,7 +108,9 @@ const Reports = ({
           if (payload.new) {
             setRecords((prevRecord: any) =>
               prevRecord.map((record: any) =>
-                record.id === payload.new.id ? payload.new : record
+                record.id === payload.new.id
+                  ? { ...record, ...payload.new }
+                  : record
               )
             );
           }
@@ -120,7 +136,7 @@ const Reports = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userRole, currentView, memoizedFetchReportViolations]);
+  }, [userRole, currentView, userId, memoizedFetchReportViolations]);
 
   const headerNamesEnforcer = [
     "Body No.",
@@ -146,6 +162,7 @@ const Reports = ({
 
   return (
     <div className="flex flex-col items-center select-none overflow-y-hidden h-full p-3 gap-5 overflow-hidden">
+      {loading && <LoadingScreenSection />}
       {userType === "enforcer" && (
         <div className="w-full flex gap-3">
           <button

@@ -1,5 +1,6 @@
 -- DEPENDENCY: "ViewViolatorsOverview" depends on "ViewTricycleDriverViolationsAdmin"
-CREATE VIEW "ViewTricycleDriverViolationsAdmin" AS
+CREATE
+OR REPLACE VIEW "ViewTricycleDriverViolationsAdmin" AS
 SELECT
     RV.*,
     APP.franchise_status,
@@ -9,12 +10,16 @@ SELECT
     OP.address AS operator_address,
     VOR.lto_plate_num AS vehicle_plate_num,
     VOR.date_registered AS vehicle_date_registered,
-    VOR.zone AS vehicle_zone
+    VOR.zone AS vehicle_zone,
+    CONCAT(E.first_name, ' ', E.last_name) AS enforcer_name,
+    CONCAT(P.first_name, ' ', P.last_name) AS passenger_name
 FROM
     "ReportViolations" AS RV
     JOIN "Applications" AS APP ON RV.body_num = APP.body_num
     JOIN "DriverProfiles" AS DP ON APP.driver_id = DP.id
     JOIN "OperatorProfiles" AS OP ON APP.operator_id = OP.id
+    LEFT JOIN "UserLists" AS E ON RV.enforcer_id = E.id
+    LEFT JOIN "UserLists" AS P ON RV.passenger_id = P.id
     JOIN (
         SELECT
             operator_id,
@@ -39,3 +44,32 @@ FROM
         WHERE
             rn = 1
     ) AS VOR ON OP.id = VOR.operator_id;
+
+"ReportViolations" AS RV
+JOIN "Applications" AS APP ON RV.body_num = APP.body_num
+JOIN "DriverProfiles" AS DP ON APP.driver_id = DP.id
+JOIN "OperatorProfiles" AS OP ON APP.operator_id = OP.id
+JOIN (
+    SELECT
+        operator_id,
+        lto_plate_num,
+        date_registered,
+        zone
+    FROM
+        (
+            SELECT
+                operator_id,
+                lto_plate_num,
+                date_registered,
+                zone,
+                ROW_NUMBER() OVER (
+                    PARTITION BY operator_id
+                    ORDER BY
+                        date_registered DESC
+                ) as rn
+            FROM
+                "VehicleOwnershipRecords"
+        ) t
+    WHERE
+        rn = 1
+) AS VOR ON OP.id = VOR.operator_id;

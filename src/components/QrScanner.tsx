@@ -152,6 +152,7 @@ const QrScannerComponent = ({
     bodyNum: string,
     filterType: string
   ) => {
+    setLoading(true);
     try {
       const response = await fetchApplicationDataForQRScanner(
         bodyNum,
@@ -159,6 +160,7 @@ const QrScannerComponent = ({
       );
       if (response?.error) {
         console.error(response.error);
+        setLoading(false);
       } else {
         setRecords(response?.data || []);
         setCurrentBodyNum(response?.data[0]?.body_num);
@@ -172,9 +174,11 @@ const QrScannerComponent = ({
         setCurrentTime(new Date().toTimeString().split(" ")[0]);
 
         // console.log(response?.data[0]);
+        setLoading(false);
       }
     } catch (error) {
       console.error("An error occurred:", error);
+      setLoading(false);
     }
   };
 
@@ -223,15 +227,16 @@ const QrScannerComponent = ({
 
     if (userType === "passenger") {
       await insertReportViolations(reportAuthPassengerData);
+      setLoading(false);
       setCurrentView("lists");
     } else if (userType === "enforcer") {
       await insertReportViolations(reportEnforcerData);
+      setLoading(false);
       setCurrentView("lists");
     } else if (!userType) {
       await insertReportViolations(reportPassengerData);
+      setLoading(false);
     }
-
-    setLoading(false);
     setShowBottomBar(true);
     setToggleReportMessage(true);
   };

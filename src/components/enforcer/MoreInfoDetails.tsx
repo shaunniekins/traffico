@@ -92,6 +92,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
 
   const handleUpdateStatusReport = async (currentReportId: string) => {
     // console.log("currentReportId: ", currentReportId);
+    setLoading(true);
 
     if (actionTakenUpdate === "penalty-imposed" && violationUpdate) {
       // console.log("penalty-imposed: ", violationUpdate);
@@ -103,8 +104,10 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
 
       try {
         await updateReportViolations(currentReportId, updateData);
+        setLoading(false);
       } catch (error) {
         console.error("Error updating data:", error);
+        setLoading(false);
       }
     } else {
       // console.log("resolved: ", actionTakenUpdate);
@@ -115,8 +118,10 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
 
       try {
         await updateReportViolations(currentReportId, updateData);
+        setLoading(false);
       } catch (error) {
         console.error("Error updating data:", error);
+        setLoading(false);
       }
     }
 
@@ -405,6 +410,50 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
               />
             </div>
+            <div className="border-b-2 pt-5 border-sky-700" />
+            {record?.complainant_name && (
+              <>
+                <div className="mt-3">
+                  <label htmlFor="complainant_name">Complainant Name</label>
+                  <input
+                    type="text"
+                    name="complainant_name"
+                    id="complainant_name"
+                    value={record?.complainant_name}
+                    disabled
+                    className="capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="complainant_contact_num">
+                    Complainant Number
+                  </label>
+                  <input
+                    type="text"
+                    name="complainant_contact_num"
+                    id="complainant_contact_num"
+                    value={record?.complainant_contact_num}
+                    disabled
+                    className="capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                  />
+                </div>
+              </>
+            )}
+            {userType == "enforcer" && record?.passenger_name.trim() && (
+              <div>
+                <label htmlFor="passenger_name">
+                  Complainant Name (Registered)
+                </label>
+                <input
+                  type="text"
+                  name="passenger_name"
+                  id="passenger_name"
+                  value={record?.passenger_name}
+                  disabled
+                  className="capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-x-3 items-center">
               <label htmlFor="currentDate">Date</label>
               <label htmlFor="currentTime">Time</label>

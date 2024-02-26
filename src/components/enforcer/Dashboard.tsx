@@ -54,7 +54,7 @@ const EnforcerDashboardComponent = () => {
               }}>
               <LuScanLine />
             </button>
-            <button
+            {/* <button
               className={`w-full flex flex-col items-center justify-center text-[38px] ${
                 currentView === "settings" ? "text-sky-700" : "text-white"
               }`}
@@ -62,7 +62,7 @@ const EnforcerDashboardComponent = () => {
                 setCurrentView("settings");
               }}>
               <MdOutlineSettings />
-            </button>
+            </button> */}
           </div>
         </div>
       )}
