@@ -1,5 +1,5 @@
-import ChooseUser from "@/components/ChooseUser";
+import LandingPage from "@/components/LandingPage";
 
 export default function Home() {
-  return <ChooseUser />;
+  return <LandingPage />;
 }

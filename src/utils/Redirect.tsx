@@ -29,7 +29,8 @@ const Redirect = ({ children }: { children: React.ReactNode }) => {
           (data &&
             (pathname === "/admin/signin" ||
               pathname === "/passenger/signin")) ||
-          pathname === "/report"
+          pathname === "/report" ||
+          pathname === "/passenger/signup"
         ) {
           // User is already logged in and is on the '/signin' route, redirect to '/dashboard'
           setUser(data.user);

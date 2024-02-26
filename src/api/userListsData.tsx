@@ -61,6 +61,7 @@ export const createNewUser = async (
   }
 
   const user = data?.user;
+  console.log("data: ", user.id);
 
   if (user) {
     const { data: profileData, error: insertError } = await supabase

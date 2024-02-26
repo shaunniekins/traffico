@@ -457,21 +457,21 @@ const Users = () => {
             <select
               name="userGender"
               id="userGender"
-              value={userGender}
+              value={userGender || ""}
               disabled={!toggleEditUser}
               onChange={(e) => setUserGender(e.target.value)}
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
-              {/* <option value=""> Select...</option> */}
-              <option value="single">Male</option>
-              <option value="married">Female</option>
-              <option value="married">Others</option>
+              <option value=""> Gender...</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Others">Others</option>
             </select>
             <label htmlFor="userBirthdate">Date of Birth</label>
             <input
               type="date"
               name="userBirthdate"
               id="userBirthdate"
-              value={userBirthdate}
+              value={userBirthdate || ""}
               placeholder="Birthdate"
               disabled={!toggleEditUser}
               onChange={(e) => setUserBirthdate(e.target.value)}
@@ -482,7 +482,7 @@ const Users = () => {
               type="text"
               name="userAddress"
               id="userAddress"
-              value={userAddress}
+              value={userAddress || ""}
               placeholder="Address"
               disabled={!toggleEditUser}
               onChange={(e) => setUserAddress(e.target.value)}
@@ -493,7 +493,7 @@ const Users = () => {
               type="text"
               name="userPhoneNumber"
               id="userPhoneNumber"
-              value={userPhoneNumber}
+              value={userPhoneNumber || ""}
               placeholder="Contact Number"
               disabled={!toggleEditUser}
               onChange={(e) => setUserPhoneNumber(e.target.value)}
