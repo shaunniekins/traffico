@@ -423,7 +423,7 @@ const DriversProfile = () => {
       </div>
       <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-[70dvh] border border-sky-700">
         <div className="w-full flex justify-between items-center border-b border-sky-700">
-          <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
+          <h1 className="px-3 py-2 sm:px-4">
             {registerPermitView
               ? currentPageRegister === 1
                 ? "Drivers's Profile"

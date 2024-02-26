@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import { MdOutlineShareLocation } from "react-icons/md";
 import { BsCheck2Circle, BsInputCursorText } from "react-icons/bs";
@@ -16,6 +16,8 @@ import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import { insertReportViolations } from "@/api/reportViolationsData";
 import dynamic from "next/dynamic";
+import { UserContext } from "@/utils/UserContext";
+import { LoadingScreenSection } from "./LoadingScreen";
 
 const MapContainerComponent = dynamic(() => import("./MapContainer"), {
   ssr: false,
@@ -23,9 +25,13 @@ const MapContainerComponent = dynamic(() => import("./MapContainer"), {
 
 const QrScannerComponent = ({
   setShowBottomBar,
+  setCurrentView,
 }: {
   setShowBottomBar: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurrentView: React.Dispatch<React.SetStateAction<string>>;
 }) => {
+  const { userName, userId, userRole } = useContext(UserContext);
+
   const [color, setColor] = useState("#1F619F");
   const [isQRCodeDetected, setIsQRCodeDetected] = useState(false);
   //   const [displayScanResult, setDisplayScanResult] = useState(false);
@@ -138,7 +144,7 @@ const QrScannerComponent = ({
   const [currentTime, setCurrentTime] = useState(
     () => new Date().toTimeString().split(" ")[0]
   );
-  const [violation, setViolation] = useState("");
+  // const [violation, setViolation] = useState("");
 
   const [toggleSearchLoc, setToggleSearchLoc] = useState(false);
 
@@ -181,8 +187,20 @@ const QrScannerComponent = ({
 
   const [reportMessage, setReportMessage] = useState("");
   const [toggleReportMessage, setToggleReportMessage] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleReportSubmit = async () => {
+    setLoading(true);
+
+    const reportAuthPassengerData = {
+      body_num: currentBodyNum,
+      complain: currentComplain?.label,
+      date: currentDate,
+      time: currentTime,
+      passenger_id: userId,
+      // route:
+    };
+
     const reportPassengerData = {
       body_num: currentBodyNum,
       complain: currentComplain?.label,
@@ -199,16 +217,22 @@ const QrScannerComponent = ({
       complain: currentComplain?.label,
       date: currentDate,
       time: currentTime,
-      violation: violation,
-      // enforcer_id:
+      // violation: violation,
+      enforcer_id: userId,
     };
 
     if (userType === "passenger") {
-      await insertReportViolations(reportPassengerData);
+      await insertReportViolations(reportAuthPassengerData);
+      setCurrentView("lists");
     } else if (userType === "enforcer") {
       await insertReportViolations(reportEnforcerData);
+      setCurrentView("lists");
+    } else if (!userType) {
+      await insertReportViolations(reportPassengerData);
     }
 
+    setLoading(false);
+    setShowBottomBar(true);
     setToggleReportMessage(true);
   };
 
@@ -219,6 +243,8 @@ const QrScannerComponent = ({
   };
 
   const resetValues = () => {
+    userType === "enforcer" && setCurrentView("lists");
+
     setShowBottomBar(true);
     setRecords([]);
     setCurrentDriver("");
@@ -227,13 +253,15 @@ const QrScannerComponent = ({
     setCurrentContactNumber("");
     setCurrentDate("");
     setCurrentTime("");
-    setViolation("");
+    // setViolation("");
   };
 
   return (
     <>
       {records && records.length === 0 ? (
         <div className="flex justify-center items-center h-[100svh] select-none overflow-y-hidden">
+          {loading && <LoadingScreenSection />}
+
           <QrScanner
             viewFinder={(props) => (
               <div className="flex flex-col items-center justify-center absolute w-full h-full top-0 left-0 z-10">
@@ -339,7 +367,7 @@ const QrScannerComponent = ({
                         name="currentBodyNum"
                         id="currentBodyNum"
                         value={currentBodyNum}
-                        readOnly
+                        disabled
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
                     </div>
@@ -350,7 +378,7 @@ const QrScannerComponent = ({
                         name="currentDriver"
                         id="currentDriver"
                         value={currentDriver}
-                        readOnly
+                        disabled
                         onChange={(e) => setCurrentDriver(e.target.value)}
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
@@ -370,7 +398,7 @@ const QrScannerComponent = ({
                       />
                     </div>
 
-                    {userType === "passenger" && (
+                    {!userType && (
                       <>
                         <div>
                           <label htmlFor="currentComplainantName">
@@ -427,7 +455,7 @@ const QrScannerComponent = ({
                         className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
                     </div>
-                    {userType === "enforcer" && (
+                    {/* {userType === "enforcer" && (
                       <div>
                         <label htmlFor="violation">Violation</label>
                         <select
@@ -451,12 +479,12 @@ const QrScannerComponent = ({
                           </option>
                         </select>
                       </div>
-                    )}
-                    {userType === "passenger" && (
+                    )} */}
+                    {(!userType || userType === "passenger") && (
                       <button
                         onClick={() => setToggleSearchLoc(true)}
                         className="bg-sky-700 text-white focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
-                        Search Location
+                        {destination ? "Edit Location" : "Search Location"}
                       </button>
                     )}
                   </div>
@@ -471,17 +499,21 @@ const QrScannerComponent = ({
                   </button>
                   <button
                     onClick={handleReportSubmit}
+                    // disabled={
+                    //   !currentComplain ||
+                    //   (userType === "passenger"
+                    //     ? !currentComplainantName || !currentContactNumber
+                    //     : !violation)
+                    // }
                     disabled={
                       !currentComplain ||
-                      (userType === "passenger"
-                        ? !currentComplainantName || !currentContactNumber
-                        : !violation)
+                      (!userType &&
+                        (!currentComplainantName || !currentContactNumber))
                     }
                     className={`${
                       !currentComplain ||
-                      (userType === "passenger"
-                        ? !currentComplainantName || !currentContactNumber
-                        : !violation)
+                      (!userType &&
+                        (!currentComplainantName || !currentContactNumber))
                         ? "bg-gray-700 text-gray-300"
                         : "bg-sky-700 text-white"
                     } w-full p-2 rounded-md`}>
@@ -496,7 +528,8 @@ const QrScannerComponent = ({
                 <button
                   onClick={() => setToggleSearchLoc(false)}
                   className="bg-sky-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
-                  <IoChevronBack /> <span className="text-sm">back</span>
+                  <IoChevronBack />{" "}
+                  <span className="text-sm">{destination ? "OK" : "back"}</span>
                 </button>
               </div>
 

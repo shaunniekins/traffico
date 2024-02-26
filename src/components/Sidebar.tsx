@@ -64,22 +64,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
       label: "Tricycle Generated QR Code",
       icon: <IoSettingsOutline />,
     },
-    {
-      path: "/personnel/dashboard/settings",
-      label: "Settings",
-      icon: <IoHomeOutline />,
-    },
   ];
 
   const adminButtons: Button[] = [
     {
-      path: "/admin/dashboard/approval",
-      label: "Approval",
+      path: "/admin/dashboard/dashboard",
+      label: "Dashboard",
       icon: <IoHomeOutline />,
     },
     {
-      path: "/admin/dashboard/dashboard",
-      label: "Dashboard",
+      path: "/admin/dashboard/approval",
+      label: "Approval",
       icon: <IoHomeOutline />,
     },
     {

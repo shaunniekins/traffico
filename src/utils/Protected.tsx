@@ -12,10 +12,10 @@ const Protected = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
-  // const [role, setRole] = useState("");
 
   const [userName, setUserName] = useState("");
   const [userId, setUserId] = useState("");
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -55,10 +55,10 @@ const Protected = ({ children }: { children: React.ReactNode }) => {
           const name = `${data[0].first_name} ${data[0].last_name}`;
           setUserName(name);
           setUserId(user.id);
-          // setRole(data[0].role);
+          setUserRole(data[0].role);
 
           if (data[0].role === "personnel") {
-            router.push("/personnel/dashboard/registration");
+            router.push("/personnel/dashboard/dashboard");
           } else if (data[0].role === "passenger") {
             router.push("/passenger/dashboard");
           } else if (data[0].role === "enforcer") {
@@ -91,8 +91,10 @@ const Protected = ({ children }: { children: React.ReactNode }) => {
       value={{
         userName,
         userId,
+        userRole,
         setUserName,
         setUserId,
+        setUserRole,
       }}>
       {children}
     </UserContext.Provider>

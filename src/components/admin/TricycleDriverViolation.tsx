@@ -22,6 +22,7 @@ const TricycleDriverViolation = () => {
     "Driver",
     "Operator",
     "Complain",
+    // "Violation Type"
     "Details",
   ];
 
@@ -116,6 +117,27 @@ const TricycleDriverViolation = () => {
     }
   };
 
+  function formatDate(dateString: string) {
+    const options = {
+      year: "numeric" as const,
+      month: "long" as const,
+      day: "numeric" as const,
+    };
+    return new Date(dateString).toLocaleDateString("en-GB", options);
+  }
+
+  function formatTime(timeString: string) {
+    const [hours, minutes] = timeString.split(":");
+    const date = new Date();
+    date.setHours(Number(hours));
+    date.setMinutes(Number(minutes));
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "numeric",
+      hour12: true,
+    });
+  }
+
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
       <div className="flex justify-between items-center flex-col md:flex-row">
@@ -164,7 +186,7 @@ const TricycleDriverViolation = () => {
               type="text"
               name="date"
               id="date"
-              value={currentComplaint?.date}
+              value={formatDate(currentComplaint?.date)}
               disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -173,7 +195,7 @@ const TricycleDriverViolation = () => {
               type="text"
               name="time"
               id="time"
-              value={currentComplaint?.time}
+              value={formatTime(currentComplaint?.time)}
               disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -237,7 +259,7 @@ const TricycleDriverViolation = () => {
               type="text"
               name="vehicle_date_registered"
               id="vehicle_date_registered"
-              value={currentComplaint?.vehicle_date_registered}
+              value={formatDate(currentComplaint?.vehicle_date_registered)}
               disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -274,10 +296,10 @@ const TricycleDriverViolation = () => {
                     {record.id}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.date}
+                    {formatDate(record.date)}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.time}
+                    {formatTime(record.time)}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     {record.driver_license_num}

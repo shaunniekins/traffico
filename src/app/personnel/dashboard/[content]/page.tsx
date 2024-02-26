@@ -11,7 +11,6 @@ import Application from "@/components/admin/Application";
 import ViolationsRecord from "@/components/admin/ViolationsRecord";
 import TricycleDriverViolation from "@/components/admin/TricycleDriverViolation";
 import TricycleQrCode from "@/components/admin/TricycleQrCode";
-import SettingsComponent from "@/components/Settings";
 
 const Content = () => {
   const router = useRouter();
@@ -47,10 +46,6 @@ const Content = () => {
     case "/personnel/dashboard/tricycle-qr":
       activePath = "Tricycle Generated QR Code";
       activeComponent = <TricycleQrCode />;
-      break;
-    case "/personnel/dashboard/settings":
-      activePath = "Settings";
-      activeComponent = <SettingsComponent />;
       break;
     default:
       activeComponent = null;

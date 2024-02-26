@@ -26,8 +26,10 @@ const Redirect = ({ children }: { children: React.ReactNode }) => {
         } else if (error) {
           console.error("Error fetching user:", error.message);
         } else if (
-          data &&
-          (pathname === "/admin/signin" || pathname === "/passenger/signin")
+          (data &&
+            (pathname === "/admin/signin" ||
+              pathname === "/passenger/signin")) ||
+          pathname === "/report"
         ) {
           // User is already logged in and is on the '/signin' route, redirect to '/dashboard'
           setUser(data.user);
@@ -56,7 +58,7 @@ const Redirect = ({ children }: { children: React.ReactNode }) => {
 
         if (data && data.length > 0) {
           if (data[0].role === "personnel") {
-            router.push("/personnel/dashboard/registration");
+            router.push("/personnel/dashboard/dashboard");
           } else if (data[0].role === "passenger") {
             router.push("/passenger/dashboard");
           } else if (data[0].role === "enforcer") {

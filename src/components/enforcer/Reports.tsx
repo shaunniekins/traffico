@@ -2,9 +2,11 @@
 
 import { fetchReportViolations } from "@/api/reportViolationsData";
 import { supabase } from "@/utils/supabase";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useContext, useEffect, useState } from "react";
 import MoreInfoDetailsComponent from "./MoreInfoDetails";
+import { IoLogOutOutline } from "react-icons/io5";
+import { UserContext } from "@/utils/UserContext";
 
 const Reports = ({
   setShowBottomBar,
@@ -15,6 +17,15 @@ const Reports = ({
   const [records, setRecords] = useState<any[]>([]);
   const [toggleMoreDetails, setToggleMoreDetails] = useState(false);
   const [currentRecord, setCurrentRecord] = useState<any[]>([]);
+  const router = useRouter();
+
+  const { userName, userId, userRole } = useContext(UserContext);
+
+  useEffect(() => {
+    if (userRole === "passenger") {
+      setCurrentView("passenger");
+    }
+  }, [userRole]);
 
   // const [records, setRecords] = useState<any[]>([
   //   {
@@ -32,18 +43,24 @@ const Reports = ({
   // ]);
 
   const memoizedFetchReportViolations = useCallback(async () => {
-    try {
-      const response = await fetchReportViolations(currentView);
-      if (response?.error) {
-        console.error(response.error);
-      } else {
-        setRecords(response?.data || []);
-        // console.log("response:", response?.data);
+    if (userRole && currentView && userId) {
+      try {
+        const response = await fetchReportViolations(
+          currentView,
+          userId,
+          userRole
+        );
+        if (response?.error) {
+          console.error(response.error);
+        } else {
+          setRecords(response?.data || []);
+          // console.log("response:", response?.data);
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
       }
-    } catch (error) {
-      console.error("An error occurred:", error);
     }
-  }, [currentView]);
+  }, [userRole, currentView, userId]);
 
   useEffect(() => {
     memoizedFetchReportViolations();
@@ -103,7 +120,7 @@ const Reports = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentView, memoizedFetchReportViolations]);
+  }, [userRole, currentView, memoizedFetchReportViolations]);
 
   const headerNamesEnforcer = [
     "Body No.",
@@ -146,12 +163,12 @@ const Reports = ({
           </button>
           <button
             className={`${
-              currentView === "passengers"
+              currentView === "passenger"
                 ? "bg-gray-300 font-semibold text-sky-700"
                 : "bg-gray-200"
             } w-1/2 rounded-full py-2 px-3 text-sm`}
             onClick={() => {
-              setCurrentView("passengers");
+              setCurrentView("passenger");
               setShowBottomBar(true);
               setToggleMoreDetails(false);
             }}>
@@ -163,54 +180,70 @@ const Reports = ({
       <div className="w-full overflow-x-auto sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full border border-sky-700">
         {/* && currentView === "personal" */}
         {!toggleMoreDetails && (
-          <table className="w-full text-sm text-center">
-            <thead className="text-xs uppercase bg-sky-700 text-white py-2">
-              <tr>
-                {headerNamesEnforcer.map((header, index) => (
-                  <th
-                    key={index}
-                    scope="col"
-                    className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
-                    {header}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {records.map((record, index) => (
-                <tr
-                  key={index}
-                  className="bg-white border-b border-sky-700 hover:bg-sky-100"
-                  onClick={() => {
-                    setCurrentRecord(record);
-                    setShowBottomBar(false);
-                    setToggleMoreDetails(true);
-                  }}>
-                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.body_num}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.driver_name}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    {record.complain}
-                  </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
-                    <button
-                      className={`py-2 px-5 text-sm rounded-lg capitalize ${
-                        record.action_taken === "pending"
-                          ? "bg-yellow-200 text-yellow-700"
-                          : record.action_taken === "resolved"
-                          ? "bg-green-200 text-green-700"
-                          : "bg-red-200 text-red-700"
-                      }`}>
-                      {record.action_taken}
-                    </button>
-                  </td>
+          <>
+            <table className="w-full text-sm text-center">
+              <thead className="text-xs uppercase bg-sky-700 text-white py-2">
+                <tr>
+                  {headerNamesEnforcer.map((header, index) => (
+                    <th
+                      key={index}
+                      scope="col"
+                      className="px-3 py-2 sm:px-4 sm:py-3 whitespace-nowrap">
+                      {header}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {records.map((record, index) => (
+                  <tr
+                    key={index}
+                    className="bg-white border-b border-sky-700 hover:bg-sky-100"
+                    onClick={() => {
+                      setCurrentRecord(record);
+                      setShowBottomBar(false);
+                      setToggleMoreDetails(true);
+                    }}>
+                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {record.body_num}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {record.driver_name}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      {record.complain}
+                    </td>
+                    <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                      <button
+                        className={`py-2 px-5 text-sm rounded-lg capitalize ${
+                          record.action_taken === "pending"
+                            ? "bg-yellow-200 text-yellow-700"
+                            : record.action_taken === "resolved"
+                            ? "bg-green-200 text-green-700"
+                            : "bg-red-200 text-red-700"
+                        }`}>
+                        {record.action_taken}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {/* this is only temporary */}
+            <button
+              onClick={() => {
+                //  setLoading(true);
+                supabase.auth.signOut();
+                localStorage.removeItem("name");
+                localStorage.removeItem("userId");
+                // setLoading(false)
+                router.push("/");
+              }}
+              className={`bg-red-700 flex rounded-lg px-3 py-2 text-white text-lg p-2 gap-3 items-center`}>
+              <IoLogOutOutline />
+              <h5 className="text-sm">Logout</h5>
+            </button>
+          </>
         )}
         {toggleMoreDetails && (
           <MoreInfoDetailsComponent

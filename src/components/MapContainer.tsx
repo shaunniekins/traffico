@@ -63,19 +63,19 @@ const ClickableMap: React.FC<ClickableMapProps> = ({
     iconSize: iconSizeOther,
   });
 
-  const [isMounted, setIsMounted] = useState(true);
+  // const [isMounted, setIsMounted] = useState(true);
 
-  useEffect(() => {
-    // Set isMounted to false when the component unmounts
-    return () => setIsMounted(false);
-  }, []);
+  // useEffect(() => {
+  //   // Set isMounted to false when the component unmounts
+  //   return () => setIsMounted(false);
+  // }, []);
 
-  useEffect(() => {
-    if (isMounted && routingControlRef.current) {
-      map.removeControl(routingControlRef.current);
-      routingControlRef.current = null;
-    }
-  }, [destination, isMounted]);
+  // useEffect(() => {
+  //   if (isMounted && routingControlRef.current) {
+  //     map.removeControl(routingControlRef.current);
+  //     routingControlRef.current = null;
+  //   }
+  // }, [destination, isMounted]);
 
   const [distance, setDistance] = useState<number | null>(null);
 
@@ -94,7 +94,7 @@ const ClickableMap: React.FC<ClickableMapProps> = ({
     try {
       if (destination) {
         // Remove the old routing control if it exists
-        if (routingControlRef.current) {
+        if (routingControlRef && routingControlRef.current) {
           map.removeControl(routingControlRef.current);
           routingControlRef.current = null;
         }
@@ -163,7 +163,7 @@ const ClickableMap: React.FC<ClickableMapProps> = ({
 
         // Return a cleanup function
         return () => {
-          if (routingControlRef.current) {
+          if (routingControlRef && routingControlRef.current) {
             map.removeControl(routingControlRef.current);
             map.removeLayer(routingControlRef.current.getPlan());
 

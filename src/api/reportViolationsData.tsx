@@ -32,18 +32,20 @@ export const fetchReportViolationsData = async (
   }
 };
 
-export const fetchReportViolations = async (currentView: string) => {
-  //add id
-  const id = 1;
+export const fetchReportViolations = async (
+  currentView: string,
+  userId: string,
+  role: string
+) => {
   try {
     let query = supabase.from("ViewTricycleDriverViolationsAdmin").select();
 
-    if (currentView === "passengers") {
-      query = query
-        // .filter("passenger_id", "neq", null)
-        .filter("complainant_name", "neq", null);
-    } else if (currentView === "personal") {
-      // query = query.eq("enforcer_id", id);
+    if (currentView === "personal" && role === "enforcer") {
+      query = query.eq("enforcer_id", userId);
+    } else if (currentView === "passenger" && role === "passenger") {
+      query = query.eq("passenger_id", userId);
+    } else {
+      query = query.is("enforcer_id", null);
     }
 
     const response = await query;

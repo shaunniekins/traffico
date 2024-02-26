@@ -182,6 +182,8 @@ const Users = () => {
       setRegisterUserView(false);
       setLoading(false);
     } catch (error) {
+      setLoading(false);
+
       alert(
         "Failed to create user: A user with this email address has already been registered."
       );
