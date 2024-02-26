@@ -3,6 +3,7 @@ CREATE
 OR REPLACE VIEW "ViewTricycleDriverViolationsAdmin" AS
 SELECT
     RV.*,
+    RV.action_taken,
     APP.franchise_status,
     CONCAT(DP.first_name, ' ', DP.last_name) AS driver_name,
     DP.license_num AS driver_license_num,
@@ -43,33 +44,11 @@ FROM
             ) t
         WHERE
             rn = 1
-    ) AS VOR ON OP.id = VOR.operator_id;
-
-"ReportViolations" AS RV
-JOIN "Applications" AS APP ON RV.body_num = APP.body_num
-JOIN "DriverProfiles" AS DP ON APP.driver_id = DP.id
-JOIN "OperatorProfiles" AS OP ON APP.operator_id = OP.id
-JOIN (
-    SELECT
-        operator_id,
-        lto_plate_num,
-        date_registered,
-        zone
-    FROM
-        (
-            SELECT
-                operator_id,
-                lto_plate_num,
-                date_registered,
-                zone,
-                ROW_NUMBER() OVER (
-                    PARTITION BY operator_id
-                    ORDER BY
-                        date_registered DESC
-                ) as rn
-            FROM
-                "VehicleOwnershipRecords"
-        ) t
-    WHERE
-        rn = 1
-) AS VOR ON OP.id = VOR.operator_id;
+    ) AS VOR ON OP.id = VOR.operator_id
+ORDER BY
+    CASE
+        WHEN RV.action_taken = 'pending' THEN 1
+        WHEN RV.action_taken = 'resolved' THEN 2
+        WHEN RV.action_taken = 'penalty-imposed' THEN 3
+        ELSE 4
+    END;

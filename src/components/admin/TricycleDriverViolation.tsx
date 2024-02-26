@@ -22,7 +22,7 @@ const TricycleDriverViolation = () => {
     "Driver",
     "Operator",
     "Complain",
-    // "Violation Type"
+    "Action Taken",
     "Details",
   ];
 
@@ -55,7 +55,7 @@ const TricycleDriverViolation = () => {
         {
           event: "INSERT",
           schema: "public",
-          table: "ReportViolations",
+          table: "ViewTricycleDriverViolationsAdmin",
         },
         (payload) => {
           if (payload.new) {
@@ -71,7 +71,7 @@ const TricycleDriverViolation = () => {
         {
           event: "UPDATE",
           schema: "public",
-          table: "ReportViolations",
+          table: "ViewTricycleDriverViolationsAdmin",
         },
         (payload) => {
           if (payload.new) {
@@ -88,7 +88,7 @@ const TricycleDriverViolation = () => {
         {
           event: "DELETE",
           schema: "public",
-          table: "ReportViolations",
+          table: "ViewTricycleDriverViolationsAdmin",
         },
         (payload) => {
           if (payload.old) {
@@ -112,6 +112,7 @@ const TricycleDriverViolation = () => {
 
     if (record) {
       setCurrentComplaint(record);
+      // console.log("record", record);
 
       setToggleMoreDetails(true);
     }
@@ -172,6 +173,35 @@ const TricycleDriverViolation = () => {
           <div
             className="grid grid-cols-2 items-center pt-7 px-20 pb-20 gap-5 overflow-y-auto w-full h-full"
             style={{ gridTemplateColumns: "auto 1fr" }}>
+            <label htmlFor="actionTaken">Action Taken</label>
+            <input
+              type="text"
+              name="actionTaken"
+              id="actionTaken"
+              value={currentComplaint?.action_taken}
+              disabled
+              className={`${
+                currentComplaint?.action_taken === "pending"
+                  ? "bg-yellow-200 text-yellow-700"
+                  : currentComplaint?.action_taken === "resolved"
+                  ? "bg-green-200 text-green-700"
+                  : "bg-red-200 text-red-700"
+              } capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full`}
+            />
+            {currentComplaint?.action_taken === "penalty-imposed" && (
+              <>
+                <label htmlFor="violation">Violation</label>
+                <input
+                  type="text"
+                  name="violation"
+                  id="violation"
+                  value={currentComplaint?.violation}
+                  disabled
+                  className="bg-red-200 text-red-700 capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+              </>
+            )}
+            <div className="w-full col-span-2 border-b-2 border-sky-700" />
             <label htmlFor="body_num">Body Num</label>
             <input
               type="text"
@@ -204,15 +234,6 @@ const TricycleDriverViolation = () => {
               name="complain"
               id="complain"
               value={currentComplaint?.complain}
-              disabled
-              className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-            />
-            <label htmlFor="action_taken">Action Taken</label>
-            <input
-              type="text"
-              name="action_taken"
-              id="action_taken"
-              value={currentComplaint?.action_taken}
               disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
@@ -272,6 +293,63 @@ const TricycleDriverViolation = () => {
               disabled
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
             />
+            {currentComplaint?.complainant_name && (
+              <>
+                <div className="w-full col-span-2 border-b-2 border-sky-700" />
+                <label htmlFor="complainant_name">Complainant Name</label>
+                <input
+                  type="text"
+                  name="complainant_name"
+                  id="complainant_name"
+                  value={currentComplaint?.complainant_name}
+                  disabled
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+                <label htmlFor="complainant_contact_num">
+                  Complainant Number
+                </label>
+                <input
+                  type="text"
+                  name="complainant_contact_num"
+                  id="complainant_contact_num"
+                  value={currentComplaint?.complainant_contact_num}
+                  disabled
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+              </>
+            )}
+            {currentComplaint?.passenger_name.trim() && (
+              <>
+                <div className="w-full col-span-2 border-b-2 border-sky-700" />
+                <label htmlFor="passenger_name">
+                  Complainant Name (Registered)
+                </label>
+                <input
+                  type="text"
+                  name="passenger_name"
+                  id="passenger_name"
+                  value={currentComplaint?.passenger_name}
+                  disabled
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+              </>
+            )}{" "}
+            {currentComplaint?.enforcer_name.trim() && (
+              <>
+                <div className="w-full col-span-2 border-b-2 border-sky-700" />
+                <label htmlFor="enforcer_name">
+                  Complainant Name (Enforcer)
+                </label>
+                <input
+                  type="text"
+                  name="enforcer_name"
+                  id="enforcer_name"
+                  value={currentComplaint?.enforcer_name}
+                  disabled
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                />
+              </>
+            )}
           </div>
         ) : (
           <table className="w-full text-sm text-center">
@@ -312,6 +390,20 @@ const TricycleDriverViolation = () => {
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     {record.complain}
+                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                    <button
+                      className={`${
+                        record.action_taken === "resolved"
+                          ? "border-green-700 text-green-700"
+                          : "border-red-700 text-red-700"
+                      } border py-2 px-5 text-sm rounded-lg cursor-default`}>
+                      {record.action_taken === "resolved"
+                        ? "Resolved"
+                        : record.action_taken === "penalty-imposed"
+                        ? "Penalty Imposed"
+                        : ""}
+                    </button>
                   </td>
                   <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
                     <button

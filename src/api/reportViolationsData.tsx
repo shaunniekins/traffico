@@ -11,12 +11,13 @@ export const fetchReportViolationsData = async (
     let query = supabase
       .from("ViewTricycleDriverViolationsAdmin")
       .select(`*`, { count: "exact" })
+      .neq("action_taken", "pending")
       .order("date", { ascending: false })
       .order("time", { ascending: false });
 
     if (searchValue) {
       query = query.or(
-        `driver_name.ilike.%${searchValue}%,driver_license_num.ilike.%${searchValue}%,body_num.ilike.%${searchValue}%`
+        `driver_name.ilike.%${searchValue}%,driver_license_num.ilike.%${searchValue}%,body_num.ilike.%${searchValue}%,complain.ilike.%${searchValue}%`
       );
     }
 
