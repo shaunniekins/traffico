@@ -229,20 +229,6 @@ const Reports = ({
                 ))}
               </tbody>
             </table>
-            {/* this is only temporary */}
-            <button
-              onClick={() => {
-                //  setLoading(true);
-                supabase.auth.signOut();
-                localStorage.removeItem("name");
-                localStorage.removeItem("userId");
-                // setLoading(false)
-                router.push("/");
-              }}
-              className={`bg-red-700 flex rounded-lg px-3 py-2 text-white text-lg p-2 gap-3 items-center`}>
-              <IoLogOutOutline />
-              <h5 className="text-sm">Logout</h5>
-            </button>
           </>
         )}
         {toggleMoreDetails && (

@@ -179,7 +179,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                         }
                         onClick={() => handleUpdateStatusReport(record.id)}>
                         <MdOutlinePublishedWithChanges />
-                        Submit Update
+                        Submit
                       </button>
                     )}
                     <button
