@@ -10,7 +10,13 @@ import {
   IoArchiveOutline,
   IoSettingsOutline,
   IoMenuOutline,
+  IoPerson,
+  IoPersonOutline,
+  IoQrCodeOutline,
 } from "react-icons/io5";
+import { MdApproval, MdOutlineApproval } from "react-icons/md";
+import { TbSteeringWheel } from "react-icons/tb";
+import { PiSealWarning } from "react-icons/pi";
 
 interface SidebarProps {
   isMenuOpen: boolean;
@@ -42,12 +48,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
     {
       path: "/personnel/dashboard/operators",
       label: "Operator's Profile",
-      icon: <IoPeopleOutline />,
+      icon: <IoPersonOutline />,
     },
     {
       path: "/personnel/dashboard/drivers",
       label: "Driver's Profile",
-      icon: <IoClipboardOutline />,
+      icon: <TbSteeringWheel />,
     },
     {
       path: "/personnel/dashboard/application",
@@ -57,12 +63,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
     {
       path: "/personnel/dashboard/tricycle-driver",
       label: "Tricycle Driver's Violation",
-      icon: <IoSettingsOutline />,
+      icon: <PiSealWarning />,
     },
     {
       path: "/personnel/dashboard/tricycle-qr",
       label: "Tricycle Generated QR Code",
-      icon: <IoSettingsOutline />,
+      icon: <IoQrCodeOutline />,
     },
   ];
 
@@ -75,17 +81,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
     {
       path: "/admin/dashboard/approval",
       label: "Approval",
-      icon: <IoHomeOutline />,
+      icon: <MdApproval />,
     },
     {
       path: "/admin/dashboard/operators",
       label: "Operator's Profile",
-      icon: <IoPeopleOutline />,
+      icon: <IoPersonOutline />,
     },
     {
       path: "/admin/dashboard/drivers",
       label: "Driver's Profile",
-      icon: <IoClipboardOutline />,
+      icon: <TbSteeringWheel />,
     },
     {
       path: "/admin/dashboard/application",
@@ -95,22 +101,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
     {
       path: "/admin/dashboard/tricycle-driver",
       label: "Tricycle Driver's Violation",
-      icon: <IoSettingsOutline />,
+      icon: <PiSealWarning />,
     },
     {
       path: "/admin/dashboard/tricycle-qr",
       label: "Tricycle Generated QR Code",
-      icon: <IoSettingsOutline />,
+      icon: <IoQrCodeOutline />,
     },
     {
       path: "/admin/dashboard/users",
       label: "Users",
-      icon: <IoHomeOutline />,
+      icon: <IoPeopleOutline />,
     },
     {
       path: "/admin/dashboard/settings",
       label: "Settings",
-      icon: <IoHomeOutline />,
+      icon: <IoSettingsOutline />,
     },
   ];
 
