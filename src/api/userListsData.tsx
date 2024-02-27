@@ -136,3 +136,21 @@ export const deleteUserData = async (id: string) => {
     }
   }
 };
+
+export const editPersonnalData = async (id: string, updatedRecord: any) => {
+  try {
+    const { data, error } = await supabase
+      .from("UserLists")
+      .update(updatedRecord)
+      .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Error updating user record:", error);
+    return null;
+  }
+};

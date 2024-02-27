@@ -1,12 +1,16 @@
 "use client";
 
-import { supabase } from "@/utils/supabase";
+import { supabase, supabaseAdmin } from "@/utils/supabase";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { LoadingScreenSection } from "./LoadingScreen";
 import { IoLogOutOutline } from "react-icons/io5";
+import { UserContext } from "@/utils/UserContext";
+import { editPersonnalData } from "@/api/userListsData";
 
 const SettingsComponent = () => {
+  const { userName, userId, userRole } = useContext(UserContext);
+
   const router = useRouter();
   const pathname = usePathname();
 
@@ -24,10 +28,73 @@ const SettingsComponent = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
-  const handleEditEvent = (type: string) => {
-    if (type === "email") {
-      setCurrentEmail(email);
-      setToggleEditEmail(false);
+  // const handleEditEvent = (type: string) => {
+  //   if (type === "email") {
+  //     setCurrentEmail(email);
+  //     setToggleEditEmail(false);
+  //   }
+  // };
+
+  const memoizedFetchUserData = useCallback(async () => {
+    const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+
+    if (error) {
+    } else if (data) {
+      const userEmail = data.user.email;
+      if (userEmail) {
+        setEmail(userEmail);
+        setCurrentEmail(userEmail);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    memoizedFetchUserData();
+  }, []);
+
+  const handleEditEvent = async (editType: string) => {
+    setLoading(true);
+
+    if (editType === "email") {
+      const { data: user, error } =
+        await supabaseAdmin.auth.admin.updateUserById(userId, { email: email });
+
+      if (!error) {
+        const updatedEmail = {
+          email: email,
+        };
+
+        await editPersonnalData(userId, updatedEmail);
+
+        setToggleEditEmail(false);
+        setCurrentEmail(email);
+        setLoading(false);
+        alert("Successfully updated user email");
+        return;
+      }
+
+      console.error("Error updating user email:", error);
+      setLoading(false);
+    } else if (editType === "password") {
+      const { data: user, error } =
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          password: newPassword,
+        });
+
+      if (!error) {
+        const updatedPassword = {
+          password: newPassword,
+        };
+
+        await editPersonnalData(userId, updatedPassword);
+        setNewPassword("");
+        setConfirmNewPassword("");
+        setLoading(false);
+        alert("Successfully updated user password");
+        return;
+      }
+      console.error("Error updating user password:", error);
+      setLoading(false);
     }
   };
 
@@ -38,7 +105,7 @@ const SettingsComponent = () => {
         <div className="flex gap-5 items-center">
           <h1 className="flex font-bold text-3xl text-sky-700 ">Settings</h1>
         </div>
-        <div className="flex flex-col gap-5"></div>
+        {/* <div className="flex flex-col gap-5"></div> */}
       </div>
       <div className="flex flex-col gap-5">
         <div

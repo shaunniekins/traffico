@@ -15,6 +15,7 @@ import Reports from "../enforcer/Reports";
 import TopbarFloat from "../TopbarFloat";
 import { UserContext } from "@/utils/UserContext";
 import { useRouter } from "next/navigation";
+import SettingsPassengerComponents from "./Settings";
 
 // const MapContainerComponent = dynamic(() => import("../MapContainer"), {
 //   ssr: false,
@@ -28,9 +29,9 @@ const DashboardPassengerComponent = () => {
 
   const router = useRouter();
 
-  useEffect(() => {
-    console.log("userRole", userRole);
-  }, [userRole]);
+  // useEffect(() => {
+  //   console.log("userRole", userRole);
+  // }, [userRole]);
 
   useEffect(() => {
     // console.log("userRole", userRole);
@@ -65,11 +66,15 @@ const DashboardPassengerComponent = () => {
 
   return (
     <div className="w-screen h-[100svh] flex flex-col relative">
-      {userRole !== "unauthenticated" && currentView === "lists" && (
-        <TopbarFloat />
-      )}
+      {userRole !== "unauthenticated" &&
+        (currentView === "lists" || currentView === "settings") && (
+          <TopbarFloat />
+        )}
       {userRole !== "unauthenticated" && currentView === "lists" && (
         <Reports setShowBottomBar={setShowBottomBar} />
+      )}
+      {userRole !== "unauthenticated" && currentView === "settings" && (
+        <SettingsPassengerComponents />
       )}
       {/* {currentView === "fare" && <MapContainerComponent />} */}
       {/* {!userRole && !confirmOpen &&
