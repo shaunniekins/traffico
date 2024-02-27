@@ -85,18 +85,27 @@ const LandingPage = () => {
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"
-            onClick={() => router.push("/admin/signin")}>
+            onClick={() => {
+              setLoading(true);
+              router.push("/admin/signin");
+            }}>
             Signin as Auth
           </button>
           <button
             className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"
-            onClick={() => router.push("/passenger/signin")}>
+            onClick={() => {
+              setLoading(true);
+              router.push("/passenger/signin");
+            }}>
             Signin as Passenger
           </button>
         </div>
         <button
           className="flex items-center justify-center py-3 text-center text-white text-xs"
-          onClick={() => router.push("/passenger/signup")}>
+          onClick={() => {
+            setLoading(true);
+            router.push("/passenger/signup");
+          }}>
           Create Passenger Account
         </button>
       </div>

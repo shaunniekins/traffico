@@ -317,7 +317,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="currentDriver">Driver's Name</label>
+              <label htmlFor="currentDriver">Driver&apos;s Name</label>
               <input
                 type="text"
                 name="currentDriver"
@@ -334,7 +334,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
             </div>
             <div>
               <label htmlFor="currentDriverLicenseNum">
-                Driver's License No.
+                Driver&apos;s License No.
               </label>
               <input
                 type="text"
@@ -400,7 +400,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="operator_address">Operator's Address</label>
+              <label htmlFor="operator_address">Operator&apos;s Address</label>
               <input
                 type="text"
                 name="operator_address"

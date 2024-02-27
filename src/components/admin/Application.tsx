@@ -570,7 +570,7 @@ const Application = () => {
       <div className="flex justify-between items-center flex-col md:flex-row">
         <div className="flex gap-5 items-center">
           <h1 className="flex font-bold text-3xl text-sky-700 ">
-            Application for Tricycle Operator's Permit
+            Application for Tricycle Operator&apos;s Permit
           </h1>
         </div>
       </div>
@@ -630,7 +630,7 @@ const Application = () => {
                 <label htmlFor="newFranchiseStatusRenewal">Renewal</label>
               </div>
               <label htmlFor="operatorID" className="mr-4">
-                Operator's Name
+                Operator&apos;s Name
               </label>
               <Select
                 name="operatorID"
@@ -662,7 +662,7 @@ const Application = () => {
                 </>
               )}
               <label htmlFor="driverID" className="mr-4">
-                Driver's Name
+                Driver&apos;s Name
               </label>
               <Select
                 name="driverID"
@@ -796,28 +796,28 @@ const Application = () => {
                 <div className="col-span-2 w-full flex justify-around read-only mt-3">
                   <ImageUploader
                     isDisabled={true}
-                    title="Operator's Photo"
+                    title="Operator&lsquo;s Photo"
                     setImage={setNewOperatorFaceImage}
                     setPreview={setNewOperatorFacePreview}
                     preview={newOperatorFacePreview}
                   />
                   <ImageUploader
                     isDisabled={true}
-                    title="Operator's Signature"
+                    title="Operator&lsquo;s Signature"
                     setImage={setNewOperatorSignatureImage}
                     setPreview={setNewOperatorSignaturePreview}
                     preview={newOperatorSignaturePreview}
                   />
                   <ImageUploader
                     isDisabled={true}
-                    title="Driver's Photo"
+                    title="Driver&lsquo;s Photo"
                     setImage={setNewDriverFaceImage}
                     setPreview={setNewDriverFacePreview}
                     preview={newDriverFacePreview}
                   />
                   <ImageUploader
                     isDisabled={true}
-                    title="Driver's Signature"
+                    title="Driver&lsquo;s Signature"
                     setImage={setNewDriverSignatureImage}
                     setPreview={setNewDriverSignaturePreview}
                     preview={newDriverSignaturePreview}
@@ -1098,8 +1098,8 @@ const Application = () => {
                       width="100%"
                       height="300px">
                       <p>
-                        It appears you don't have a PDF plugin for this browser.
-                        No biggie... you can{" "}
+                        It appears you don&apos;t have a PDF plugin for this
+                        browser. No biggie... you can{" "}
                         <a href={URL.createObjectURL(currentFileUpload)}>
                           click here to download the PDF file.
                         </a>

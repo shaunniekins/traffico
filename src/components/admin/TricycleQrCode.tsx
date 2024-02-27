@@ -414,7 +414,7 @@ const TricycleQrCode = () => {
                   disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
-                <label htmlFor="currentOperator">Operator's Name</label>
+                <label htmlFor="currentOperator">Operator&lsquo;s Name</label>
                 <input
                   type="text"
                   name="currentOperator"
@@ -432,7 +432,7 @@ const TricycleQrCode = () => {
                   disabled
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
-                <label htmlFor="currentDriver">Driver's Name</label>
+                <label htmlFor="currentDriver">Driver&lsquo;s Name</label>
                 <input
                   type="text"
                   name="currentDriver"
@@ -442,7 +442,7 @@ const TricycleQrCode = () => {
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full bg-gray-100 text-sky-700"
                 />
                 <label htmlFor="currentDriverLicenseNum">
-                  Driver's License No.
+                  Driver&lsquo;s License No.
                 </label>
                 <input
                   type="text"

@@ -377,7 +377,7 @@ const QrScannerComponent = ({
                       />
                     </div>
                     <div>
-                      <label htmlFor="currentDriver">Driver's Name</label>
+                      <label htmlFor="currentDriver">Driver&lsquo;s Name</label>
                       <input
                         type="text"
                         name="currentDriver"
