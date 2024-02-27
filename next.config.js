@@ -3,13 +3,13 @@
 module.exports = {
   async redirects() {
     return [
-      //   {
-      //     source: "/",
-      //     destination: "/dashboard",
-      //     permanent: true,
-      //   },
       {
         source: "/admin",
+        destination: "/admin/signin",
+        permanent: false,
+      },
+      {
+        source: "/admin/dashboard",
         destination: "/admin/dashboard/dashboard",
         permanent: false,
       },
@@ -18,11 +18,11 @@ module.exports = {
         destination: "/personnel/dashboard/dashboard",
         permanent: false,
       },
-      //   {
-      //     source: "/dashboard",
-      //     destination: "/dashboard/dashboard",
-      //     permanent: true,
-      //   },
+      {
+        source: "/passenger",
+        destination: "/passenger/dashboard",
+        permanent: false,
+      },
     ];
   },
 };

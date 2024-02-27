@@ -59,34 +59,30 @@ const LandingPage = () => {
         </div>
       </div> */}
 
-      <div className="w-full h-[60svh] md:w-[50%] flex flex-col items-center justify-center">
-        {/* <div className="relative"> */}
+      <div className="w-full h-[70svh] md:w-[50%] flex flex-col items-center justify-center">
+        <div className="relative">
+          <div className="rounded-3xl overflow-hidden">
+            <Image
+              src="/logo.svg"
+              alt="Traffico Logo"
+              width={200}
+              height={200}
+            />
+          </div>
+          {/* <div className="circle-animation"></div> */}
+        </div>
         <button
-          className="rounded-full overflow-hidden shadow-xl shadow-sky-700 drop-shadow-2xl active:scale-95 active:shadow-lg"
-          onClick={() => {
-            setLoading(true);
-            router.push("/report");
-          }}>
-          <Image src="/logo.svg" alt="Traffico Logo" width={200} height={200} />
-        </button>
-        {/* <div className="circle-animation"></div> */}
-        {/* </div> */}
-
-        {/* <button
           className="flex items-center justify-center bg-white shadow-lg rounded-full py-4 mt-16"
           onClick={() => router.push("/report")}>
           <span className="text-center font-semibold px-16">Report Driver</span>
-        </button> */}
+        </button>
       </div>
-      <div className="w-full h-[40svh] flex flex-col justify-center items-center sm:gap-5">
-        <p className="text-xs text-gray-400 italic mb-20">
-          Tap logo to start report
-        </p>
+      <div className="w-full h-[30svh] flex flex-col justify-center items-center sm:gap-5">
         <div className="flex flex-col sm:flex-row gap-3">
           <button
             className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"
             onClick={() => router.push("/admin/signin")}>
-            Signin as Auth
+            Signin as Admin/Personnel
           </button>
           <button
             className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"

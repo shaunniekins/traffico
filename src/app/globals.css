@@ -126,16 +126,19 @@ select {
   left: 0;
   width: 200px;
   height: 200px;
-  border: 10px dashed #000;
+  border: 10px dotted #000;
   border-radius: 50%;
-  animation: spin 1.5s linear infinite;
+  animation: spinAndScale 1.5s linear infinite;
 }
 
-@keyframes spin {
+@keyframes spinAndScale {
   0% {
-    transform: rotate(0deg);
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.5);
   }
   100% {
-    transform: rotate(360deg);
+    transform: rotate(360deg) scale(1);
   }
 }
