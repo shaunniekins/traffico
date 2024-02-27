@@ -11,8 +11,8 @@ import Application from "@/components/admin/Application";
 import ViolationsRecord from "@/components/admin/ViolationsRecord";
 import TricycleDriverViolation from "@/components/admin/TricycleDriverViolation";
 import TricycleQrCode from "@/components/admin/TricycleQrCode";
-import Approval from "@/components/admin/superadmin/Approval";
-import Users from "@/components/admin/superadmin/Users";
+import Approval from "@/components/admin/Approval";
+import Users from "@/components/admin/Users";
 import SettingsComponent from "@/components/Settings";
 
 const Content = () => {
