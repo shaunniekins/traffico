@@ -124,26 +124,26 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
   // Check if the current path matches the button's path
   const isCurrentPath = (buttonPath: string) => pathname === buttonPath;
 
+  // ${
+  //   isMenuOpen ? "hidden md:block" : "block md:hidden"}
+
   return (
     <div
-      className={`${
-        isMenuOpen ? "visible" : "hidden"
-      } bg-[#03396C] rounded-r-3xl font-RobotoCondensed select-none transition-all duration-500 z-10 overflow-y-auto md:overflow-y-hidden`}>
+      className={`bg-[#03396C] rounded-r-3xl font-RobotoCondensed select-none transition-all duration-500 z-10 overflow-y-auto md:overflow-y-hidden`}>
       <div
         className={`
-        ${isMenuOpen ? "flex" : "hidden"}
+        ${isMenuOpen ? "hidden" : "block"}
             md:hidden
-            w-full h-[5dvh] self-center items-center justify-end flex p-5 text-3xl text-white 
-        }`}>
+            w-full h-[5dvh] self-center items-center justify-end flex p-5 pl-5 text-3xl text-white`}>
         <button onClick={handleMenuClick}>
           <IoMenuOutline />
         </button>
       </div>
       <div
-        className={`${isMenuOpen ? "flex" : "hidden"} ${
+        className={`${isMenuOpen ? "hidden md:block" : "block md:hidden"} ${
           userType === "admin" ? "space-y-10" : "space-y-10 lg:space-y-20"
-        }  h-[95dvh] md:h-[100dvh] flex-col rounded-r-3xl bg-[#03396C] text-white lg:justify-center items-center `}>
-        <div className="rounded-3xl overflow-hidden">
+        } h-[100dvh] md:h-[95.7dvh] w-screen md:w-full md:mt-10 rounded-r-3xl bg-[#03396C] text-white `}>
+        <div className="rounded-3xl overflow-hidden self-center flex justify-center items-center">
           <Image src="/logo.svg" alt="Traffico Logo" width={200} height={200} />
         </div>
 
@@ -156,7 +156,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isMenuOpen, handleMenuClick }) => {
               key={index}
               onClick={() => {
                 router.push(button.path);
-                // handleMenuClick();
               }}
               className={`${
                 isCurrentPath(button.path) && "bg-[#338FFF]  items-center"
