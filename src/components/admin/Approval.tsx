@@ -6,6 +6,7 @@ import {
   fetchApplicationData,
 } from "@/api/applicationsData";
 import { documentDesc } from "@/api/dataValues";
+import { deletePaymentData } from "@/api/paymentsData";
 import { fetchRequirementDocumentDataByID } from "@/api/requirementsData";
 import { LoadingScreenSection } from "@/components/LoadingScreen";
 import { supabase, supabaseAdmin } from "@/utils/supabase";
@@ -310,6 +311,7 @@ const Approval = () => {
     if (applicationId && confirmDelete) {
       try {
         await deleteApplicationData(applicationId);
+        await deletePaymentData(applicationId);
 
         for (let i = 1; i <= 13; i++) {
           await supabaseAdmin.storage

@@ -14,6 +14,7 @@ import {
   IoLogOutOutline,
   IoMenuOutline,
 } from "react-icons/io5";
+import { LoadingScreenSection } from "./LoadingScreen";
 
 const LandingPage = () => {
   const router = useRouter();
@@ -42,6 +43,7 @@ const LandingPage = () => {
 
   return (
     <div className="w-screen h-[100svh] flex flex-col items-center justify-center font-Montserrat bg-[#03396C] gap-y-10 px-5">
+      {loading && <LoadingScreenSection />}
       {/* <div className="w-full bg-white md:w-[450px] px-5 py-10 flex flex-col items-center rounded-xl backdrop-blur-2xl shadow-2xl font-Montserrat border-b-4 border-b-[#338FFF] space-y-8 ">
         <div className="rounded-3xl overflow-hidden">
           <Image src="/logo.svg" alt="Traffico Logo" width={200} height={200} />
