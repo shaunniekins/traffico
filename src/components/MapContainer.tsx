@@ -37,6 +37,8 @@ interface ClickableMapProps {
   // setDestinationMarker: React.Dispatch<
   //   React.SetStateAction<[number, number] | null>
   // >;
+  distance: number | null;
+  setDistance: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const ClickableMap: React.FC<ClickableMapProps> = ({
@@ -46,6 +48,8 @@ const ClickableMap: React.FC<ClickableMapProps> = ({
   setDestination,
   // destinationMarker,
   // setDestinationMarker,
+  distance,
+  setDistance,
 }) => {
   const iconSizeOther: [number, number] = [60, 60];
   // const ORIGIN_ICON = icon({
@@ -77,7 +81,7 @@ const ClickableMap: React.FC<ClickableMapProps> = ({
   //   }
   // }, [destination, isMounted]);
 
-  const [distance, setDistance] = useState<number | null>(null);
+  // const [distance, setDistance] = useState<number | null>(null);
 
   useMapEvents({
     click: (e) => {
@@ -176,9 +180,9 @@ const ClickableMap: React.FC<ClickableMapProps> = ({
     }
   }, [destination]);
 
-  useEffect(() => {
-    console.log("distance", distance);
-  }, [distance]);
+  // useEffect(() => {
+  //   console.log("distance", distance);
+  // }, [distance]);
 
   return null;
 };
@@ -188,11 +192,15 @@ const MapContainerComponent = ({
   destination,
   setOrigin,
   setDestination,
+  distance,
+  setDistance,
 }: {
   origin: [number, number];
   destination: [number, number] | null;
   setOrigin: React.Dispatch<React.SetStateAction<[number, number]>>;
   setDestination: React.Dispatch<React.SetStateAction<[number, number] | null>>;
+  distance: number | null;
+  setDistance: React.Dispatch<React.SetStateAction<number | null>>;
 }) => {
   const iconSize: [number, number] = [100, 100];
   const iconSizeOther: [number, number] = [60, 60];
@@ -237,7 +245,7 @@ const MapContainerComponent = ({
           zoom={17}
           zoomControl={false}
           attributionControl={false}
-          scrollWheelZoom={false}
+          // scrollWheelZoom={false}
           className="h-full"
           style={{ width: "100%", height: "100svh" }}>
           <TileLayer
@@ -257,6 +265,8 @@ const MapContainerComponent = ({
             setDestination={setDestination}
             // destinationMarker={destinationMarker}
             // setDestinationMarker={setDestinationMarker}
+            distance={distance}
+            setDistance={setDistance}
           />
         </MapContainer>
       </div>

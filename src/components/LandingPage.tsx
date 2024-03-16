@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   IoHomeOutline,
   IoPeopleOutline,
@@ -13,8 +13,15 @@ import {
   IoDownloadOutline,
   IoLogOutOutline,
   IoMenuOutline,
+  IoChevronBack,
+  IoRefresh,
 } from "react-icons/io5";
 import { LoadingScreenSection } from "./LoadingScreen";
+import dynamic from "next/dynamic";
+
+const MapContainerComponent = dynamic(() => import("./MapContainer"), {
+  ssr: false,
+});
 
 const LandingPage = () => {
   const router = useRouter();
@@ -41,6 +48,36 @@ const LandingPage = () => {
   //   },
   // ];
 
+  const [showMap, setShowMap] = useState(false);
+  const [origin, setOrigin] = useState<[number, number]>([
+    8.71368244397837, 125.7664604007614,
+  ]);
+  const [destination, setDestination] = useState<[number, number] | null>(null);
+
+  // useEffect(() => {
+  //   navigator.geolocation.getCurrentPosition((position) => {
+  //     setOrigin([position.coords.latitude, position.coords.longitude]);
+  //   });
+  // }, []);
+
+  const [distance, setDistance] = useState<number | null>(null);
+
+  function formatDistance(distance: number | null) {
+    if (distance === null) return "0m";
+    if (distance < 1000) return `${Math.round(distance)}m`;
+    return `${(distance / 1000).toFixed(1)}km`;
+  }
+
+  function calculateFare(distance: number | null) {
+    if (distance === null) return "P0.00";
+    const baseFare = 12.0;
+    const additionalFarePerKm = 2.0;
+    if (distance <= 1000) return `P${baseFare.toFixed(2)}`;
+    const additionalKm = Math.floor(distance / 1000) - 1;
+    const totalFare = baseFare + additionalKm * additionalFarePerKm;
+    return `P${totalFare.toFixed(2)}`;
+  }
+
   return (
     <div className="w-screen h-[100svh] flex flex-col items-center justify-center font-Montserrat bg-[#03396C] gap-y-10 px-5">
       {loading && <LoadingScreenSection />}
@@ -61,56 +98,132 @@ const LandingPage = () => {
         </div>
       </div> */}
 
-      <div className="w-full h-[60svh] md:w-[50%] flex flex-col items-center justify-center">
-        {/* <div className="relative"> */}
-        <button
-          className="rounded-full overflow-hidden shadow-xl shadow-sky-700 drop-shadow-2xl active:scale-95 active:shadow-lg"
-          onClick={() => {
-            setLoading(true);
-            router.push("/report");
-          }}>
-          <Image src="/logo.svg" alt="Traffico Logo" width={200} height={200} />
-        </button>
-        {/* <div className="circle-animation"></div> */}
-        {/* </div> */}
+      {showMap ? (
+        <div className="relative overflow-hidden">
+          <div className="w-full mx-5 text-lg my-5 z-10 absolute flex gap-3">
+            <button
+              onClick={() => setShowMap(false)}
+              className="bg-sky-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+              <IoChevronBack />{" "}
+              <span className="text-sm">{destination ? "OK" : "back"}</span>
+            </button>
+            {destination && (
+              <button
+                onClick={() => {
+                  setDestination([0, 0]);
+                  setDistance(null);
+                }}
+                className="bg-red-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+                <IoRefresh />
+                <span className="text-sm">Reset</span>
+              </button>
+            )}
+          </div>
+          <div className="w-full mx-5 text-lg my-5 z-50 absolute bottom-0">
+            <button className="bg-sky-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+              <span className="text-sm">
+                Distance: {formatDistance(distance)}
+              </span>
+            </button>
+          </div>
+          {distance && (
+            <>
+              <div className="w-full mx-5 text-lg my-5 z-50 absolute bottom-10">
+                <button className="bg-green-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+                  <span className="text-sm">
+                    Fare: {calculateFare(distance)}
+                  </span>
+                </button>
+              </div>
+              <div className="w-full mx-5 text-lg z-50 absolute bottom-28">
+                <p className="text-red-600 italic text-xs">
+                  Note: Mock-up fare calculation <br />
+                  (P12.00 base fare + P2.00 per km after 1st km)
+                </p>
+              </div>
+            </>
+          )}
+          <MapContainerComponent
+            key={1}
+            origin={origin}
+            destination={destination}
+            setOrigin={setOrigin}
+            setDestination={setDestination}
+            distance={distance}
+            setDistance={setDistance}
+          />
+        </div>
+      ) : (
+        <>
+          <div className="w-full h-[60svh] md:w-[50%] flex flex-col items-center justify-center">
+            {/* <div className="relative"> */}
+            <button
+              className="rounded-full overflow-hidden shadow-xl shadow-sky-700 drop-shadow-2xl active:scale-95 active:shadow-lg"
+              onClick={() => {
+                setLoading(true);
+                router.push("/report");
+              }}>
+              <Image
+                src="/logo.svg"
+                alt="Traffico Logo"
+                width={200}
+                height={200}
+              />
+            </button>
+            {/* <div className="circle-animation"></div> */}
+            {/* </div> */}
 
-        {/* <button
+            {/* <button
           className="flex items-center justify-center bg-white shadow-lg rounded-full py-4 mt-16"
           onClick={() => router.push("/report")}>
           <span className="text-center font-semibold px-16">Report Driver</span>
         </button> */}
-      </div>
-      <div className="w-full h-[40svh] flex flex-col justify-center items-center sm:gap-5">
-        <p className="text-xs text-gray-400 italic mb-20">
-          Tap logo to start report
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"
-            onClick={() => {
-              setLoading(true);
-              router.push("/admin/signin");
-            }}>
-            Signin as Auth
-          </button>
-          <button
-            className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"
-            onClick={() => {
-              setLoading(true);
-              router.push("/passenger/signin");
-            }}>
-            Signin as Passenger
-          </button>
-        </div>
-        <button
-          className="flex items-center justify-center py-3 text-center text-white text-xs"
-          onClick={() => {
-            setLoading(true);
-            router.push("/passenger/signup");
-          }}>
-          Create Passenger Account
-        </button>
-      </div>
+          </div>
+          <div className="w-full h-[40svh] flex flex-col justify-center items-center sm:gap-5">
+            <p className="text-xs text-gray-400 italic mb-20">
+              Tap logo to start report
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"
+                onClick={() => {
+                  setLoading(true);
+                  router.push("/admin/signin");
+                }}>
+                Signin as Auth
+              </button>
+              <button
+                className="flex items-center justify-center bg-white shadow-lg rounded-full py-2.5 sm:py-3 text-center text-sm font-semibold px-20 sm:w-[50%]"
+                onClick={() => {
+                  setLoading(true);
+                  router.push("/passenger/signin");
+                }}>
+                Signin as Passenger
+              </button>
+            </div>
+            <div className="flex flex-col gap-4">
+              <button
+                className="flex items-center justify-center py-3 text-center text-white text-xs"
+                onClick={() => {
+                  setLoading(true);
+                  router.push("/passenger/signup");
+                }}>
+                Create Passenger Account
+              </button>
+
+              <button
+                className="flex items-center justify-center py-2 text-center bg-green-200 text-black rounded-full px-5 text-xs"
+                onClick={() => {
+                  setLoading(true);
+                  setShowMap(true);
+                  setLoading(false);
+                }}>
+                Show Map (For Testing)
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

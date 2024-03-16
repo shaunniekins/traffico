@@ -50,11 +50,13 @@ const QrScannerComponent = ({
   const [origin, setOrigin] = useState<[number, number]>([0, 0]);
   const [destination, setDestination] = useState<[number, number] | null>(null);
 
-  useEffect(() => {
-    navigator.geolocation.getCurrentPosition((position) => {
-      setOrigin([position.coords.latitude, position.coords.longitude]);
-    });
-  }, []);
+  // useEffect(() => {
+  //   navigator.geolocation.getCurrentPosition((position) => {
+  //     setOrigin([position.coords.latitude, position.coords.longitude]);
+  //   });
+  // }, []);
+
+  const [distance, setDistance] = useState<number | null>(null);
 
   const [isError, setIsError] = useState(false);
 
@@ -485,13 +487,13 @@ const QrScannerComponent = ({
                         </select>
                       </div>
                     )} */}
-                    {(!userType || userType === "passenger") && (
+                    {/* {(!userType || userType === "passenger") && (
                       <button
                         onClick={() => setToggleSearchLoc(true)}
                         className="bg-sky-700 text-white focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
                         {destination ? "Edit Location" : "Search Location"}
                       </button>
-                    )}
+                    )} */}
                   </div>
                 </div>
                 <div className="flex justify-end space-x-3 text-lg m-5">
@@ -538,13 +540,15 @@ const QrScannerComponent = ({
                 </button>
               </div>
 
-              <MapContainerComponent
+              {/* <MapContainerComponent
                 key={1}
                 origin={origin}
                 destination={destination}
                 setOrigin={setOrigin}
                 setDestination={setDestination}
-              />
+                distance={distance}
+                setDistance={setDistance}
+              /> */}
             </div>
           )}
         </>
