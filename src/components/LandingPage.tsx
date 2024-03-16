@@ -155,7 +155,7 @@ const LandingPage = () => {
         </div>
       ) : (
         <>
-          <div className="w-full h-[60svh] md:w-[50%] flex flex-col items-center justify-center">
+          <div className="w-full h-[50svh] md:w-[50%] flex flex-col items-center justify-center">
             {/* <div className="relative"> */}
             <button
               className="rounded-full overflow-hidden shadow-xl shadow-sky-700 drop-shadow-2xl active:scale-95 active:shadow-lg"
@@ -179,7 +179,7 @@ const LandingPage = () => {
           <span className="text-center font-semibold px-16">Report Driver</span>
         </button> */}
           </div>
-          <div className="w-full h-[40svh] flex flex-col justify-center items-center sm:gap-5">
+          <div className="w-full h-[50svh] flex flex-col justify-center items-center sm:gap-5">
             <p className="text-xs text-gray-400 italic mb-20">
               Tap logo to start report
             </p>
