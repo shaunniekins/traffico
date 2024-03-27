@@ -129,6 +129,9 @@ const QrScannerComponent = ({
   const [records, setRecords] = useState<any[]>([]);
   const [currentBodyNum, setCurrentBodyNum] = useState("");
   const [currentDriver, setCurrentDriver] = useState<any>("");
+  // const [currentZone, setCurrentZone] = useState<any>("");
+  const [currentRoute, setCurrentRoute] = useState("");
+  const [currentRouteObj, setCurrentRouteObj] = useState<any>({});
   const [currentComplaintType, setCurrentComplaintType] = useState("");
   const [currentComplainantName, setCurrentComplainantName] = useState("");
   const [currentContactNumber, setCurrentContactNumber] = useState("");
@@ -174,6 +177,16 @@ const QrScannerComponent = ({
         );
         setCurrentDate(new Date().toISOString().split("T")[0]);
         setCurrentTime(new Date().toTimeString().split(" ")[0]);
+
+        // setCurrentZone(response?.data[0]?.zone);
+
+        if (response?.data[0]?.zone) {
+          const route = routes.find(
+            (route) => Number(route.zone) === Number(response?.data[0]?.zone)
+          );
+          setCurrentRoute(route ? route.route : "");
+          if (route) setCurrentRouteObj(route);
+        }
 
         // console.log(response?.data[0]);
         setLoading(false);
@@ -375,7 +388,7 @@ const QrScannerComponent = ({
                         id="currentBodyNum"
                         value={currentBodyNum}
                         disabled
-                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                        className="bg-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
                     </div>
                     <div>
@@ -387,8 +400,42 @@ const QrScannerComponent = ({
                         value={currentDriver}
                         disabled
                         onChange={(e) => setCurrentDriver(e.target.value)}
-                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                        className="bg-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                       />
+                    </div>
+                    <div>
+                      <label htmlFor="currentRoute">Route</label>
+                      <input
+                        type="text"
+                        name="currentRoute"
+                        id="currentRoute"
+                        value={currentRoute}
+                        disabled
+                        className="bg-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="tableShow">Minimum Fare Rate</label>
+                      <table className="w-full text-sm tableShow">
+                        <tbody>
+                          <tr className="bg-white border border-sky-700">
+                            <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
+                              Student / Senior Citizen / PWD / Solo Parent
+                            </td>
+                            <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
+                              {currentRouteObj.student}
+                            </td>
+                          </tr>
+                          <tr className="bg-white border border-sky-700">
+                            <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
+                              Adult
+                            </td>
+                            <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
+                              {currentRouteObj.adult}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                     <div>
                       <label htmlFor="currentComplain">Complain</label>
