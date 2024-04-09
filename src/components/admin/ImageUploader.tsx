@@ -41,6 +41,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                 disabled={isDisabled}
                 type="file"
                 className="hidden"
+                accept="image/*"
                 onChange={handleImageChange}
               />
             </label>
@@ -61,6 +62,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                 disabled={isDisabled}
                 type="file"
                 className="hidden"
+                accept="image/*"
                 onChange={handleImageChange}
               />
             </label>
