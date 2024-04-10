@@ -12,11 +12,12 @@ import { LoadingScreenSection } from "@/components/LoadingScreen";
 import { supabase, supabaseAdmin } from "@/utils/supabase";
 import { useCallback, useEffect, useState } from "react";
 import { IoMdCloseCircleOutline } from "react-icons/io";
+import { IoChevronBack } from "react-icons/io5";
 import { MdOutlineDelete, MdOutlineSearch } from "react-icons/md";
 
 const Approval = () => {
   const [searchValue, setSearchValue] = useState("");
-  const [selectedOption, setSelectedOption] = useState("trackCode");
+  // const [selectedOption, setSelectedOption] = useState("trackCode");
   const [currentDetailsPage, setCurrentDetailsPage] = useState(1);
   type Record = any;
   type Documents = any;
@@ -47,7 +48,7 @@ const Approval = () => {
 
   const memoizedFetchApplicationData = useCallback(async () => {
     try {
-      const response = await fetchApplicationData(searchValue, selectedOption);
+      const response = await fetchApplicationData(searchValue);
       if (response?.error) {
         console.error(response.error);
       } else {
@@ -58,7 +59,7 @@ const Approval = () => {
     } catch (error) {
       console.error("An error occurred:", error);
     }
-  }, [searchValue, selectedOption, currentDetailsPage]);
+  }, [searchValue, currentDetailsPage]);
 
   useEffect(() => {
     memoizedFetchApplicationData();
@@ -92,7 +93,7 @@ const Approval = () => {
           if (payload.new) {
             setRecords((prevRecord: any) =>
               prevRecord.map((record: any) =>
-                record.id === payload.new.id ? payload.new : record
+                record.app_id === payload.new.id ? payload.new : record
               )
             );
           }
@@ -108,7 +109,9 @@ const Approval = () => {
         (payload) => {
           if (payload.old) {
             setRecords((prevRecord: any) =>
-              prevRecord.filter((record: any) => record.id !== payload.old.id)
+              prevRecord.filter(
+                (record: any) => record.app_id !== payload.old.id
+              )
             );
           }
         }
@@ -118,7 +121,7 @@ const Approval = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [searchValue, selectedOption, currentDetailsPage]);
+  }, [searchValue, currentDetailsPage]);
 
   const memoizedFetchRequirementsDataByID = useCallback(async () => {
     try {
@@ -166,7 +169,7 @@ const Approval = () => {
           if (payload.new) {
             setDocsRecords((prevRecord: any) =>
               prevRecord.map((record: any) =>
-                record.id === payload.new.id ? payload.new : record
+                record.app_id === payload.new.id ? payload.new : record
               )
             );
           }
@@ -182,7 +185,9 @@ const Approval = () => {
         (payload) => {
           if (payload.old) {
             setDocsRecords((prevRecord: any) =>
-              prevRecord.filter((record: any) => record.id !== payload.old.id)
+              prevRecord.filter(
+                (record: any) => record.app_id !== payload.old.id
+              )
             );
           }
         }
@@ -209,22 +214,14 @@ const Approval = () => {
 
   const handleProcessApproval = (id: string, franchise_num: string) => {
     const record = records.find(
-      (record) => record.id === id && record.franchise_num === franchise_num
+      (record) => record.app_id === id && record.franchise_num === franchise_num
     );
 
     if (record) {
-      setCurrentId(record.id);
+      setCurrentId(record.app_id);
       setCurrentFranchiseNum(record.franchise_num);
-      setCurrentOperator(
-        `${record.OperatorProfiles.first_name} ${
-          record.OperatorProfiles.last_name
-        } ${
-          record.OperatorProfiles.middle_name
-            ? record.OperatorProfiles.middle_name[0] + "."
-            : ""
-        }`
-      );
-      setCurrentOperatorAddress(record.OperatorProfiles.address);
+      setCurrentOperator(record.operator_name);
+      setCurrentOperatorAddress(record.operator_address);
       setCurrentStatus(record.status);
 
       const newDocsArray = Object.keys(record)
@@ -286,10 +283,10 @@ const Approval = () => {
 
   const handleUpdateApplicationStatus = async (newStatus: string) => {
     const applicationId: string = currentId;
-    const record = records.find((record) => record.id === applicationId);
+    const record = records.find((record) => record.app_id === applicationId);
 
     if (record) {
-      // console.log("newStatus: ", newStatus);
+      console.log("newStatus: ", newStatus);
       // console.log("applicationId: ", applicationId);
       try {
         await editApplicationData(applicationId, newStatus);
@@ -335,11 +332,18 @@ const Approval = () => {
     <div className="z-0 flex flex-col gap-10 h-full w-full">
       {loading && <LoadingScreenSection />}
       <div className="flex justify-between items-center flex-col md:flex-row">
-        <div className="flex gap-5 items-center">
+        <button
+          className="flex gap-2 items-center"
+          onClick={() => {
+            if (currentDetailsPage === 2) {
+              setCurrentDetailsPage(1);
+            }
+          }}>
+          {currentDetailsPage === 2 && <IoChevronBack />}
           <h1 className="flex font-bold text-3xl text-sky-700 ">
             Approval Process
           </h1>
-        </div>
+        </button>
         {currentDetailsPage === 1 ? (
           <div className="flex gap-2">
             <div className="relative">
@@ -355,7 +359,7 @@ const Approval = () => {
                 className="w-full border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg pl-3 pr-10 py-2"
               />
             </div>
-            <select
+            {/* <select
               name="searchOption"
               id="searchOption"
               className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg py-2 text-sm"
@@ -363,7 +367,7 @@ const Approval = () => {
               onChange={(e) => setSelectedOption(e.target.value)}>
               <option value="trackCode">Tracking Code</option>
               <option value="operator">Name</option>
-            </select>
+            </select> */}
           </div>
         ) : (
           <div className="flex gap-2 items-center">
@@ -404,19 +408,13 @@ const Approval = () => {
                     key={index}
                     className="bg-white border-b border-sky-700 hover:bg-sky-100 cursor-pointer"
                     onClick={() =>
-                      handleProcessApproval(record.id, record.franchise_num)
+                      handleProcessApproval(record.app_id, record.franchise_num)
                     }>
                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                       {record.franchise_num}
                     </td>
                     <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
-                      {`${record?.OperatorProfiles?.first_name} ${
-                        record?.OperatorProfiles?.last_name
-                      } ${
-                        record?.OperatorProfiles?.middle_name
-                          ? record?.OperatorProfiles?.middle_name?.[0] + "."
-                          : ""
-                      }`}
+                      {record.operator_name}
                     </td>
                     <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
                       {new Date(record.application_date)

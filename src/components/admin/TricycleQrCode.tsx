@@ -48,7 +48,7 @@ const TricycleQrCode = () => {
 
   const memoizedFetchApplicationData = useCallback(async () => {
     try {
-      const response = await fetchApplicationData(searchValue, selectedOption);
+      const response = await fetchApplicationData(searchValue);
       if (response?.error) {
         console.error(response.error);
       } else {
@@ -92,7 +92,7 @@ const TricycleQrCode = () => {
           if (payload.new) {
             setRecords((prevRecord: any) =>
               prevRecord.map((record: any) =>
-                record.id === payload.new.id ? payload.new : record
+                record.app_id === payload.new.id ? payload.new : record
               )
             );
           }
@@ -108,7 +108,9 @@ const TricycleQrCode = () => {
         (payload) => {
           if (payload.old) {
             setRecords((prevRecord: any) =>
-              prevRecord.filter((record: any) => record.id !== payload.old.id)
+              prevRecord.filter(
+                (record: any) => record.app_id !== payload.old.id
+              )
             );
           }
         }
@@ -157,36 +159,10 @@ const TricycleQrCode = () => {
     if (record) {
       setCurrentBodyNum(record.body_num);
       setCurrentApplicationDate(record.application_date);
-      setCurrentOperator(
-        `${record.OperatorProfiles.first_name} ${
-          record.OperatorProfiles.last_name
-        } ${
-          record.OperatorProfiles.middle_name
-            ? record.OperatorProfiles.middle_name[0] + "."
-            : ""
-        }`
-      );
-      setCurrentDriver(
-        `${record.DriverProfiles.first_name} ${
-          record.DriverProfiles.last_name
-        } ${
-          record.DriverProfiles.middle_name
-            ? record.DriverProfiles.middle_name[0] + "."
-            : ""
-        }`
-      );
-      record.OperatorProfiles.VehicleOwnershipRecords.forEach(
-        (vehicleRecord: { body_num: any; lto_plate_num: any }) => {
-          if (
-            record.bodyNum ===
-            record.OperatorProfiles.VehicleOwnershipRecords.body_num
-          ) {
-            // console.log("record", vehicleRecord.lto_plate_num);
-            setCurrentPlateNum(vehicleRecord.lto_plate_num);
-          }
-        }
-      );
-      setCurrentDriverLicenseNum(record.DriverProfiles.license_num);
+      setCurrentOperator(record.operator_name);
+      setCurrentDriver(record.driver_name);
+      setCurrentPlateNum(record.lto_plate_num);
+      setCurrentDriverLicenseNum(record.driver_license_num);
       setCurrentFranchiseNum(record.franchise_num);
       setCurrentFranchiseExpiration(record.insurance_expiry_date);
       setCurrentZone(record.zone);
@@ -201,25 +177,20 @@ const TricycleQrCode = () => {
       const STORAGE_BUCKET_OPERATOR_VEHICLES = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/vehicles/`;
 
       setFrontViewPreview(
-        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].front_view_image}`
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.front_view_image}`
       );
       setLeftSideViewPreview(
-        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].left_side_view_image}`
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.left_side_view_image}`
       );
       setRightSideViewPreview(
-        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].right_side_view_image}`
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.right_side_view_image}`
       );
       setInsideFrontViewPreview(
-        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].inside_front_image}`
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.inside_front_image}`
       );
       setBackViewPreview(
-        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].back_view_image}`
+        `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.back_view_image}`
       );
-
-      // console.log(
-      //   "frontViewPreview",
-      //   `${STORAGE_BUCKET_OPERATOR_VEHICLES}${record.OperatorProfiles.VehicleOwnershipRecords[0].left_side_view_image}`
-      // );
 
       setCurrentDetailsPage(2);
     }
@@ -338,20 +309,8 @@ const TricycleQrCode = () => {
               <Card
                 key={index}
                 bodyNum={record.body_num}
-                operator={`${record.OperatorProfiles.first_name} ${
-                  record.OperatorProfiles.last_name
-                } ${
-                  record.OperatorProfiles.middle_name
-                    ? record.OperatorProfiles.middle_name[0] + "."
-                    : ""
-                }`}
-                driver={`${record.DriverProfiles.first_name} ${
-                  record.DriverProfiles.last_name
-                } ${
-                  record.DriverProfiles.middle_name
-                    ? record.DriverProfiles.middle_name[0] + "."
-                    : ""
-                }`}
+                operator={record.operator_name}
+                driver={record.driver_name}
                 handleViewMoreDetailsPage={handleViewMoreDetailsPage}
                 qrBg={true}
               />
@@ -365,7 +324,7 @@ const TricycleQrCode = () => {
                 title="Left Side View"
                 setImage={setLeftSideView}
                 setPreview={setLeftSideViewPreview}
-                preview={setLeftSideViewPreview}
+                preview={leftSideViewPreview}
               />
               <ImageUploader
                 isDisabled={true}

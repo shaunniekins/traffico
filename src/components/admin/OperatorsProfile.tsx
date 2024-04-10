@@ -90,18 +90,6 @@ const OperatorsProfile = () => {
   const [newType, setNewType] = useState("");
   const [newVehicleType, setNewVehicleType] = useState("Tricycle");
   const [newAssociation, setNewAssociation] = useState("");
-  const [newZone, setNewZone] = useState<{
-    value: number;
-    label: string;
-  } | null>(null);
-  const [newSelectedRoute, setNewSelectedRoute] = useState("");
-  const [newSelectedRouteObj, setNewSelectedRouteObj] = useState<{
-    zone: number;
-    route: string;
-    adult: number;
-    student: number;
-    sp: number;
-  } | null>(null);
 
   const options = routes.map((route) => ({
     value: route.zone,
@@ -192,18 +180,6 @@ const OperatorsProfile = () => {
   const [type, setType] = useState("");
   const [vehicleType, setVehicleType] = useState("");
   const [association, setAssociation] = useState("");
-  const [zone, setZone] = useState<{
-    value: number;
-    label: string;
-  } | null>(null);
-  const [selectedRoute, setSelectedRoute] = useState("");
-  const [selectedRouteObj, setSelectedRouteObj] = useState<{
-    zone: number;
-    route: string;
-    adult: number;
-    student: number;
-    sp: number;
-  } | null>(null);
 
   const [frontView, setFrontView] = useState<File | null>(null);
   const [frontViewPreview, setFrontViewPreview] = useState<string | null>(null);
@@ -513,7 +489,7 @@ const OperatorsProfile = () => {
       type: newType,
       vehicle_type: newVehicleType,
       association: newAssociation,
-      zone: newZone?.value,
+      // zone: newZone?.value,
     };
 
     const response = await insertVehicleOwnershipReportData(newRecord);
@@ -595,7 +571,7 @@ const OperatorsProfile = () => {
       setNewType("");
       setNewVehicleType("");
       setNewAssociation("");
-      setNewZone(null);
+      // setNewZone(null);
       setNewFrontViewImage(null);
       setNewLeftSideViewImage(null);
       setNewRightSideViewImage(null);
@@ -659,9 +635,6 @@ const OperatorsProfile = () => {
       setType(record.type);
       setVehicleType(record.vehicle_type);
       setAssociation(record.association);
-      const initialValue =
-        options.find((option) => option.value === record.zone) || null;
-      setZone(initialValue);
 
       const STORAGE_BUCKET_OPERATOR_VEHICLES = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/vehicles/`;
 
@@ -691,16 +664,6 @@ const OperatorsProfile = () => {
       handleSelectedVehicle(recordVehicles[0].id.toString());
     }
   }, [operatorId, recordVehicles]);
-
-  useEffect(() => {
-    if (zone !== null) {
-      const route = routes.find((route) => route.zone === zone.value);
-      setSelectedRoute(route ? route.route : "");
-      if (route) {
-        setSelectedRouteObj(route);
-      }
-    }
-  }, [zone, routes]);
 
   // useEffect(() => {
   //   const updatedRecordVehicles = recordVehicles.filter(
@@ -904,7 +867,6 @@ const OperatorsProfile = () => {
         type: type,
         vehicle_type: vehicleType,
         association: association,
-        zone: zone?.value,
       };
       // console.log("record: ", record);
 
@@ -1457,66 +1419,6 @@ const OperatorsProfile = () => {
                     className="basic-multi-select"
                     classNamePrefix="select"
                   />
-                  <label htmlFor="newZone">Zone</label>
-                  <Select
-                    name="newZone"
-                    id="newZone"
-                    value={newZone}
-                    onChange={(selectedOption) => {
-                      if (selectedOption !== null) {
-                        setNewZone(selectedOption);
-                        const route = routes.find(
-                          (route) => route.zone === selectedOption.value
-                        );
-                        setNewSelectedRoute(route ? route.route : "");
-                        if (route) {
-                          setNewSelectedRouteObj(route);
-                        }
-                      }
-                    }}
-                    options={options}
-                    className="basic-multi-select"
-                    classNamePrefix="select"
-                  />
-                  {newZone && (
-                    <>
-                      <label htmlFor="newSelectedRoute">Route</label>
-                      <input
-                        type="text"
-                        id="newSelectedRoute"
-                        value={newSelectedRoute}
-                        disabled
-                        className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                      />
-                      {newSelectedRouteObj && (
-                        <>
-                          <h1>Minimum Fare Rate</h1>
-                          <div className="">
-                            <table className="w-full text-sm">
-                              <tbody>
-                                <tr className="bg-white border border-sky-700">
-                                  <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
-                                    Student / Senior Citizen / PWD / Solo Parent
-                                  </td>
-                                  <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
-                                    {newSelectedRouteObj.student}
-                                  </td>
-                                </tr>
-                                <tr className="bg-white border border-sky-700">
-                                  <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
-                                    Adult
-                                  </td>
-                                  <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
-                                    {newSelectedRouteObj.adult}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        </>
-                      )}
-                    </>
-                  )}
                   <div className="justify-self-center col-span-2">
                     <button
                       className="border border-sky-700 bg-sky-700 text-white py-2 px-4 text-sm rounded-lg"
@@ -1923,67 +1825,6 @@ const OperatorsProfile = () => {
                   className="basic-multi-select"
                   classNamePrefix="select"
                 />
-                <label htmlFor="zone">Zone</label>
-                <Select
-                  name="zone"
-                  id="zone"
-                  value={zone}
-                  onChange={(selectedOption) => {
-                    if (selectedOption !== null) {
-                      setZone(selectedOption);
-                      const route = routes.find(
-                        (route) => route.zone === selectedOption.value
-                      );
-                      setSelectedRoute(route ? route.route : "");
-                      if (route) {
-                        setSelectedRouteObj(route);
-                      }
-                    }
-                  }}
-                  isDisabled={!toggleEditVehicle}
-                  options={options}
-                  className="basic-multi-select"
-                  classNamePrefix="select"
-                />
-                {zone && (
-                  <>
-                    <label htmlFor="newSelectedRoute">Route</label>
-                    <input
-                      type="text"
-                      id="route"
-                      value={selectedRoute}
-                      disabled
-                      className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                    />
-                    {selectedRouteObj && (
-                      <>
-                        <h1>Minimum Fare Rate</h1>
-                        <div className="">
-                          <table className="w-full text-sm">
-                            <tbody>
-                              <tr className="bg-white border border-sky-700">
-                                <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
-                                  Student / Senior Citizen / PWD / Solo Parent
-                                </td>
-                                <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
-                                  {selectedRouteObj.student}
-                                </td>
-                              </tr>
-                              <tr className="bg-white border border-sky-700">
-                                <td className="w-1/2 pl-6 py-4 text-gray-900 border-r border-sky-700">
-                                  Adult
-                                </td>
-                                <td className="w-1/2 px-6 py-4 text-gray-900 whitespace-nowrap font-bold">
-                                  {selectedRouteObj.adult}
-                                </td>
-                              </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </>
-                    )}
-                  </>
-                )}
                 <div className="justify-self-center col-span-2">
                   <button
                     className="border border-sky-700 bg-sky-700 text-white py-2 px-4 text-sm rounded-lg"
@@ -2262,7 +2103,6 @@ const OperatorsProfile = () => {
                     !newMotorNumber ||
                     !newType ||
                     !newVehicleType ||
-                    !newZone ||
                     !newFrontViewImage ||
                     !newLeftSideViewImage ||
                     !newRightSideViewImage ||
@@ -2298,7 +2138,6 @@ const OperatorsProfile = () => {
                     !newMotorNumber ||
                     !newType ||
                     !newVehicleType ||
-                    !newZone ||
                     !newFrontViewImage ||
                     !newLeftSideViewImage ||
                     !newRightSideViewImage ||

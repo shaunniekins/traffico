@@ -149,8 +149,15 @@ const Application = () => {
     const fetchOperators = async () => {
       const response = await fetchOperatorUniqueBodyNum();
       if (response && response.data) {
+        const uniqueOperators = response.data.reduce((unique, operator) => {
+          if (!unique.find((op: any) => op.id === operator.id)) {
+            unique.push(operator);
+          }
+          return unique;
+        }, []);
+
         setOperators(
-          response.data.map((operator) => ({
+          uniqueOperators.map((operator: any) => ({
             value: operator.id,
             label:
               `${operator.last_name}, ${operator.first_name}` +
