@@ -1,18 +1,20 @@
 import { supabase, supabaseAdmin } from "@/utils/supabase";
 
-export const fetchRequirementDocumentDataByID = async (id: any) => {
+export const fetchRequirementDocumentDataByID = async (id: string) => {
   try {
-    const query = supabase.from("ViewRequirementDocsWithYear").select(`*`);
+    const { data, error } = await supabase
+      .from("ViewRequirementDocsWithYear")
+      .select("*")
+      .eq("application_id", id);
 
-    const response = await query;
-
-    if (response.error) {
-      throw response.error;
+    if (error) {
+      throw error;
     }
-    return response;
+
+    return { data, error: null };
   } catch (error) {
     console.error("Error fetching data:", error);
-    return null;
+    return { data: null, error };
   }
 };
 

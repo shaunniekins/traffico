@@ -49,7 +49,9 @@ export const fetchReportViolations = async (
       query = query.is("enforcer_id", null);
     }
 
-    const response = await query;
+    const response = await query
+      .order("date", { ascending: false })
+      .order("time", { ascending: false });
 
     if (response.error) {
       throw response.error;

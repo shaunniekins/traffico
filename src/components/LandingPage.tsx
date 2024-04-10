@@ -3,21 +3,10 @@
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import {
-  IoHomeOutline,
-  IoPeopleOutline,
-  IoClipboardOutline,
-  IoCalendarOutline,
-  IoArchiveOutline,
-  IoSettingsOutline,
-  IoDownloadOutline,
-  IoLogOutOutline,
-  IoMenuOutline,
-  IoChevronBack,
-  IoRefresh,
-} from "react-icons/io5";
+import { IoChevronBack, IoRefresh } from "react-icons/io5";
 import { LoadingScreenSection } from "./LoadingScreen";
 import dynamic from "next/dynamic";
+import { formatDistance, calculateFare } from "@/utils/utils";
 
 const MapContainerComponent = dynamic(() => import("./MapContainer"), {
   ssr: false,
@@ -49,9 +38,7 @@ const LandingPage = () => {
   // ];
 
   const [showMap, setShowMap] = useState(false);
-  const [origin, setOrigin] = useState<[number, number]>([
-    8.71368244397837, 125.7664604007614,
-  ]);
+  const [origin, setOrigin] = useState<[number, number]>([7.22428, 125.638435]);
   const [destination, setDestination] = useState<[number, number] | null>(null);
 
   // useEffect(() => {
@@ -61,22 +48,6 @@ const LandingPage = () => {
   // }, []);
 
   const [distance, setDistance] = useState<number | null>(null);
-
-  function formatDistance(distance: number | null) {
-    if (distance === null) return "0m";
-    if (distance < 1000) return `${Math.round(distance)}m`;
-    return `${(distance / 1000).toFixed(1)}km`;
-  }
-
-  function calculateFare(distance: number | null) {
-    if (distance === null) return "P0.00";
-    const baseFare = 12.0;
-    const additionalFarePerKm = 2.0;
-    if (distance <= 1000) return `P${baseFare.toFixed(2)}`;
-    const additionalKm = Math.floor(distance / 1000) - 1;
-    const totalFare = baseFare + additionalKm * additionalFarePerKm;
-    return `P${totalFare.toFixed(2)}`;
-  }
 
   return (
     <div className="w-screen h-[100svh] flex flex-col items-center justify-center font-Montserrat bg-[#03396C] gap-y-10 px-5">

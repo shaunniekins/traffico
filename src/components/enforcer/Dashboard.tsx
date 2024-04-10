@@ -10,7 +10,7 @@ import {
   MdOutlineChecklist,
 } from "react-icons/md";
 import { RiSettings3Line } from "react-icons/ri";
-import Reports from "./Reports";
+import Reports from "../Reports";
 import TopbarFloat from "../TopbarFloat";
 import QrScannerComponent from "../QrScanner";
 

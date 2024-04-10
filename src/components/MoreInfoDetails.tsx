@@ -9,7 +9,7 @@ import {
   MdOutlineEdit,
   MdOutlinePublishedWithChanges,
 } from "react-icons/md";
-import { LoadingScreenSection } from "../LoadingScreen";
+import { LoadingScreenSection } from "./LoadingScreen";
 
 interface DriverProfile {
   first_name: string;
@@ -135,10 +135,9 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
       "Are you sure you want to delete this record?"
     );
 
-    setLoading(true);
-
     if (currentReportId && confirmDelete) {
       try {
+        setLoading(true);
         await deleteReportViolations(currentReportId);
 
         handleExit();
@@ -439,7 +438,7 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 </div>
               </>
             )}
-            {userType == "enforcer" && record?.passenger_name.trim() && (
+            {userType == "enforcer" && record?.passenger_name?.trim() && (
               <div>
                 <label htmlFor="passenger_name">
                   Complainant Name (Registered)

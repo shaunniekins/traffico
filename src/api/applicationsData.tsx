@@ -59,37 +59,14 @@ export const insertApplicationData = async (data: any) => {
   }
 };
 
-export const fetchApplicationDataForQRScanner = async (
-  searchValue: string,
-  filterType: string
-) => {
-  if (searchValue && filterType) {
+export const fetchApplicationDataForQRScanner = async (searchValue: string) => {
+  if (searchValue) {
     try {
       let query = supabase
-        .from("Applications")
-        .select(
-          `id, 
-        application_date, 
-        franchise_num, 
-        franchise_status, 
-        operator_id, 
-        driver_id, 
-        insurance_company, 
-        insurance_coc_num, 
-        insurance_expiry_date,
-        body_num, 
-        zone,
-        status,
-        OperatorProfiles!inner(id, last_name, first_name, middle_name, birth_date, address, civil_status, contact_num, is_active,
-          VehicleOwnershipRecords!inner(id, operator_id, date_registered, chassis_num, lto_plate_num, color_code, motor_num, body_num)
-        ),
-        DriverProfiles!inner(id, last_name, first_name, middle_name, birth_date, 
-          address, civil_status, contact_num, is_active, license_num, license_expiration)`,
-
-          { count: "exact" }
-        )
-        .eq("body_num", searchValue)
-        .order("application_date", { ascending: false });
+        .from("ViewApproval")
+        .select(`*`, { count: "exact" })
+        .order("application_date", { ascending: false })
+        .eq("body_num", searchValue);
 
       const response = await query;
 

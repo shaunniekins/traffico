@@ -11,7 +11,7 @@ import { RiSettings3Line } from "react-icons/ri";
 
 import QrScannerComponent from "../QrScanner";
 // import dynamic from "next/dynamic";
-import Reports from "../enforcer/Reports";
+import Reports from "../Reports";
 import TopbarFloat from "../TopbarFloat";
 import { UserContext } from "@/utils/UserContext";
 import { useRouter } from "next/navigation";

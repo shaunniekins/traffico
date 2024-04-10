@@ -4,20 +4,18 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { QrScanner } from "@yudiel/react-qr-scanner";
 import { MdOutlineShareLocation } from "react-icons/md";
 import { BsCheck2Circle, BsInputCursorText } from "react-icons/bs";
-import {
-  fetchApplicationData,
-  fetchApplicationDataForQRScanner,
-} from "@/api/applicationsData";
+import { fetchApplicationDataForQRScanner } from "@/api/applicationsData";
 import { supabase } from "@/utils/supabase";
 import Select from "react-select";
 import { routes } from "@/api/dataValues";
 import Image from "next/image";
-import { IoChevronBack, IoChevronForward } from "react-icons/io5";
-import { usePathname } from "next/navigation";
+import { IoChevronBack, IoChevronForward, IoRefresh } from "react-icons/io5";
+import { usePathname, useRouter } from "next/navigation";
 import { insertReportViolations } from "@/api/reportViolationsData";
 import dynamic from "next/dynamic";
 import { UserContext } from "@/utils/UserContext";
 import { LoadingScreenSection } from "./LoadingScreen";
+import { formatDistance, calculateFare } from "@/utils/utils";
 
 const MapContainerComponent = dynamic(() => import("./MapContainer"), {
   ssr: false,
@@ -47,7 +45,9 @@ const QrScannerComponent = ({
     ? "enforcer"
     : null;
 
-  const [origin, setOrigin] = useState<[number, number]>([0, 0]);
+  const currentUrl = pathname.endsWith("/report") && "randomReport";
+
+  const [origin, setOrigin] = useState<[number, number]>([7.22428, 125.638435]);
   const [destination, setDestination] = useState<[number, number] | null>(null);
 
   // useEffect(() => {
@@ -151,7 +151,7 @@ const QrScannerComponent = ({
   );
   // const [violation, setViolation] = useState("");
 
-  const [toggleSearchLoc, setToggleSearchLoc] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const handleFetchpplicationData = async (
     bodyNum: string,
@@ -159,22 +159,14 @@ const QrScannerComponent = ({
   ) => {
     setLoading(true);
     try {
-      const response = await fetchApplicationDataForQRScanner(
-        bodyNum,
-        filterType
-      );
+      const response = await fetchApplicationDataForQRScanner(bodyNum);
       if (response?.error) {
         console.error(response.error);
         setLoading(false);
       } else {
         setRecords(response?.data || []);
         setCurrentBodyNum(response?.data[0]?.body_num);
-
-        const driverProfile: any = response?.data[0]?.DriverProfiles;
-
-        setCurrentDriver(
-          `${driverProfile?.first_name} ${driverProfile?.last_name}`
-        );
+        setCurrentDriver(response?.data[0]?.driver_name);
         setCurrentDate(new Date().toISOString().split("T")[0]);
         setCurrentTime(new Date().toTimeString().split(" ")[0]);
 
@@ -276,6 +268,8 @@ const QrScannerComponent = ({
     // setViolation("");
   };
 
+  const router = useRouter();
+
   return (
     <>
       {records && records.length === 0 ? (
@@ -329,7 +323,21 @@ const QrScannerComponent = ({
             }}
           />
           <div className="justify-center container mx-auto z-30 absolute top-5 w-full px-3 flex">
-            <div className="space-x-2">
+            <div
+              className={`w-full flex items-center ${
+                currentUrl === "randomReport"
+                  ? "justify-between"
+                  : "justify-center"
+              }`}>
+              {currentUrl === "randomReport" && (
+                <button
+                  className="bg-sky-700 text-white rounded-2xl px-4 py-2 text-[30px]"
+                  onClick={() => {
+                    router.push("/");
+                  }}>
+                  <IoChevronBack />
+                </button>
+              )}
               <button
                 className="bg-sky-700 text-white rounded-2xl px-4 py-2 text-[30px]"
                 onClick={() => setIsModalOpen(true)}>
@@ -354,7 +362,7 @@ const QrScannerComponent = ({
         </div>
       ) : (
         <>
-          {!toggleSearchLoc ? (
+          {!showMap ? (
             <div className="z-0 flex flex-col gap-10 h-full overflow-y-auto sm:overflow-y-hidden">
               <div className="h-full w-full flex flex-col justify-between">
                 <div className="flex justify-between items-center flex-col m-5 h-full overflow-x-hidden sm:overflow-y-hidden">
@@ -534,13 +542,13 @@ const QrScannerComponent = ({
                         </select>
                       </div>
                     )} */}
-                    {/* {(!userType || userType === "passenger") && (
+                    {(!userType || userType === "passenger") && (
                       <button
-                        onClick={() => setToggleSearchLoc(true)}
+                        onClick={() => setShowMap(true)}
                         className="bg-sky-700 text-white focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
                         {destination ? "Edit Location" : "Search Location"}
                       </button>
-                    )} */}
+                    )}
                   </div>
                 </div>
                 <div className="flex justify-end space-x-3 text-lg m-5">
@@ -578,16 +586,50 @@ const QrScannerComponent = ({
             </div>
           ) : (
             <div className="relative overflow-hidden">
-              <div className="w-full mx-5 text-lg my-5 z-10 absolute">
+              <div className="w-full mx-5 text-lg my-5 z-10 absolute flex gap-3">
                 <button
-                  onClick={() => setToggleSearchLoc(false)}
+                  onClick={() => setShowMap(false)}
                   className="bg-sky-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
                   <IoChevronBack />{" "}
                   <span className="text-sm">{destination ? "OK" : "back"}</span>
                 </button>
+                {destination && (
+                  <button
+                    onClick={() => {
+                      setDestination([0, 0]);
+                      setDistance(null);
+                    }}
+                    className="bg-red-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+                    <IoRefresh />
+                    <span className="text-sm">Reset</span>
+                  </button>
+                )}
               </div>
-
-              {/* <MapContainerComponent
+              <div className="w-full mx-5 text-lg my-5 z-50 absolute bottom-0">
+                <button className="bg-sky-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+                  <span className="text-sm">
+                    Distance: {formatDistance(distance)}
+                  </span>
+                </button>
+              </div>
+              {distance && (
+                <>
+                  <div className="w-full mx-5 text-lg my-5 z-50 absolute bottom-10">
+                    <button className="bg-green-700 text-white rounded-lg px-3 py-2 flex items-center gap-1">
+                      <span className="text-sm">
+                        Fare: {calculateFare(distance)}
+                      </span>
+                    </button>
+                  </div>
+                  <div className="w-full mx-5 text-lg z-50 absolute bottom-28">
+                    <p className="text-red-600 italic text-xs">
+                      Note: Mock-up fare calculation <br />
+                      (P12.00 base fare + P2.00 per km after 1st km)
+                    </p>
+                  </div>
+                </>
+              )}
+              <MapContainerComponent
                 key={1}
                 origin={origin}
                 destination={destination}
@@ -595,7 +637,7 @@ const QrScannerComponent = ({
                 setDestination={setDestination}
                 distance={distance}
                 setDistance={setDistance}
-              /> */}
+              />
             </div>
           )}
         </>

@@ -1493,7 +1493,10 @@ const OperatorsProfile = () => {
                                   ? "border-gray-600 bg-gray-600"
                                   : "border-sky-700 bg-sky-700"
                               } text-white border py-2 px-4 text-sm rounded-lg`}
-                              onClick={() => setModalUploadImagesOpen(false)}>
+                              onClick={() => {
+                                setModalUploadImagesOpen(false);
+                                alert("Images uploaded successfully!");
+                              }}>
                               Upload
                             </button>
                             <button

@@ -30,6 +30,7 @@ const Approval = () => {
   const [currentOperator, setCurrentOperator] = useState("");
   const [currentOperatorAddress, setCurrentOperatorAddress] = useState("");
   const [currentStatus, setCurrentStatus] = useState("");
+  const [currentBodyNumber, setCurrentBodyNumber] = useState("");
 
   const headerNames = [
     "Franchise No.",
@@ -130,7 +131,6 @@ const Approval = () => {
         console.error(response.error);
       } else {
         setDocsRecords(response?.data || []);
-        // console.log("response?.data", response?.data);
       }
     } catch (error) {
       console.error("An error occurred:", error);
@@ -148,6 +148,7 @@ const Approval = () => {
           event: "INSERT",
           schema: "public",
           table: "RequirementDocuments",
+          filter: `application_id=eq.${currentId}`,
         },
         (payload) => {
           if (payload.new) {
@@ -164,6 +165,7 @@ const Approval = () => {
           event: "UPDATE",
           schema: "public",
           table: "RequirementDocuments",
+          filter: `application_id=eq.${currentId}`,
         },
         (payload) => {
           if (payload.new) {
@@ -223,6 +225,7 @@ const Approval = () => {
       setCurrentOperator(record.operator_name);
       setCurrentOperatorAddress(record.operator_address);
       setCurrentStatus(record.status);
+      setCurrentBodyNumber(record.body_num);
 
       const newDocsArray = Object.keys(record)
         .filter((key) => key.startsWith("doc_") && key.endsWith("_loc"))
@@ -286,8 +289,6 @@ const Approval = () => {
     const record = records.find((record) => record.app_id === applicationId);
 
     if (record) {
-      console.log("newStatus: ", newStatus);
-      // console.log("applicationId: ", applicationId);
       try {
         await editApplicationData(applicationId, newStatus);
         setCurrentDetailsPage(1);
@@ -545,6 +546,9 @@ const Approval = () => {
                   {currentOperator}
                 </h1>
                 <h1>{currentOperatorAddress}</h1>
+                <h1 className="text-sky-500 font-semibold">
+                  {currentBodyNumber}
+                </h1>
               </div>
             </div>
             <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg border border-sky-700">

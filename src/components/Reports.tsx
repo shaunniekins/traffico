@@ -3,11 +3,11 @@
 import { fetchReportViolations } from "@/api/reportViolationsData";
 import { supabase } from "@/utils/supabase";
 import { usePathname, useRouter } from "next/navigation";
-import { use, useCallback, useContext, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import MoreInfoDetailsComponent from "./MoreInfoDetails";
 import { IoLogOutOutline } from "react-icons/io5";
 import { UserContext } from "@/utils/UserContext";
-import { LoadingScreenSection } from "../LoadingScreen";
+import { LoadingScreenSection } from "./LoadingScreen";
 
 const Reports = ({
   setShowBottomBar,
@@ -33,28 +33,13 @@ const Reports = ({
     setRecords([]);
   }, [currentView]);
 
-  useEffect(() => {
-    if (records.length > 0) {
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-  }, [records]);
-
-  // const [records, setRecords] = useState<any[]>([
-  //   {
-  //     "Body No.": "1",
-  //     "Body Color": "Red",
-  //     "Assigned Route": "Route 1",
-  //     Name: "John Doe",
-  //     "Driver's License": "DL12345",
-  //     "Plate No.": "PN12345",
-  //     "Franchise No.": "FN12345",
-  //     "Date Registed": "2022-01-01",
-  //     "Tricycle Owner": "John Doe",
-  //     "Address Operator": "123 Street, City",
-  //   },
-  // ]);
+  // useEffect(() => {
+  //   if (records) {
+  //     setLoading(false);
+  //   } else {
+  //     setLoading(true);
+  //   }
+  // }, [records]);
 
   const memoizedFetchReportViolations = useCallback(async () => {
     if (userRole && currentView && userId) {
@@ -87,6 +72,7 @@ const Reports = ({
           event: "INSERT",
           schema: "public",
           table: "ReportViolations",
+          // filter: userRole !== "enforcer" ? `passenger_id.eq.${userId}` : "",
         },
         (payload) => {
           if (payload.new) {
@@ -103,6 +89,12 @@ const Reports = ({
           event: "UPDATE",
           schema: "public",
           table: "ReportViolations",
+          // filter:
+          //   currentView === "personal" && userRole === "enforcer"
+          //     ? `enforcer_id.eq.${userId}`
+          //     : currentView === "passenger" && userRole === "passenger"
+          //     ? `passenger_id.eq.${userId}`
+          //     : "",
         },
         (payload) => {
           if (payload.new) {
@@ -122,11 +114,17 @@ const Reports = ({
           event: "DELETE",
           schema: "public",
           table: "ReportViolations",
+          // filter:
+          //   currentView === "personal" && userRole === "enforcer"
+          //     ? `enforcer_id.eq.${userId}`
+          //     : currentView === "passenger" && userRole === "passenger"
+          //     ? `passenger_id.eq.${userId}`
+          //     : "",
         },
         (payload) => {
           if (payload.old) {
-            setRecords((prevRecord: any) =>
-              prevRecord.filter((record: any) => record.id !== payload.old.id)
+            setRecords((prevRecords: any[]) =>
+              prevRecords.filter((record) => record.id !== payload.old.id)
             );
           }
         }
