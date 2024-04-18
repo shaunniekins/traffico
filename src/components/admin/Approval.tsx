@@ -124,9 +124,31 @@ const Approval = () => {
     };
   }, [searchValue, currentDetailsPage]);
 
+  // useEffect(() => {
+  //   console.log("currentId", currentId);
+  // }, [currentId]);
+
+  // const fetchRequirementsDataByIDFunction = async (currentId: any) => {
+  //   try {
+  //     const response = await fetchRequirementDocumentDataByID(
+  //       parseInt(currentId)
+  //     );
+  //     if (response?.error) {
+  //       console.error(response.error);
+  //     } else {
+  //       setDocsRecords(response?.data || []);
+  //     }
+  //   } catch (error) {
+  //     console.error("An error occurred:", error);
+  //   }
+  // };
+
   const memoizedFetchRequirementsDataByID = useCallback(async () => {
+    if (!currentId) return;
     try {
-      const response = await fetchRequirementDocumentDataByID(currentId);
+      const response = await fetchRequirementDocumentDataByID(
+        parseInt(currentId)
+      );
       if (response?.error) {
         console.error(response.error);
       } else {
@@ -215,6 +237,9 @@ const Approval = () => {
   const [docsArray, setDocsArray] = useState<Document[]>([]);
 
   const handleProcessApproval = (id: string, franchise_num: string) => {
+    // newly added
+    // fetchRequirementsDataByIDFunction(currentId);
+
     const record = records.find(
       (record) => record.app_id === id && record.franchise_num === franchise_num
     );

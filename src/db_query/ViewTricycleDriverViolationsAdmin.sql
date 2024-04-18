@@ -3,7 +3,6 @@ CREATE
 OR REPLACE VIEW "ViewTricycleDriverViolationsAdmin" AS
 SELECT
     RV.*,
-    RV.action_taken,
     APP.franchise_status,
     CONCAT(DP.first_name, ' ', DP.last_name) AS driver_name,
     DP.license_num AS driver_license_num,
@@ -11,7 +10,8 @@ SELECT
     OP.address AS operator_address,
     VOR.lto_plate_num AS vehicle_plate_num,
     VOR.date_registered AS vehicle_date_registered,
-    VOR.zone AS vehicle_zone,
+    APP.zone AS vehicle_zone,
+    -- VOR.zone AS vehicle_zone,
     CONCAT(E.first_name, ' ', E.last_name) AS enforcer_name,
     CONCAT(P.first_name, ' ', P.last_name) AS passenger_name
 FROM

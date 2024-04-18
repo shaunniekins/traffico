@@ -662,7 +662,7 @@ const Application = () => {
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2">
                     {recordVehicles.map((vehicle, index) => (
                       <option key={index} value={vehicle.id}>
-                        {vehicle.chassis_num}
+                        {vehicle.body_num}
                       </option>
                     ))}
                   </select>
@@ -1080,6 +1080,7 @@ const Application = () => {
                   <input
                     type="file"
                     id="currentFileUpload"
+                    accept=".pdf"
                     onChange={(e) =>
                       e.target.files && setCurrentFileUpload(e.target.files[0])
                     }

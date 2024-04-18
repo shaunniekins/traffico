@@ -735,46 +735,39 @@ const OperatorsProfile = () => {
       }
     }
   };
+  const deleteOwner = async () => {
+    if (operatorId) {
+      const updatedRecordVehicles = recordVehicles.filter(
+        (vehicle) => vehicle.operator_id === operatorId
+      );
+      // console.log("record len vehicle111:", updatedRecordVehicles.length);
 
-  useEffect(() => {
-    const deleteOwner = async () => {
-      if (operatorId) {
-        const updatedRecordVehicles = recordVehicles.filter(
-          (vehicle) => vehicle.operator_id === operatorId
-        );
-        // console.log("record len vehicle111:", updatedRecordVehicles.length);
+      if (updatedRecordVehicles.length === 0) {
+        const ownerResponse = await supabase
+          .from("OperatorProfiles")
+          .delete()
+          .eq("id", operatorId);
 
-        if (updatedRecordVehicles.length === 0) {
-          const ownerResponse = await supabase
-            .from("OperatorProfiles")
-            .delete()
-            .eq("id", operatorId);
+        if (ownerResponse.error) {
+          console.error("Error deleting owner:", ownerResponse.error);
+        } else {
+          alert("Vehicle and Owner deleted successfully!");
 
-          if (ownerResponse.error) {
-            console.error("Error deleting owner:", ownerResponse.error);
-          } else {
-            alert("Vehicle and Owner deleted successfully!");
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([`operators/face_photo/face_${operatorId}.jpeg`]);
 
-            await supabaseAdmin.storage
-              .from("assets")
-              .remove([`operators/face_photo/face_${operatorId}.jpeg`]);
+          await supabaseAdmin.storage
+            .from("assets")
+            .remove([`operators/signature_photo/signature_${operatorId}.jpeg`]);
 
-            await supabaseAdmin.storage
-              .from("assets")
-              .remove([
-                `operators/signature_photo/signature_${operatorId}.jpeg`,
-              ]);
-
-            // Update records state as needed
-            return; // might face probs
-          }
+          // Update records state as needed
+          return; // might face probs
         }
-        // alert("Vehicle deleted successfully!");
       }
-    };
-
-    deleteOwner();
-  }, [recordVehicles, operatorId]);
+      // alert("Vehicle deleted successfully!");
+    }
+  };
 
   useEffect(() => {
     if (toggleDeleteVehicle) {
@@ -783,6 +776,7 @@ const OperatorsProfile = () => {
       );
       if (confirmDelete) {
         handleDeleteVehicleOwnershipRecord(operatorId, selectedCurrentVehicle);
+        deleteOwner();
       }
     }
   }, [toggleDeleteVehicle]);

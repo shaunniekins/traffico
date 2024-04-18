@@ -1,6 +1,6 @@
 import { supabase, supabaseAdmin } from "@/utils/supabase";
 
-export const fetchRequirementDocumentDataByID = async (id: string) => {
+export const fetchRequirementDocumentDataByID = async (id: number) => {
   try {
     const { data, error } = await supabase
       .from("ViewRequirementDocsWithYear")
@@ -13,7 +13,7 @@ export const fetchRequirementDocumentDataByID = async (id: string) => {
 
     return { data, error: null };
   } catch (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching data1111:", error);
     return { data: null, error };
   }
 };

@@ -199,8 +199,10 @@ const QrScannerComponent = ({
   const [reportMessage, setReportMessage] = useState("");
   const [toggleReportMessage, setToggleReportMessage] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleReportSubmit = async () => {
+    setIsSubmitting(true);
     setLoading(true);
 
     const reportAuthPassengerData = {
@@ -568,11 +570,13 @@ const QrScannerComponent = ({
                     //     : !violation)
                     // }
                     disabled={
+                      isSubmitting ||
                       !currentComplain ||
                       (!userType &&
                         (!currentComplainantName || !currentContactNumber))
                     }
                     className={`${
+                      isSubmitting ||
                       !currentComplain ||
                       (!userType &&
                         (!currentComplainantName || !currentContactNumber))
