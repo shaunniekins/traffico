@@ -18,7 +18,7 @@ import {
 import { insertPaymentData } from "@/api/paymentsData";
 import { supabase } from "@/utils/supabase";
 import { insertRequirementDocumentData } from "@/api/requirementsData";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { RotatingLines } from "react-loader-spinner";
 import { LoadingScreenSection } from "../LoadingScreen";
@@ -570,6 +570,13 @@ const Application = () => {
   // useEffect(() => {
   //   console.log("body number", newBodyNumber);
   // }, [newBodyNumber]);
+
+  const pathname = usePathname();
+  const userType = pathname.includes("/admin/")
+    ? "admin"
+    : pathname.includes("/personnel/")
+    ? "personnel"
+    : null;
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full w-full">
@@ -1399,7 +1406,12 @@ const Application = () => {
                       className={`border-sky-700 bg-sky-700
              text-white border py-2 px-4 text-sm rounded-lg`}
                       onClick={() => {
-                        router.push("/admin/dashboard/tricycle-qr");
+                        if (userType === "admin") {
+                          router.push("/admin/dashboard/tricycle-qr");
+                        } else {
+                          router.push("/personnel/dashboard/tricycle-qr");
+                        }
+
                         setModalExit(false);
                       }}>
                       OK

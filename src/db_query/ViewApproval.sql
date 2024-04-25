@@ -57,6 +57,5 @@ FROM
     "Applications" AS APP
     JOIN "DriverProfiles" AS DP ON APP.driver_id = DP.id
     JOIN "OperatorProfiles" AS OP ON APP.operator_id = OP.id
-    JOIN "VehicleOwnershipRecords" AS VOR ON OP.id = VOR.operator_id
-WHERE
-    APP.body_num = VOR.body_num
+    LEFT JOIN "VehicleOwnershipRecords" AS VOR ON OP.id = VOR.operator_id
+    AND APP.body_num = VOR.body_num;
