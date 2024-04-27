@@ -1,10 +1,12 @@
 -- body number should not be used in the same year
-CREATE VIEW "ViewUniqueBodyNumYear" AS
+CREATE
+OR REPLACE VIEW "ViewUniqueBodyNumYear" AS
 SELECT
     OP.id,
     OP.last_name,
     OP.first_name,
-    OP.middle_name
+    OP.middle_name,
+    VOR.body_num
 FROM
     "OperatorProfiles" AS OP
     JOIN "VehicleOwnershipRecords" AS VOR ON OP.id = VOR.operator_id

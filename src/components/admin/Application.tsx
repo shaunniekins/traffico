@@ -102,10 +102,23 @@ const Application = () => {
 
   const memoizedFetchVehicleOwnershipReportByIDData = useCallback(async () => {
     try {
-      const response = await fetchVehicleOwnershipReportById(
+      const vehicleResponse = await fetchVehicleOwnershipReportById(
         newSelectedOperator?.value
       );
-      setRecordVehicles(response?.data || []);
+      const operatorResponse = await fetchOperatorUniqueBodyNum();
+
+      if (vehicleResponse?.data && operatorResponse?.data) {
+        const uniqueBodyNums = operatorResponse.data.map(
+          (item) => item.body_num
+        );
+        const filteredVehicles = vehicleResponse.data.filter((vehicle) =>
+          uniqueBodyNums.includes(vehicle.body_num)
+        );
+
+        setRecordVehicles(filteredVehicles);
+      } else {
+        setRecordVehicles([]);
+      }
     } catch (error) {
       console.error("An error occurred:", error);
     }
@@ -567,9 +580,9 @@ const Application = () => {
     }
   }, [recordVehicles]);
 
-  // useEffect(() => {
-  //   console.log("body number", newBodyNumber);
-  // }, [newBodyNumber]);
+  useEffect(() => {
+    console.log("body number", newBodyNumber);
+  }, [newBodyNumber]);
 
   const pathname = usePathname();
   const userType = pathname.includes("/admin/")
