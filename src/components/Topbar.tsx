@@ -28,8 +28,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
 
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  const [selectedOption, setSelectOption] = useState("graphs");
-
   const pathname = usePathname();
 
   const userType = pathname.includes("/admin/")
@@ -37,6 +35,10 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
     : pathname.includes("/personnel/")
     ? "personnel"
     : null;
+
+  const [selectedOption, setSelectOption] = useState(
+    userType === "admin" ? "ViewApproval" : "ViewDashboardAnalytics"
+  );
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
