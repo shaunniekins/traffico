@@ -47,6 +47,7 @@ export const fetchReportViolations = async (
       query = query.eq("passenger_id", userId);
     } else {
       query = query.is("enforcer_id", null);
+      query = query.is("passenger_id", null);
     }
 
     const response = await query

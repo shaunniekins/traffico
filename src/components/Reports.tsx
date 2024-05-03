@@ -71,7 +71,7 @@ const Reports = ({
         {
           event: "INSERT",
           schema: "public",
-          table: "ReportViolations",
+          table: "ViewTricycleDriverViolationsAdmin",
           // filter: userRole !== "enforcer" ? `passenger_id.eq.${userId}` : "",
         },
         (payload) => {
@@ -88,7 +88,7 @@ const Reports = ({
         {
           event: "UPDATE",
           schema: "public",
-          table: "ReportViolations",
+          table: "ViewTricycleDriverViolationsAdmin",
           // filter:
           //   currentView === "personal" && userRole === "enforcer"
           //     ? `enforcer_id.eq.${userId}`
@@ -113,7 +113,7 @@ const Reports = ({
         {
           event: "DELETE",
           schema: "public",
-          table: "ReportViolations",
+          table: "ViewTricycleDriverViolationsAdmin",
           // filter:
           //   currentView === "personal" && userRole === "enforcer"
           //     ? `enforcer_id.eq.${userId}`
