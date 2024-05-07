@@ -13,8 +13,12 @@ export const fetchDriverComplaints = async () => {
   return response.data;
 };
 
-export const fetchRegisteredVehicles = async () => {
-  const query = supabase.from("ViewRegisteredTricycles").select();
+export const fetchRegisteredVehicles = async (selectedBarangay: string) => {
+  let query = supabase.from("ViewRegisteredTricycles").select();
+
+  if (selectedBarangay) {
+    query = query.ilike("driver_address", `%${selectedBarangay}%`);
+  }
 
   const response = await query;
 
@@ -26,8 +30,12 @@ export const fetchRegisteredVehicles = async () => {
   return response.data;
 };
 
-export const fetchRenewedVehiclePermits = async () => {
-  const query = supabase.from("ViewRenewedTricycles").select();
+export const fetchRenewedVehiclePermits = async (selectedBarangay: string) => {
+  let query = supabase.from("ViewRenewedTricycles").select();
+
+  if (selectedBarangay) {
+    query = query.ilike("driver_address", `%${selectedBarangay}%`);
+  }
 
   const response = await query;
 

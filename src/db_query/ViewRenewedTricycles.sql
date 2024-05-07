@@ -4,7 +4,8 @@ SELECT
     VOR.motor_num,
     VOR.lto_plate_num,
     CONCAT(OP.first_name, ' ', OP.last_name) AS operator_name,
-    CONCAT(DP.first_name, ' ', DP.last_name) AS driver_name
+    CONCAT(DP.first_name, ' ', DP.last_name) AS driver_name,
+    DP.address AS driver_address
 FROM
     "Applications" AS APP
     JOIN "DriverProfiles" AS DP ON APP.driver_id = DP.id

@@ -29,19 +29,15 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
 
   const [loading, setLoading] = useState(false);
 
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
-
   const pathname = usePathname();
-
-  const userType = pathname.includes("/admin/")
-    ? "admin"
-    : pathname.includes("/personnel/")
-    ? "personnel"
-    : null;
 
   const [selectedOption, setSelectOption] = useState(
     "PrintReportDriverComplaints"
   );
+  const [selectedBarangay, setSelectedBarangay] = useState<string>("");
+
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const exportDataRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -51,11 +47,18 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
       ) {
         setShowLogout(false);
       }
+
+      if (
+        exportDataRef.current &&
+        !exportDataRef.current.contains(event.target as Node)
+      ) {
+        setToggleExport(false);
+      }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("click", handleClickOutside);
     };
   }, []);
 
@@ -78,6 +81,37 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
     },
   });
 
+  const barangays = [
+    "Alegria",
+    "Poblacion 1",
+    "Poblacion 2",
+    "Poblacion 3",
+    "Poblacion 4",
+    "Poblacion 5",
+    "Bayugan 2",
+    "Bitan-agan",
+    "Borbon",
+    "Buenasuerte",
+    "Caimpugan",
+    "Das-agan",
+    "Ebro",
+    "Hubang",
+    "Karaus",
+    "Ladgadan",
+    "Lapinigan",
+    "Lucac",
+    "Mate",
+    "New Visayas",
+    "Ormaca",
+    "Pasta",
+    "Pisa-an",
+    "Rizal",
+    "San Isidro",
+    "Sanfrancisco",
+    "Santa Ana",
+    "Tagapua",
+  ];
+
   return (
     <>
       {toggleExport && (
@@ -86,7 +120,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
           <div
             className={`rounded-2xl 
                 bg-white text-black mx-3 md:w-96`}
-            ref={dropdownRef}>
+            ref={exportDataRef}>
             <div className="flex justify-between items-center  py-3 px-5">
               <h2 className="text-xl font-semibold">Export Data</h2>
               <div className="flex gap-3">
@@ -104,13 +138,21 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                 </button>
                 <div className="hidden">
                   <PrintReports ref={componentRef1} />
-                  <PrintReportRegisteredVehicles ref={componentRef2} />
-                  <PrintReportRenewedVehicles ref={componentRef3} />
+                  <PrintReportRegisteredVehicles
+                    ref={componentRef2}
+                    selectedBarangay={selectedBarangay}
+                  />
+                  <PrintReportRenewedVehicles
+                    ref={componentRef3}
+                    selectedBarangay={selectedBarangay}
+                  />
                 </div>
               </div>
             </div>
             <hr className="border border-sky-700 w-full" />
-            <div className="flex flex-col sm:flex-row items-center p-5 gap-2 sm:gap-6 pb-6">
+            <div
+              className="grid grid-cols-2 items-center p-5 gap-2 sm:gap-3 pb-6"
+              style={{ gridTemplateColumns: "auto 1fr" }}>
               <>
                 <label htmlFor="selectedOption" className="whitespace-nowrap">
                   Export
@@ -128,6 +170,28 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                   <option value="option3">Renewed Tricycles</option>
                 </select>
               </>
+              {(selectedOption === "option2" ||
+                selectedOption === "option3") && (
+                <>
+                  <label
+                    htmlFor="selectedBarangay"
+                    className="whitespace-nowrap">
+                    Barangay
+                  </label>
+                  <select
+                    name="selectedBarangay"
+                    id="selectedBarangay"
+                    value={selectedBarangay}
+                    onChange={(e) => setSelectedBarangay(e.target.value)}
+                    className="border border-sky-700 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 rounded-lg p-2 w-full">
+                    {barangays.map((barangay) => (
+                      <option key={barangay} value={barangay}>
+                        {barangay}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -152,8 +216,10 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
               <button
                 className="flex items-center text-lg space-x-2 text-sky-300 hover:text-purple-300 my-3"
                 onClick={() => {
-                  setToggleExport(true);
                   setShowLogout(false);
+                  setTimeout(() => {
+                    setToggleExport(true);
+                  }, 0);
                 }}>
                 <div className="bg-sky-700 text-white rounded-full p-2">
                   <CiExport />
@@ -178,10 +244,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
             </div>
           )}
         </div>
-        {/* <button className="text-2xl">
-          <IoSettingsOutline />
-        </button> */}
-        {/* </div> */}
       </div>
     </>
   );
