@@ -78,4 +78,6 @@ const PrintReports = React.forwardRef<HTMLDivElement, {}>((props, ref) => {
   );
 });
 
+PrintReports.displayName = "PrintReports";
+
 export default PrintReports;
