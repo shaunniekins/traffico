@@ -8,12 +8,13 @@ import { CiExport } from "react-icons/ci";
 import { CgProfile } from "react-icons/cg";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import path from "path";
 import { UserContext } from "@/utils/UserContext";
 import { supabase } from "@/utils/supabase";
 import { LoadingScreenSection } from "./LoadingScreen";
-import PrintReports from "./PrintReports";
+import PrintReports from "./PrintReportDriverComplaints";
 import { useReactToPrint } from "react-to-print";
+import PrintReportRenewedVehicles from "./PrintReportRenewedVehicles";
+import PrintReportRegisteredVehicles from "./PrintReportRegisteredVehicles";
 
 interface TopbarProps {
   isMenuOpen: boolean;
@@ -39,7 +40,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
     : null;
 
   const [selectedOption, setSelectOption] = useState(
-    userType === "admin" ? "ViewApproval" : "ViewDashboardAnalytics"
+    "PrintReportDriverComplaints"
   );
 
   useEffect(() => {
@@ -58,54 +59,23 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
     };
   }, []);
 
-  // const handleExport = async () => {
-  //   //   if (!selectedOption) return;
-  //   //   const { data, error } = await supabase.from(selectedOption).select();
-  //   //   if (error) {
-  //   //     console.error(error);
-  //   //   } else {
-  //   //     // Capitalize first letter and replace underscores with spaces
-  //   //     const modifiedData = data.map((item) => {
-  //   //       const newItem: { [key: string]: any } = {};
-  //   //       for (const key in item) {
-  //   //         const newKey = key
-  //   //           .replace(/_/g, " ")
-  //   //           .replace(/^\w/, (c) => c.toUpperCase());
-  //   //         newItem[newKey] = item[key];
-  //   //       }
-  //   //       return newItem;
-  //   //     });
-  //   //     // Convert JSON to CSV
-  //   //     const csv = jsonToCsv(modifiedData, selectedOption);
-  //   //     // Download CSV
-  //   //     const blob = new Blob([csv], { type: "text/csv" });
-  //   //     const link = document.createElement("a");
-  //   //     link.href = URL.createObjectURL(blob);
-  //   //     link.download = `${selectedOption}.csv`;
-  //   //     link.click();
-  //   //   }
-  //   //   setToggleExport(false);
-  //   // };
-  //   // function jsonToCsv(json: any, selectedOption: string) {
-  //   //   const items = json;
-  //   //   const replacer = (key: any, value: any) => (value === null ? "" : value);
-  //   //   const header = Object.keys(items[0]);
-  //   //   let csv = items.map((row: { [key: string]: any }) =>
-  //   //     header
-  //   //       .map((fieldName) => JSON.stringify(row[fieldName], replacer))
-  //   //       .join(",")
-  //   //   );
-  //   //   csv.unshift(header.join(","));
-  //   //   csv.unshift(selectedOption);
-  //   //   csv = csv.join("\r\n");
-  //   //   return csv;
-  //   // ReactPDF.render(<MyPDF />, `${__dirname}/example.pdf`);
-  // };
-
-  const componentRef = useRef<HTMLDivElement>(null);
+  const componentRef1 = useRef<HTMLDivElement>(null);
+  const componentRef2 = useRef<HTMLDivElement>(null);
+  const componentRef3 = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+    content: () => {
+      switch (selectedOption) {
+        case "option1":
+          return componentRef1.current;
+        case "option2":
+          return componentRef2.current;
+        case "option3":
+          return componentRef3.current;
+        default:
+          return null;
+      }
+    },
   });
 
   return (
@@ -127,17 +97,15 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                   className="bg-red-600 flex text-lg rounded-xl px-3 py-1 text-white">
                   Cancel
                 </button>
-
-                {/* <PDFDownloadLink
-                  document={<PrintReports />}
-                  fileName={`${selectedOption}.pdf`}> */}
                 <button
                   onClick={handlePrint}
                   className={`bg-sky-700 flex text-lg rounded-xl px-3 py-1 text-white `}>
                   Export
                 </button>
                 <div className="hidden">
-                  <PrintReports ref={componentRef} />
+                  <PrintReports ref={componentRef1} />
+                  <PrintReportRegisteredVehicles ref={componentRef2} />
+                  <PrintReportRenewedVehicles ref={componentRef3} />
                 </div>
               </div>
             </div>
@@ -153,23 +121,11 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                   value={selectedOption}
                   onChange={(e) => setSelectOption(e.target.value)}
                   className="border border-sky-700 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 rounded-lg p-2 w-full">
-                  {userType === "admin" && (
-                    <>
-                      <option value="ViewApproval">Applications</option>
-                      <option value="UserLists">Users</option>
-                    </>
-                  )}
-                  <option value="ViewDashboardAnalytics">
-                    Dashboard Analytics (CSV)
+                  <option value="option1">Driver Complaints</option>
+                  <option value="option2">
+                    Registered Motor Tricycle Vehicles
                   </option>
-                  <option value="OperatorProfiles">
-                    Operator Profiles (CSV)
-                  </option>
-                  <option value="DriverProfiles">Driver Profiles (CSV)</option>
-                  <option value="Payments">Payments (CSV)</option>
-                  <option value="ViewTricycleDriverViolationsAdmin">
-                    Violators (CSV)
-                  </option>
+                  <option value="option3">Renewed Tricycles</option>
                 </select>
               </>
             </div>
