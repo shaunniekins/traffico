@@ -133,6 +133,10 @@ const QrScannerComponent = ({
   const [currentRoute, setCurrentRoute] = useState("");
   const [currentRouteObj, setCurrentRouteObj] = useState<any>({});
   const [currentComplaintType, setCurrentComplaintType] = useState("");
+
+  // others option
+  const [currentComplaintOthers, setCurrentComplaintOthers] = useState("");
+
   const [currentComplainantName, setCurrentComplainantName] = useState("");
   const [currentContactNumber, setCurrentContactNumber] = useState("");
   type OptionType = {
@@ -194,6 +198,7 @@ const QrScannerComponent = ({
     { value: 2, label: "Over-Loading" },
     { value: 3, label: "Over-Speeding" },
     { value: 4, label: "Over-Pricing" },
+    { value: 5, label: "Others" },
   ];
 
   const [reportMessage, setReportMessage] = useState("");
@@ -207,7 +212,10 @@ const QrScannerComponent = ({
 
     const reportAuthPassengerData = {
       body_num: currentBodyNum,
-      complain: currentComplain?.label,
+      complain:
+        currentComplain?.value === 5
+          ? currentComplaintOthers
+          : currentComplain?.label,
       date: currentDate,
       time: currentTime,
       passenger_id: userId,
@@ -216,7 +224,10 @@ const QrScannerComponent = ({
 
     const reportPassengerData = {
       body_num: currentBodyNum,
-      complain: currentComplain?.label,
+      complain:
+        currentComplain?.value === 5
+          ? currentComplaintOthers
+          : currentComplain?.label,
       date: currentDate,
       time: currentTime,
       // passenger_id:
@@ -227,7 +238,10 @@ const QrScannerComponent = ({
 
     const reportEnforcerData = {
       body_num: currentBodyNum,
-      complain: currentComplain?.label,
+      complain:
+        currentComplain?.value === 5
+          ? currentComplaintOthers
+          : currentComplain?.label,
       date: currentDate,
       time: currentTime,
       // violation: violation,
@@ -461,6 +475,22 @@ const QrScannerComponent = ({
                         options={reportTypeOptions}
                       />
                     </div>
+                    {currentComplain?.value === 5 && (
+                      <div>
+                        <label htmlFor="currentComplaintOthers">Others</label>
+                        <input
+                          type="text"
+                          name="currentComplaintOthers"
+                          id="currentComplaintOthers"
+                          value={currentComplaintOthers}
+                          placeholder="Enter complaint"
+                          onChange={(e) =>
+                            setCurrentComplaintOthers(e.target.value)
+                          }
+                          className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                        />
+                      </div>
+                    )}
 
                     {!userType && (
                       <>
@@ -573,13 +603,15 @@ const QrScannerComponent = ({
                       isSubmitting ||
                       !currentComplain ||
                       (!userType &&
-                        (!currentComplainantName || !currentContactNumber))
+                        (!currentComplainantName || !currentContactNumber)) ||
+                      (currentComplain?.value === 5 && !currentComplaintOthers)
                     }
                     className={`${
                       isSubmitting ||
                       !currentComplain ||
                       (!userType &&
-                        (!currentComplainantName || !currentContactNumber))
+                        (!currentComplainantName || !currentContactNumber)) ||
+                      (currentComplain?.value === 5 && !currentComplaintOthers)
                         ? "bg-gray-700 text-gray-300"
                         : "bg-sky-700 text-white"
                     } w-full p-2 rounded-md`}>

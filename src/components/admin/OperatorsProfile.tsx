@@ -132,24 +132,24 @@ const OperatorsProfile = () => {
     null
   );
 
-  useEffect(() => {
-    const generateBodyNumber = async () => {
-      let exists = true;
-      let random4Digits = "";
+  // useEffect(() => {
+  //   const generateBodyNumber = async () => {
+  //     let exists = true;
+  //     let random4Digits = "";
 
-      while (exists) {
-        const random3Digits = Math.floor(Math.random() * 900) + 100;
-        random4Digits = "0" + random3Digits;
+  //     while (exists) {
+  //       const random3Digits = Math.floor(Math.random() * 900) + 100;
+  //       random4Digits = "0" + random3Digits;
 
-        const response = await checkVehicleBodyNumber(random4Digits);
-        exists = Boolean(response && response.data && response.data.length > 0);
-      }
+  //       const response = await checkVehicleBodyNumber(random4Digits);
+  //       exists = Boolean(response && response.data && response.data.length > 0);
+  //     }
 
-      setNewBodyNumber(random4Digits);
-    };
+  //     setNewBodyNumber(random4Digits);
+  //   };
 
-    generateBodyNumber();
-  }, []);
+  //   generateBodyNumber();
+  // }, []);
 
   // displaying data
   const [operatorId, setOperatorId] = useState("");
@@ -1307,7 +1307,9 @@ const OperatorsProfile = () => {
                     name="newBodyNumber"
                     id="newBodyNumber"
                     value={newBodyNumber}
-                    disabled
+                    placeholder="Body Number"
+                    onChange={(e) => setNewBodyNumber(e.target.value)}
+                    // disabled
                     className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                   />
                   <label htmlFor="newDateRegisteredVehicle">
@@ -2093,6 +2095,7 @@ const OperatorsProfile = () => {
                         !newSignatureImage))
                   : currentPageRegister === 2
                   ? (newOperator && !newDateRegisteredVehicle) ||
+                    newBodyNumber.length < 4 ||
                     // !newOperatorId ||
                     !newChassisNumber ||
                     !newLTOPlateNumber ||
@@ -2128,6 +2131,7 @@ const OperatorsProfile = () => {
                     : "bg-sky-700"
                   : currentPageRegister === 2
                   ? (newOperator && !newDateRegisteredVehicle) ||
+                    newBodyNumber.length < 4 ||
                     // !newOperatorId ||
                     !newChassisNumber ||
                     !newLTOPlateNumber ||

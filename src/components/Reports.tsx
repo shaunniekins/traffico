@@ -23,6 +23,13 @@ const Reports = ({
   const { userName, userId, userRole } = useContext(UserContext);
   const [loading, setLoading] = useState(false);
 
+  const pathname = usePathname();
+  const userType = pathname.includes("/passenger/")
+    ? "passenger"
+    : pathname.includes("/enforcer/")
+    ? "enforcer"
+    : null;
+
   useEffect(() => {
     if (userRole === "passenger") {
       setCurrentView("passenger");
@@ -43,12 +50,22 @@ const Reports = ({
 
   const memoizedFetchReportViolations = useCallback(async () => {
     if (userRole && currentView && userId) {
+      let reCurrentView;
+      {
+        userType === "passenger"
+          ? (reCurrentView = "passenger")
+          : (reCurrentView = currentView);
+      }
+
       try {
         const response = await fetchReportViolations(
-          currentView,
+          reCurrentView,
           userId,
           userRole
         );
+
+        // console.log("currentView:", currentView);
+        // console.log("userRole:", userRole);
         if (response?.error) {
           console.error(response.error);
         } else {
@@ -151,13 +168,6 @@ const Reports = ({
     // "Address Operator",
   ];
 
-  const pathname = usePathname();
-  const userType = pathname.includes("/passenger/")
-    ? "passenger"
-    : pathname.includes("/enforcer/")
-    ? "enforcer"
-    : null;
-
   return (
     <div className="flex flex-col items-center select-none overflow-y-hidden h-full p-3 gap-5 overflow-hidden">
       {loading && <LoadingScreenSection />}
@@ -225,6 +235,7 @@ const Reports = ({
                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                       {record.driver_name}
                     </td>
+
                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                       {record.complain}
                     </td>

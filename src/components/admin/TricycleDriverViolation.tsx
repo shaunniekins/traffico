@@ -1,9 +1,17 @@
 "use client";
-import { fetchReportViolationsData } from "@/api/reportViolationsData";
+import {
+  fetchReportViolationsData,
+  updateReportViolations,
+} from "@/api/reportViolationsData";
 import { supabase } from "@/utils/supabase";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { IoChevronBack } from "react-icons/io5";
-import { MdOutlineSearch } from "react-icons/md";
+import {
+  MdOutlineEdit,
+  MdOutlinePublishedWithChanges,
+  MdOutlineSearch,
+} from "react-icons/md";
 
 const TricycleDriverViolation = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -13,6 +21,8 @@ const TricycleDriverViolation = () => {
 
   const [records, setRecords] = useState<any[]>([]);
   const [toggleMoreDetails, setToggleMoreDetails] = useState(false);
+
+  const [clickGoBackUpdate, setClickGoBackUpdate] = useState(false);
 
   const headerNames = [
     "ID",
@@ -37,13 +47,17 @@ const TricycleDriverViolation = () => {
         console.error(response.error);
       } else {
         setRecords(response?.data || []);
-        // console.log("response:", response?.data);
         setNumOfEntries(response?.count || 1);
       }
     } catch (error) {
       console.error("An error occurred:", error);
     }
-  }, [searchValue, entriesPerPage, currentPageDetailsSection]);
+  }, [
+    searchValue,
+    entriesPerPage,
+    currentPageDetailsSection,
+    clickGoBackUpdate,
+  ]);
 
   useEffect(() => {
     memoizedFetchReportViolationsData();
@@ -71,10 +85,11 @@ const TricycleDriverViolation = () => {
         {
           event: "UPDATE",
           schema: "public",
-          table: "ViewTricycleDriverViolationsAdmin",
+          table: "ReportViolations",
         },
         (payload) => {
           if (payload.new) {
+            console.log("payload.new", payload.new);
             setRecords((prevRecord: any) =>
               prevRecord.map((record: any) =>
                 record.id === payload.new.id ? payload.new : record
@@ -103,7 +118,12 @@ const TricycleDriverViolation = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [searchValue, entriesPerPage, currentPageDetailsSection]);
+  }, [
+    searchValue,
+    entriesPerPage,
+    currentPageDetailsSection,
+    clickGoBackUpdate,
+  ]);
 
   const [currentComplaint, setCurrentComplaint] = useState<any | null>(null);
 
@@ -113,6 +133,9 @@ const TricycleDriverViolation = () => {
     if (record) {
       setCurrentComplaint(record);
       // console.log("record", record);
+      setActionTakenUpdate(record?.action_taken);
+      setViolationUpdate(record?.violation);
+      setNoteUpdate(record?.noteOption);
 
       setToggleMoreDetails(true);
     }
@@ -138,6 +161,61 @@ const TricycleDriverViolation = () => {
       hour12: true,
     });
   }
+
+  const pathname = usePathname();
+
+  const userType = pathname.includes("/admin/")
+    ? "admin"
+    : pathname.includes("/personnel/")
+    ? "personnel"
+    : null;
+
+  const [toggleUpdateReportStatus, setToggleUpdateReportStatus] =
+    useState(false);
+  const [actionTakenUpdate, setActionTakenUpdate] = useState("");
+  const [violationUpdate, setViolationUpdate] = useState("");
+  const [noteUpdate, setNoteUpdate] = useState("");
+
+  const handleUpdateStatusReport = async (currentReportId: string) => {
+    // console.log("currentReportId: ", currentReportId);
+    // setLoading(true);
+
+    if (actionTakenUpdate === "penalty-imposed" && violationUpdate) {
+      // console.log("penalty-imposed: ", violationUpdate);
+
+      const updateData = {
+        action_taken: actionTakenUpdate,
+        violation: violationUpdate,
+      };
+
+      try {
+        await updateReportViolations(currentReportId, updateData);
+        // setLoading(false);
+      } catch (error) {
+        console.error("Error updating data:", error);
+        // setLoading(false);
+      }
+    } else {
+      // console.log("resolved: ", actionTakenUpdate);
+
+      const updateData = {
+        action_taken: actionTakenUpdate,
+        noteOption: noteUpdate,
+      };
+
+      try {
+        await updateReportViolations(currentReportId, updateData);
+        // setLoading(false);
+      } catch (error) {
+        console.error("Error updating data:", error);
+        // setLoading(false);
+      }
+    }
+
+    setToggleUpdateReportStatus(false);
+  };
+
+  // console.log("currentComplaint", currentComplaint);
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
@@ -166,28 +244,120 @@ const TricycleDriverViolation = () => {
         )}
       </div>
       <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-[70dvh] border border-sky-700">
-        <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
-          {!toggleMoreDetails ? "Details" : "More Details"}
-        </h1>
+        <div className="w-full flex justify-between items-center border-b border-sky-700">
+          <h1 className="px-3 py-2 sm:px-4">
+            {!toggleMoreDetails ? "Details" : "More Details"}
+          </h1>
+          <div className="px-3 flex items-center gap-3">
+            {userType === "personnel" &&
+              currentComplaint?.action_taken === "pending" && (
+                <div className="flex gap-2">
+                  {toggleUpdateReportStatus && (
+                    <button
+                      className="bg-purple-700 text-white
+                    border py-1 px-2 text-sm rounded-lg flex items-center gap-2"
+                      // disabled={
+                      //   !(
+                      //     (actionTakenUpdate === "penalty-imposed" &&
+                      //       violationUpdate) ||
+                      //     actionTakenUpdate === "resolved"
+                      //   )
+                      // }
+                      onClick={() => {
+                        handleUpdateStatusReport(currentComplaint.id);
+                      }}>
+                      <MdOutlinePublishedWithChanges />
+                      <span>Apply</span>
+                    </button>
+                  )}
+                  <button
+                    className={`${
+                      toggleUpdateReportStatus
+                        ? "bg-sky-700 text-white"
+                        : "border-sky-700 text-sky-700"
+                    } border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                    onClick={() => {
+                      setToggleUpdateReportStatus(!toggleUpdateReportStatus);
+
+                      if (toggleUpdateReportStatus) {
+                        setActionTakenUpdate(currentComplaint.action_taken);
+                        setViolationUpdate(currentComplaint.violation);
+                        setNoteUpdate(currentComplaint.noteOption);
+                      }
+                    }}>
+                    <MdOutlineEdit />
+                    <span>
+                      {toggleUpdateReportStatus ? "Cancel" : "Update status"}
+                    </span>
+                  </button>
+                </div>
+              )}
+          </div>
+        </div>
+
         {toggleMoreDetails ? (
           <div
             className="grid grid-cols-2 items-center pt-7 px-20 pb-20 gap-5 overflow-y-auto w-full h-full"
             style={{ gridTemplateColumns: "auto 1fr" }}>
-            <label htmlFor="actionTaken">Action Taken</label>
-            <input
-              type="text"
-              name="actionTaken"
-              id="actionTaken"
-              value={currentComplaint?.action_taken}
-              disabled
-              className={`${
-                currentComplaint?.action_taken === "pending"
-                  ? "bg-yellow-200 text-yellow-700"
-                  : currentComplaint?.action_taken === "resolved"
-                  ? "bg-green-200 text-green-700"
-                  : "bg-red-200 text-red-700"
-              } capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full`}
-            />
+            {userType === "personnel" &&
+            currentComplaint?.action_taken === "pending" ? (
+              <>
+                {/* <div> */}
+                <label htmlFor="actionTakenUpdate">Action Taken</label>
+                <select
+                  name="actionTakenUpdate"
+                  id="actionTakenUpdate"
+                  value={actionTakenUpdate}
+                  disabled={!toggleUpdateReportStatus}
+                  onChange={(e) => setActionTakenUpdate(e.target.value)}
+                  className={`border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full" ${
+                    actionTakenUpdate === "pending"
+                      ? "bg-yellow-200 text-yellow-700"
+                      : actionTakenUpdate === "archive"
+                      ? "bg-green-200 text-green-700"
+                      : actionTakenUpdate === "called-succesfully"
+                      ? "bg-purple-200 text-purple-700"
+                      : "bg-blue-200 text-blue-700"
+                  }`}>
+                  <option value="archive">Archive (cannot be contacted)</option>
+                  <option value="called-successfully">
+                    Successfully Called
+                  </option>
+                  <option value="pending">Pending</option>
+                </select>
+                {/* </div> */}
+                {/* <div> */}
+                <label className="py-10" htmlFor="note">
+                  Note
+                </label>
+                <textarea
+                  placeholder="Note"
+                  disabled={!toggleUpdateReportStatus}
+                  value={noteUpdate || ""}
+                  onChange={(e) => setNoteUpdate(e.target.value)}
+                  className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full resize-none"
+                />
+                {/* </div> */}
+              </>
+            ) : (
+              <>
+                <label htmlFor="actionTaken">Action Taken</label>
+                <input
+                  type="text"
+                  name="actionTaken"
+                  id="actionTaken"
+                  value={currentComplaint?.action_taken}
+                  disabled={!toggleUpdateReportStatus}
+                  className={`${
+                    currentComplaint?.action_taken === "pending"
+                      ? "bg-yellow-200 text-yellow-700"
+                      : currentComplaint?.action_taken === "resolved"
+                      ? "bg-green-200 text-green-700"
+                      : "bg-red-200 text-red-700"
+                  } capitalize border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full`}
+                />
+              </>
+            )}
             {currentComplaint?.action_taken === "penalty-imposed" && (
               <>
                 <label htmlFor="violation">Violation</label>
@@ -396,13 +566,14 @@ const TricycleDriverViolation = () => {
                       className={`${
                         record.action_taken === "resolved"
                           ? "border-green-700 text-green-700"
-                          : "border-red-700 text-red-700"
+                          : record.action_taken === "penalty-imposed"
+                          ? "border-red-700 text-red-700"
+                          : record.action_taken === "pending"
+                          ? "border-yellow-700 text-yellow-700"
+                          : "border-purple-700 text-purple-700"
                       } border py-2 px-5 text-sm rounded-lg cursor-default`}>
-                      {record.action_taken === "resolved"
-                        ? "Resolved"
-                        : record.action_taken === "penalty-imposed"
-                        ? "Penalty Imposed"
-                        : ""}
+                      {record.action_taken.charAt(0).toUpperCase() +
+                        record.action_taken.slice(1)}
                     </button>
                   </td>
                   <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
@@ -428,6 +599,7 @@ const TricycleDriverViolation = () => {
                    border py-2 px-4 text-sm rounded-lg flex items-center gap-2`}
                 onClick={() => {
                   setToggleMoreDetails(false);
+                  setClickGoBackUpdate(!clickGoBackUpdate);
                 }}>
                 <IoChevronBack />
                 <span>Go back</span>

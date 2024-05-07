@@ -11,13 +11,13 @@ export const fetchReportViolationsData = async (
     let query = supabase
       .from("ViewTricycleDriverViolationsAdmin")
       .select(`*`, { count: "exact" })
-      .neq("action_taken", "pending")
+      // .neq("action_taken", "pending")
       .order("date", { ascending: false })
       .order("time", { ascending: false });
 
     if (searchValue) {
       query = query.or(
-        `driver_name.ilike.%${searchValue}%,driver_license_num.ilike.%${searchValue}%,body_num.ilike.%${searchValue}%,complain.ilike.%${searchValue}%`
+        `driver_name.ilike.%${searchValue}%,driver_license_num.ilike.%${searchValue}%,body_num.ilike.%${searchValue}%,complain.ilike.%${searchValue}%,action_taken.ilike.%${searchValue}%`
       );
     }
 
@@ -43,16 +43,43 @@ export const fetchReportViolations = async (
 
     if (currentView === "personal" && role === "enforcer") {
       query = query.eq("enforcer_id", userId);
+    } else if (currentView === "passenger" && role === "enforcer") {
+      query = query.is("enforcer_id", null);
+      // query = query.not("passenger_id", "is", null);
+      query = query.or("passenger_id.not.is.null,passenger_id.is.null");
+
+      // .or(`centre_id.eq.${state?.trim()},centre_id.is.null`)
     } else if (currentView === "passenger" && role === "passenger") {
       query = query.eq("passenger_id", userId);
-    } else {
-      query = query.is("enforcer_id", null);
-      query = query.is("passenger_id", null);
     }
+    // else {
+    //   query = query.is("enforcer_id", null);
+    //   query = query.is("passenger_id", null);
+    // }
 
     const response = await query
       .order("date", { ascending: false })
       .order("time", { ascending: false });
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
+// count how many violations a driver has
+// instead of using the id of the driver, the body number is used (driverId => bodyNum)
+export const fetchViolatorDetails = async (bodyNum: string) => {
+  try {
+    const response = await supabase
+      .from("ViewTricycleDriverViolationsAdmin")
+      .select("body_num", { count: "exact" })
+      .eq("body_num", bodyNum)
+      .eq("action_taken", "pending");
 
     if (response.error) {
       throw response.error;

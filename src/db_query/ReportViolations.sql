@@ -11,6 +11,7 @@ create table public."ReportViolations" (
     complainant_contact_num text null,
     route text null,
     enforcer_id uuid null,
+    note text null,
     constraint reportviolations_pkey primary key (id),
     constraint public_ReportViolations_enforcer_id_fkey foreign key (enforcer_id) references "UserLists" (id) on update cascade on delete cascade,
     constraint public_ReportViolations_passenger_id_fkey foreign key (passenger_id) references "UserLists" (id) on update cascade on delete cascade,

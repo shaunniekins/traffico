@@ -11,11 +11,12 @@ export const fetchUserListsData = async (
     let query = supabase
       .from("UserLists")
       .select(`*`, { count: "exact" })
-      .order("date_registered", { ascending: false });
+      .order("role")
+      .order("last_name");
 
     if (searchValue) {
       query = query.or(
-        `last_name.ilike.%${searchValue}%,first_name.ilike.%${searchValue}%,address.ilike.%${searchValue}%`
+        `last_name.ilike.%${searchValue}%,first_name.ilike.%${searchValue}%,address.ilike.%${searchValue}%,role.ilike.%${searchValue}%`
       );
     }
 

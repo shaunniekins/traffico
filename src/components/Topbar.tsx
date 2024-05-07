@@ -12,6 +12,8 @@ import path from "path";
 import { UserContext } from "@/utils/UserContext";
 import { supabase } from "@/utils/supabase";
 import { LoadingScreenSection } from "./LoadingScreen";
+import PrintReports from "./PrintReports";
+import { useReactToPrint } from "react-to-print";
 
 interface TopbarProps {
   isMenuOpen: boolean;
@@ -56,52 +58,55 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
     };
   }, []);
 
-  const handleExport = async () => {
-    if (!selectedOption) return;
+  // const handleExport = async () => {
+  //   //   if (!selectedOption) return;
+  //   //   const { data, error } = await supabase.from(selectedOption).select();
+  //   //   if (error) {
+  //   //     console.error(error);
+  //   //   } else {
+  //   //     // Capitalize first letter and replace underscores with spaces
+  //   //     const modifiedData = data.map((item) => {
+  //   //       const newItem: { [key: string]: any } = {};
+  //   //       for (const key in item) {
+  //   //         const newKey = key
+  //   //           .replace(/_/g, " ")
+  //   //           .replace(/^\w/, (c) => c.toUpperCase());
+  //   //         newItem[newKey] = item[key];
+  //   //       }
+  //   //       return newItem;
+  //   //     });
+  //   //     // Convert JSON to CSV
+  //   //     const csv = jsonToCsv(modifiedData, selectedOption);
+  //   //     // Download CSV
+  //   //     const blob = new Blob([csv], { type: "text/csv" });
+  //   //     const link = document.createElement("a");
+  //   //     link.href = URL.createObjectURL(blob);
+  //   //     link.download = `${selectedOption}.csv`;
+  //   //     link.click();
+  //   //   }
+  //   //   setToggleExport(false);
+  //   // };
+  //   // function jsonToCsv(json: any, selectedOption: string) {
+  //   //   const items = json;
+  //   //   const replacer = (key: any, value: any) => (value === null ? "" : value);
+  //   //   const header = Object.keys(items[0]);
+  //   //   let csv = items.map((row: { [key: string]: any }) =>
+  //   //     header
+  //   //       .map((fieldName) => JSON.stringify(row[fieldName], replacer))
+  //   //       .join(",")
+  //   //   );
+  //   //   csv.unshift(header.join(","));
+  //   //   csv.unshift(selectedOption);
+  //   //   csv = csv.join("\r\n");
+  //   //   return csv;
+  //   // ReactPDF.render(<MyPDF />, `${__dirname}/example.pdf`);
+  // };
 
-    const { data, error } = await supabase.from(selectedOption).select();
-    if (error) {
-      console.error(error);
-    } else {
-      // Capitalize first letter and replace underscores with spaces
-      const modifiedData = data.map((item) => {
-        const newItem: { [key: string]: any } = {};
-        for (const key in item) {
-          const newKey = key
-            .replace(/_/g, " ")
-            .replace(/^\w/, (c) => c.toUpperCase());
-          newItem[newKey] = item[key];
-        }
-        return newItem;
-      });
+  const componentRef = useRef<HTMLDivElement>(null);
 
-      // Convert JSON to CSV
-      const csv = jsonToCsv(modifiedData);
-
-      // Download CSV
-      const blob = new Blob([csv], { type: "text/csv" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `${selectedOption}.csv`;
-      link.click();
-    }
-
-    setToggleExport(false);
-  };
-
-  function jsonToCsv(json: any) {
-    const items = json;
-    const replacer = (key: any, value: any) => (value === null ? "" : value);
-    const header = Object.keys(items[0]);
-    let csv = items.map((row: { [key: string]: any }) =>
-      header
-        .map((fieldName) => JSON.stringify(row[fieldName], replacer))
-        .join(",")
-    );
-    csv.unshift(header.join(","));
-    csv = csv.join("\r\n");
-    return csv;
-  }
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
 
   return (
     <>
@@ -122,13 +127,18 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                   className="bg-red-600 flex text-lg rounded-xl px-3 py-1 text-white">
                   Cancel
                 </button>
+
+                {/* <PDFDownloadLink
+                  document={<PrintReports />}
+                  fileName={`${selectedOption}.pdf`}> */}
                 <button
-                  onClick={() => {
-                    handleExport();
-                  }}
+                  onClick={handlePrint}
                   className={`bg-sky-700 flex text-lg rounded-xl px-3 py-1 text-white `}>
                   Export
                 </button>
+                <div className="hidden">
+                  <PrintReports ref={componentRef} />
+                </div>
               </div>
             </div>
             <hr className="border border-sky-700 w-full" />
@@ -150,13 +160,15 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                     </>
                   )}
                   <option value="ViewDashboardAnalytics">
-                    Dashboard Analytics
+                    Dashboard Analytics (CSV)
                   </option>
-                  <option value="OperatorProfiles">Operator Profiles</option>
-                  <option value="DriverProfiles">Driver Profiles</option>
-                  <option value="Payments">Payments</option>
+                  <option value="OperatorProfiles">
+                    Operator Profiles (CSV)
+                  </option>
+                  <option value="DriverProfiles">Driver Profiles (CSV)</option>
+                  <option value="Payments">Payments (CSV)</option>
                   <option value="ViewTricycleDriverViolationsAdmin">
-                    Violators
+                    Violators (CSV)
                   </option>
                 </select>
               </>

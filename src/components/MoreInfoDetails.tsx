@@ -1,8 +1,9 @@
 import {
   deleteReportViolations,
+  fetchViolatorDetails,
   updateReportViolations,
 } from "@/api/reportViolationsData";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import {
   MdOutlineDelete,
@@ -10,6 +11,7 @@ import {
   MdOutlinePublishedWithChanges,
 } from "react-icons/md";
 import { LoadingScreenSection } from "./LoadingScreen";
+import { supabase } from "@/utils/supabase";
 
 interface DriverProfile {
   first_name: string;
@@ -74,6 +76,32 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
   setToggleMoreDetails,
 }) => {
   // console.log("record here: ", record);
+
+  const [violatorDetails, setViolatorDetails] = useState<number>(0);
+
+  const memoizedFetchViolatorReports = useCallback(async () => {
+    if (record?.body_num) {
+      try {
+        const response = await fetchViolatorDetails(record?.body_num);
+        if (response?.error) {
+          console.error(response.error);
+        } else if (response?.data) {
+          setViolatorDetails(response.data.length);
+          // console.log("response:", response.data.length);
+        } else {
+          console.error("Unexpected response:", response);
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    } else {
+      console.warn("record.body_num is not defined");
+    }
+  }, [record?.body_num]);
+
+  useEffect(() => {
+    memoizedFetchViolatorReports();
+  }, [record?.body_num, memoizedFetchViolatorReports]);
 
   const handleExit = () => {
     // if (window.confirm("Are you sure you want to exit?")) {
@@ -230,8 +258,9 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                       onChange={(e) => setActionTakenUpdate(e.target.value)}
                       className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full">
                       <option value="">Select...</option>
-                      <option value="resolved">Resolved</option>
                       <option value="penalty-imposed">Penalty Imposed</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="pending">Pending</option>
                     </select>
                   </div>
                   {actionTakenUpdate === "penalty-imposed" && (
@@ -304,6 +333,16 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                 )}
               </div>
             )}
+            <button className="self-end py-1 px-2 bg-purple-700 text-white rounded-lg text-sm">
+              {violatorDetails == 0 ? (
+                "No Pending Violations"
+              ) : (
+                <div>
+                  <span className="font-semibold">{violatorDetails}</span>{" "}
+                  <span>Pending Violations</span>
+                </div>
+              )}
+            </button>
             <div>
               <label htmlFor="currentBodyNum">Body Number</label>
               <input
