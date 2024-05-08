@@ -62,7 +62,9 @@ export const fetchOperatorUniqueBodyNum = async (franchiseStatus: string) => {
     if (franchiseStatus === "renewal") {
       const currentYear = new Date().getFullYear();
       const dateStr = `${currentYear}-01-01T00:00:00Z`;
-      query = query.filter("application_date", "lt", dateStr);
+      query = query
+        .filter("application_date", "lt", dateStr)
+        .eq("status", "approved");
     } else if (franchiseStatus === "new") {
       query = query.is("application_date", null);
     }
