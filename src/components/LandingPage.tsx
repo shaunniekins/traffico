@@ -50,7 +50,7 @@ const LandingPage = () => {
   const [distance, setDistance] = useState<number | null>(null);
 
   return (
-    <div className="w-screen h-[100svh] flex flex-col items-center justify-center font-Montserrat bg-[#03396C] gap-y-10 px-5">
+    <div className="w-screen h-[100svh] flex flex-col items-center justify-center font-Montserrat bg-[#03396C] gap-y-1 px-5">
       {loading && <LoadingScreenSection />}
       {/* <div className="w-full bg-white md:w-[450px] px-5 py-10 flex flex-col items-center rounded-xl backdrop-blur-2xl shadow-2xl font-Montserrat border-b-4 border-b-[#338FFF] space-y-8 ">
         <div className="rounded-3xl overflow-hidden">
@@ -137,8 +137,9 @@ const LandingPage = () => {
               <Image
                 src="/logo.svg"
                 alt="Traffico Logo"
-                width={200}
-                height={200}
+                width={250}
+                height={250}
+                className="w-64 h-64 md:w-72 md:h-72"
               />
             </button>
             {/* <div className="circle-animation"></div> */}

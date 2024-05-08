@@ -250,6 +250,7 @@ const QrScannerComponent = ({
 
     if (userType === "passenger") {
       await insertReportViolations(reportAuthPassengerData);
+
       setLoading(false);
       setCurrentView("lists");
     } else if (userType === "enforcer") {

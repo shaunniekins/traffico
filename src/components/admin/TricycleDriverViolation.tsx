@@ -249,49 +249,48 @@ const TricycleDriverViolation = () => {
             {!toggleMoreDetails ? "Details" : "More Details"}
           </h1>
           <div className="px-3 flex items-center gap-3">
-            {userType === "personnel" &&
-              currentComplaint?.action_taken === "pending" && (
-                <div className="flex gap-2">
-                  {toggleUpdateReportStatus && (
-                    <button
-                      className="bg-purple-700 text-white
-                    border py-1 px-2 text-sm rounded-lg flex items-center gap-2"
-                      // disabled={
-                      //   !(
-                      //     (actionTakenUpdate === "penalty-imposed" &&
-                      //       violationUpdate) ||
-                      //     actionTakenUpdate === "resolved"
-                      //   )
-                      // }
-                      onClick={() => {
-                        handleUpdateStatusReport(currentComplaint.id);
-                      }}>
-                      <MdOutlinePublishedWithChanges />
-                      <span>Apply</span>
-                    </button>
-                  )}
+            {userType === "personnel" && (
+              <div className="flex gap-2">
+                {toggleUpdateReportStatus && (
                   <button
-                    className={`${
-                      toggleUpdateReportStatus
-                        ? "bg-sky-700 text-white"
-                        : "border-sky-700 text-sky-700"
-                    } border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                    className="bg-purple-700 text-white
+                    border py-1 px-2 text-sm rounded-lg flex items-center gap-2"
+                    // disabled={
+                    //   !(
+                    //     (actionTakenUpdate === "penalty-imposed" &&
+                    //       violationUpdate) ||
+                    //     actionTakenUpdate === "resolved"
+                    //   )
+                    // }
                     onClick={() => {
-                      setToggleUpdateReportStatus(!toggleUpdateReportStatus);
-
-                      if (toggleUpdateReportStatus) {
-                        setActionTakenUpdate(currentComplaint.action_taken);
-                        setViolationUpdate(currentComplaint.violation);
-                        setNoteUpdate(currentComplaint.noteOption);
-                      }
+                      handleUpdateStatusReport(currentComplaint.id);
                     }}>
-                    <MdOutlineEdit />
-                    <span>
-                      {toggleUpdateReportStatus ? "Cancel" : "Update status"}
-                    </span>
+                    <MdOutlinePublishedWithChanges />
+                    <span>Apply</span>
                   </button>
-                </div>
-              )}
+                )}
+                <button
+                  className={`${
+                    toggleUpdateReportStatus
+                      ? "bg-sky-700 text-white"
+                      : "border-sky-700 text-sky-700"
+                  } border py-1 px-2 text-sm rounded-lg flex items-center gap-2`}
+                  onClick={() => {
+                    setToggleUpdateReportStatus(!toggleUpdateReportStatus);
+
+                    if (toggleUpdateReportStatus) {
+                      setActionTakenUpdate(currentComplaint.action_taken);
+                      setViolationUpdate(currentComplaint.violation);
+                      setNoteUpdate(currentComplaint.noteOption);
+                    }
+                  }}>
+                  <MdOutlineEdit />
+                  <span>
+                    {toggleUpdateReportStatus ? "Cancel" : "Update status"}
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -299,8 +298,9 @@ const TricycleDriverViolation = () => {
           <div
             className="grid grid-cols-2 items-center pt-7 px-20 pb-20 gap-5 overflow-y-auto w-full h-full"
             style={{ gridTemplateColumns: "auto 1fr" }}>
-            {userType === "personnel" &&
-            currentComplaint?.action_taken === "pending" ? (
+            {/* {userType === "personnel" &&
+            currentComplaint?.action_taken === "pending" ? ( */}
+            {userType === "personnel" ? (
               <>
                 {/* <div> */}
                 <label htmlFor="actionTakenUpdate">Action Taken</label>

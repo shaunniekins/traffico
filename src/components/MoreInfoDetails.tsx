@@ -196,19 +196,11 @@ const MoreInfoDetailsComponent: React.FC<MoreInfoDetailsProps> = ({
                     {toggleUpdateReportStatus && (
                       <button
                         className={`${
-                          (actionTakenUpdate === "penalty-imposed" &&
-                            violationUpdate) ||
-                          actionTakenUpdate === "resolved"
+                          actionTakenUpdate !== ""
                             ? "bg-green-700"
                             : "bg-gray-700"
                         } flex items-center gap-1 py-1 px-3 text-sm rounded-lg capitalize text-white`}
-                        disabled={
-                          !(
-                            (actionTakenUpdate === "penalty-imposed" &&
-                              violationUpdate) ||
-                            actionTakenUpdate === "resolved"
-                          )
-                        }
+                        disabled={actionTakenUpdate === ""}
                         onClick={() => handleUpdateStatusReport(record.id)}>
                         <MdOutlinePublishedWithChanges />
                         Submit
