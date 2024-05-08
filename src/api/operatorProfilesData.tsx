@@ -81,6 +81,27 @@ export const fetchOperatorUniqueBodyNum = async (franchiseStatus: string) => {
   }
 };
 
+export const fetchTotalOperatorInCurrentYear = async () => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const dateStr = `${currentYear}-01-01T00:00:00Z`;
+
+    const { data, error } = await supabaseAdmin
+      .from("Applications")
+      .select("id")
+      .gte("application_date", dateStr);
+
+    if (error) {
+      throw error;
+    }
+
+    return data.length;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
 export const insertOperatorProfileData = async (data: any) => {
   try {
     const response = await supabase

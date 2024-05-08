@@ -2,7 +2,10 @@
 
 import { insuranceOptions, routes } from "@/api/dataValues";
 import { fetchDriverProfileByName } from "@/api/driverProfilesData";
-import { fetchOperatorUniqueBodyNum } from "@/api/operatorProfilesData";
+import {
+  fetchOperatorUniqueBodyNum,
+  fetchTotalOperatorInCurrentYear,
+} from "@/api/operatorProfilesData";
 import { fetchVehicleOwnershipReportById } from "@/api/vehicleOwnership";
 import { useCallback, useEffect, useState } from "react";
 import Select from "react-select";
@@ -96,6 +99,38 @@ const Application = () => {
   const [drivers, setDrivers] = useState<{ value: any; label: string }[]>([]);
 
   const [recordVehicles, setRecordVehicles] = useState<any[]>([]);
+
+  const [totalOperators, setTotalOperators] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchTotal = async () => {
+      const total = await fetchTotalOperatorInCurrentYear();
+      setTotalOperators(total);
+    };
+
+    fetchTotal();
+
+    const channel = supabase
+      .channel("realtime:public")
+      .on(
+        "postgres_changes",
+        {
+          schema: "public",
+          event: "*",
+        },
+        async (payload) => {
+          if (payload.new) {
+            const total = await fetchTotalOperatorInCurrentYear();
+            setTotalOperators(total);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const memoizedFetchVehicleOwnershipReportByIDData = useCallback(async () => {
     try {
@@ -579,9 +614,9 @@ const Application = () => {
     }
   }, [recordVehicles]);
 
-  useEffect(() => {
-    console.log("body number", newBodyNumber);
-  }, [newBodyNumber]);
+  // useEffect(() => {
+  //   console.log("body number", newBodyNumber);
+  // }, [newBodyNumber]);
 
   const pathname = usePathname();
   const userType = pathname.includes("/admin/")
@@ -589,6 +624,8 @@ const Application = () => {
     : pathname.includes("/personnel/")
     ? "personnel"
     : null;
+
+  // const isDisabled = totalFranchiseNumber >= 1500;
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full w-full">
@@ -601,11 +638,24 @@ const Application = () => {
         </div>
       </div>
       <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-[70dvh] border border-sky-700">
-        <h1 className="px-3 py-2 sm:px-4 border-b border-sky-700">
-          {applicationCurrentPage in pageTitles
-            ? pageTitles[applicationCurrentPage]
-            : ""}
-        </h1>
+        <div className="flex justify-between items-center border-b border-sky-700 px-3 py-2 sm:px-4">
+          <h1>
+            {applicationCurrentPage in pageTitles
+              ? pageTitles[applicationCurrentPage]
+              : ""}
+          </h1>
+          <div className="text-sm flex flex-col items-center">
+            <div>
+              <span className="font-semibold text-sky-700">
+                {totalOperators}
+              </span>
+              <span> / 1500</span>
+            </div>
+            <span className="text-xs">
+              Total FN ({new Date().getFullYear()})
+            </span>
+          </div>
+        </div>
         {applicationCurrentPage === 1 && (
           <>
             <div
