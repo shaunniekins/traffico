@@ -6,7 +6,9 @@ SELECT
     OP.last_name,
     OP.first_name,
     OP.middle_name,
-    VOR.body_num
+    VOR.body_num,
+    APP.application_date,
+    APP.status
 FROM
     "OperatorProfiles" AS OP
     JOIN "VehicleOwnershipRecords" AS VOR ON OP.id = VOR.operator_id

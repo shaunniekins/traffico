@@ -2,10 +2,7 @@
 
 import { insuranceOptions, routes } from "@/api/dataValues";
 import { fetchDriverProfileByName } from "@/api/driverProfilesData";
-import {
-  fetchOperatorProfileByName,
-  fetchOperatorUniqueBodyNum,
-} from "@/api/operatorProfilesData";
+import { fetchOperatorUniqueBodyNum } from "@/api/operatorProfilesData";
 import { fetchVehicleOwnershipReportById } from "@/api/vehicleOwnership";
 import { useCallback, useEffect, useState } from "react";
 import Select from "react-select";
@@ -105,7 +102,9 @@ const Application = () => {
       const vehicleResponse = await fetchVehicleOwnershipReportById(
         newSelectedOperator?.value
       );
-      const operatorResponse = await fetchOperatorUniqueBodyNum();
+      const operatorResponse = await fetchOperatorUniqueBodyNum(
+        newFranchiseStatus
+      );
 
       if (vehicleResponse?.data && operatorResponse?.data) {
         const uniqueBodyNums = operatorResponse.data.map(
@@ -122,11 +121,11 @@ const Application = () => {
     } catch (error) {
       console.error("An error occurred:", error);
     }
-  }, [newSelectedOperator]);
+  }, [newSelectedOperator, newFranchiseStatus]);
 
   useEffect(() => {
     memoizedFetchVehicleOwnershipReportByIDData();
-  }, [newSelectedOperator]);
+  }, [newSelectedOperator, newFranchiseStatus]);
 
   const STORAGE_BUCKET_OPERATOR_FACE_PHOTO_VIEW = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/face_photo/`;
   const STORAGE_BUCKET_OPERATOR_SIGNATURE_VIEW = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/assets/operators/signature_photo/`;
@@ -160,7 +159,7 @@ const Application = () => {
 
   useEffect(() => {
     const fetchOperators = async () => {
-      const response = await fetchOperatorUniqueBodyNum();
+      const response = await fetchOperatorUniqueBodyNum(newFranchiseStatus);
       if (response && response.data) {
         const uniqueOperators = response.data.reduce((unique, operator) => {
           if (!unique.find((op: any) => op.id === operator.id)) {
@@ -183,7 +182,7 @@ const Application = () => {
     };
 
     fetchOperators();
-  }, []);
+  }, [newFranchiseStatus]);
 
   useEffect(() => {
     const fetchDrivers = async () => {

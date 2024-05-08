@@ -145,7 +145,6 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
       const response = await fetchNotifications();
       if (response) {
         setNotifications(response.data);
-        console.log(response.data);
       }
     };
 
@@ -247,49 +246,49 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
         {/* {loading && <LoadingScreenSection />} */}
         <MenuButton onClick={handleMenuClick} />
         <div className="flex gap-3 md:gap-5">
-          <div
-            className="relative flex items-center justify-center space-x-4 z-10"
-            ref={dropdownRefNotif}>
-            <button
-              className="flex items-center text-2xl space-x-2"
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-              }}>
-              <MdOutlineNotificationsNone />
-            </button>
-            {showNotifications && (
-              <div
-                className={`${
-                  userType !== "admin" ? "" : ""
-                } absolute top-full mt-2 bg-gray-600 opacity-95 text-gray-400 py-2 pr-8 md:pr-0 px-3 w-[18rem] md:w-96 h-60 -right-52 md:-left-56 rounded-lg z-40 flex flex-col`}>
-                <div className="absolute w-3 h-3 bg-inherit transform rotate-45 left-[47.5%] md:left-3/4 -top-1.5 translate-x-[-620%]" />
+          {userType === "personnel" && (
+            <div
+              className="relative flex items-center justify-center space-x-4 z-10"
+              ref={dropdownRefNotif}>
+              <button
+                className="flex items-center text-2xl space-x-2"
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                }}>
+                <MdOutlineNotificationsNone />
+              </button>
+              {showNotifications && (
+                <div
+                  className={`absolute top-full mt-2 bg-gray-600 opacity-95 text-gray-400 py-2 pr-8 md:pr-0 px-3 w-[18rem] md:w-96 h-60 -right-52 md:-left-56 rounded-lg z-40 flex flex-col`}>
+                  <div className="absolute w-3 h-3 bg-inherit transform rotate-45 left-[47.5%] md:left-3/4 -top-1.5 translate-x-[-620%]" />
 
-                <div className="w-full py-3 px-2 text-md opacity-100 text-sky-300 flex flex-col gap-5 overflow-y-auto scrollbar-hide">
-                  {notifications.map((notification, index) => (
-                    <div
-                      key={index}
-                      className="flex gap-2 items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-sky-700 text-white rounded-full p-2 ">
-                          <MdOutlineAnnouncement />
-                        </div>
-                        <div>
-                          <h5 className="w-full whitespace-normal word-wrap">
-                            {generateMessage(notification)}
-                          </h5>
-                          <h6 className="text-xs text-yellow-400">
-                            {new Date(
-                              `${notification.date}T${notification.time}`
-                            ).toLocaleString()}
-                          </h6>
+                  <div className="w-full py-3 px-2 text-md opacity-100 text-sky-300 flex flex-col gap-5 overflow-y-auto scrollbar-hide">
+                    {notifications.map((notification, index) => (
+                      <div
+                        key={index}
+                        className="flex gap-2 items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="bg-sky-700 text-white rounded-full p-2 ">
+                            <MdOutlineAnnouncement />
+                          </div>
+                          <div>
+                            <h5 className="w-full whitespace-normal word-wrap">
+                              {generateMessage(notification)}
+                            </h5>
+                            <h6 className="text-xs text-yellow-400">
+                              {new Date(
+                                `${notification.date}T${notification.time}`
+                              ).toLocaleString()}
+                            </h6>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           <div
             className="relative flex items-center justify-center space-x-4 pr-5"

@@ -34,7 +34,8 @@ export const fetchDriverProfileData = async (
 export const fetchDriverProfileByName = async (name: string) => {
   try {
     const query = supabase
-      .from("DriverProfiles")
+      // .from("DriverProfiles")
+      .from("ViewDriversNotInApplicationsCurrentYear") // for uniqueness of the current year
       .select(`*`)
       .or(`last_name.ilike.%${name}%,first_name.ilike.%${name}%`)
       .order("last_name", { ascending: true });

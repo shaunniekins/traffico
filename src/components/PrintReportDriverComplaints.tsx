@@ -10,7 +10,6 @@ const PrintReportDriverComplaints = React.forwardRef<HTMLDivElement, {}>(
       const fetchData = async () => {
         const data = await fetchDriverComplaints();
         setData(data || []);
-        console.log("data", data);
       };
 
       fetchData();

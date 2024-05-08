@@ -51,13 +51,21 @@ export const fetchOperatorProfileByName = async (name: string) => {
   }
 };
 
-export const fetchOperatorUniqueBodyNum = async () => {
+export const fetchOperatorUniqueBodyNum = async (franchiseStatus: string) => {
   try {
-    const query = supabase
+    let query = supabase
       .from("ViewUniqueBodyNumYear")
       .select(`*`)
       .order("last_name", { ascending: true })
       .order("first_name", { ascending: true });
+
+    if (franchiseStatus === "renewal") {
+      const currentYear = new Date().getFullYear();
+      const dateStr = `${currentYear}-01-01T00:00:00Z`;
+      query = query.filter("application_date", "lt", dateStr);
+    } else if (franchiseStatus === "new") {
+      query = query.is("application_date", null);
+    }
 
     const response = await query;
 
