@@ -12,6 +12,8 @@ import {
   MdOutlinePublishedWithChanges,
   MdOutlineSearch,
 } from "react-icons/md";
+import ImageUploader from "./ImageUploader";
+import Link from "next/link";
 
 const TricycleDriverViolation = () => {
   const [searchValue, setSearchValue] = useState("");
@@ -520,6 +522,33 @@ const TricycleDriverViolation = () => {
                   className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                 />
               </>
+            )}
+            {currentComplaint?.evidence && (
+              <div className="col-span-2 flex justify-between">
+                <div className="col-span-2 w-full flex justify-around">
+                  {Array.from({ length: currentComplaint.evidence }, (_, i) => (
+                    <Link
+                      key={i}
+                      href={`${
+                        process.env.NEXT_PUBLIC_SUPABASE_URL
+                      }/storage/v1/object/public/assets/evidences/report_${
+                        currentComplaint.id
+                      }-${i + 1}.jpeg`}
+                      target="_blank"
+                      rel="noopener noreferrer">
+                      <ImageUploader
+                        isDisabled={true}
+                        title={`Evidence Photo ${i + 1}`}
+                        preview={`${
+                          process.env.NEXT_PUBLIC_SUPABASE_URL
+                        }/storage/v1/object/public/assets/evidences/report_${
+                          currentComplaint.id
+                        }-${i + 1}.jpeg`}
+                      />
+                    </Link>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         ) : (

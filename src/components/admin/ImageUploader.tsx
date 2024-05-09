@@ -3,8 +3,8 @@ import React, { ChangeEvent } from "react";
 interface ImageUploaderProps {
   isDisabled?: boolean;
   title: string;
-  setImage: React.Dispatch<React.SetStateAction<File | null>>;
-  setPreview: React.Dispatch<React.SetStateAction<string | null>>;
+  setImage?: React.Dispatch<React.SetStateAction<File | null>>;
+  setPreview?: React.Dispatch<React.SetStateAction<string | null>>;
   preview: any;
 }
 
@@ -17,8 +17,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 }) => {
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-      setPreview(URL.createObjectURL(e.target.files[0]));
+      setImage && setImage(e.target.files[0]);
+      setPreview && setPreview(URL.createObjectURL(e.target.files[0]));
     }
   };
 

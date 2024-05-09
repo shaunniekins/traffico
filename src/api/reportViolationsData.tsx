@@ -137,13 +137,17 @@ export const fetchViolatorDetails = async (bodyNum: string) => {
 
 export const insertReportViolations = async (data: any) => {
   try {
-    const response = await supabase.from("ReportViolations").insert(data);
-    // .select();
+    const response = await supabase
+      .from("ReportViolations")
+      .insert(data)
+      .select("id"); // Select the 'id' column
 
     if (response.error) {
       throw response.error;
     }
-    return response;
+
+    // Return the ID of the newly created row
+    return response.data[0].id;
   } catch (error) {
     console.error("Error inserting data:", error);
     return null;

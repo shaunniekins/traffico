@@ -150,6 +150,9 @@ const QrScannerComponent = ({
     null
   );
 
+  const [currentEvidenceFiles, setCurrentEvidenceFiles] =
+    useState<FileList | null>(null);
+
   const [currentDate, setCurrentDate] = useState(
     () => new Date().toISOString().split("T")[0]
   );
@@ -222,6 +225,10 @@ const QrScannerComponent = ({
       date: currentDate,
       time: currentTime,
       passenger_id: userId,
+      evidence:
+        currentEvidenceFiles && currentEvidenceFiles.length > 0
+          ? currentEvidenceFiles.length
+          : null,
       // route:
     };
 
@@ -237,6 +244,10 @@ const QrScannerComponent = ({
       complainant_name: currentComplainantName,
       complainant_contact_num: currentContactNumber,
       // route:
+      evidence:
+        currentEvidenceFiles && currentEvidenceFiles.length > 0
+          ? currentEvidenceFiles.length
+          : null,
     };
 
     const reportEnforcerData = {
@@ -251,9 +262,26 @@ const QrScannerComponent = ({
       enforcer_id: userId,
     };
 
-    if (userType === "passenger") {
-      await insertReportViolations(reportAuthPassengerData);
+    const uploadEvidenceFiles = async (
+      id_get: string,
+      files: FileList | null
+    ) => {
+      const STORAGE_BUCKET_PASSENGER_REPORT_EVIDENCES = "assets/evidences/";
 
+      if (files && files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          const UPLOAD_REPORT_EVIDENCES = `report_${id_get}-${i + 1}.jpeg`;
+
+          const { data, error } = await supabase.storage
+            .from(STORAGE_BUCKET_PASSENGER_REPORT_EVIDENCES)
+            .upload(UPLOAD_REPORT_EVIDENCES, files[i]);
+        }
+      }
+    };
+
+    if (userType === "passenger") {
+      const id_get = await insertReportViolations(reportAuthPassengerData);
+      await uploadEvidenceFiles(id_get, currentEvidenceFiles);
       setLoading(false);
       setCurrentView("lists");
     } else if (userType === "enforcer") {
@@ -261,7 +289,8 @@ const QrScannerComponent = ({
       setLoading(false);
       setCurrentView("lists");
     } else if (!userType) {
-      await insertReportViolations(reportPassengerData);
+      const id_get = await insertReportViolations(reportPassengerData);
+      await uploadEvidenceFiles(id_get, currentEvidenceFiles);
       setLoading(false);
     }
     setShowBottomBar(true);
@@ -285,7 +314,9 @@ const QrScannerComponent = ({
     setCurrentContactNumber("");
     setCurrentDate("");
     setCurrentTime("");
+    setIsSubmitting(false);
     // setViolation("");
+    setCurrentEvidenceFiles(null);
   };
 
   const router = useRouter();
@@ -315,6 +346,17 @@ const QrScannerComponent = ({
   useEffect(() => {
     memoizedFetchViolatorReports();
   }, [currentBodyNum, memoizedFetchViolatorReports]);
+
+  const handleCurrentEvidenceFilesChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (event.target.files && event.target.files.length > 3) {
+      alert("You can only upload a maximum of 3 images");
+      event.target.value = "";
+    } else {
+      setCurrentEvidenceFiles(event.target.files);
+    }
+  };
 
   return (
     <>
@@ -568,6 +610,22 @@ const QrScannerComponent = ({
                             className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                           />
                         </div>
+                        {userType !== "enforcer" && (
+                          <div>
+                            <label htmlFor="currentEvidenceFiles">
+                              Evidence (optional) - max of 3
+                            </label>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              name="currentEvidenceFiles"
+                              id="currentEvidenceFiles"
+                              multiple
+                              onChange={handleCurrentEvidenceFilesChange}
+                              className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                            />
+                          </div>
+                        )}
                       </>
                     )}
                     <div className="grid grid-cols-2 gap-x-3 items-center">
