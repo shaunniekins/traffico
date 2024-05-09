@@ -324,6 +324,7 @@ const TricycleDriverViolation = () => {
                     Successfully Called
                   </option>
                   <option value="pending">Pending</option>
+                  <option value="resolved">Resolved</option>
                 </select>
                 {/* </div> */}
                 {/* <div> */}
