@@ -190,7 +190,7 @@ const LandingPage = () => {
                   setShowMap(true);
                   setLoading(false);
                 }}>
-                Show Map (For Testing)
+                Show Map
               </button>
             </div>
           </div>

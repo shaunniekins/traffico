@@ -11,7 +11,10 @@ import { routes } from "@/api/dataValues";
 import Image from "next/image";
 import { IoChevronBack, IoChevronForward, IoRefresh } from "react-icons/io5";
 import { usePathname, useRouter } from "next/navigation";
-import { insertReportViolations } from "@/api/reportViolationsData";
+import {
+  fetchViolatorDetails,
+  insertReportViolations,
+} from "@/api/reportViolationsData";
 import dynamic from "next/dynamic";
 import { UserContext } from "@/utils/UserContext";
 import { LoadingScreenSection } from "./LoadingScreen";
@@ -287,6 +290,32 @@ const QrScannerComponent = ({
 
   const router = useRouter();
 
+  const [violatorDetails, setViolatorDetails] = useState<number>(0);
+
+  const memoizedFetchViolatorReports = useCallback(async () => {
+    if (currentBodyNum) {
+      try {
+        const response = await fetchViolatorDetails(currentBodyNum);
+        if (response?.error) {
+          console.error(response.error);
+        } else if (response?.data) {
+          setViolatorDetails(response.data.length);
+          // console.log("response:", response.data.length);
+        } else {
+          console.error("Unexpected response:", response);
+        }
+      } catch (error) {
+        console.error("An error occurred:", error);
+      }
+    } else {
+      console.warn("record.body_num is not defined");
+    }
+  }, [currentBodyNum]);
+
+  useEffect(() => {
+    memoizedFetchViolatorReports();
+  }, [currentBodyNum, memoizedFetchViolatorReports]);
+
   return (
     <>
       {records && records.length === 0 ? (
@@ -405,6 +434,18 @@ const QrScannerComponent = ({
                     </span>
                   </h1>
                   <div className="w-full overflow-x-hidden sm:overflow-y-hidden rounded-t-lg rounded-b-lg h-full gap-3 flex flex-col">
+                    <button className="self-center py-1 px-2 bg-purple-700 text-white rounded-lg text-sm mb-3">
+                      {violatorDetails == 0 ? (
+                        "No Pending Violations"
+                      ) : (
+                        <div>
+                          <span className="font-semibold">
+                            {violatorDetails}
+                          </span>{" "}
+                          <span>Pending Violations</span>
+                        </div>
+                      )}
+                    </button>
                     <div>
                       <label htmlFor="currentBodyNum">Body Number</label>
                       <input
@@ -660,7 +701,7 @@ const QrScannerComponent = ({
                   </div>
                   <div className="w-full mx-5 text-lg z-50 absolute bottom-28">
                     <p className="text-red-600 italic text-xs">
-                      Note: Mock-up fare calculation <br />
+                      {/* Note: Mock-up fare calculation <br /> */}
                       (P12.00 base fare + P2.00 per km after 1st km)
                     </p>
                   </div>
