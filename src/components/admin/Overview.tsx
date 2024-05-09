@@ -498,7 +498,7 @@ const Overview: React.FC = () => {
         <div className="h-full w-full bg-white shadow-lg flex flex-col rounded-xl px-5 pt-4 pb-10">
           <div className="flex justify-between">
             <h1 className="text-md text-sky-700 font-medium">
-              Highly Reported Per Month
+              Number of Approved Applications per Month
             </h1>
             <div className="flex gap-3">
               <label
