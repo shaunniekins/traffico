@@ -610,23 +610,23 @@ const QrScannerComponent = ({
                             className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
                           />
                         </div>
-                        {userType !== "enforcer" && (
-                          <div>
-                            <label htmlFor="currentEvidenceFiles">
-                              Evidence (optional) - max of 3
-                            </label>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              name="currentEvidenceFiles"
-                              id="currentEvidenceFiles"
-                              multiple
-                              onChange={handleCurrentEvidenceFilesChange}
-                              className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                            />
-                          </div>
-                        )}
                       </>
+                    )}
+                    {userType !== "enforcer" && (
+                      <div>
+                        <label htmlFor="currentEvidenceFiles">
+                          Evidence (optional) - max of 3
+                        </label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          name="currentEvidenceFiles"
+                          id="currentEvidenceFiles"
+                          multiple
+                          onChange={handleCurrentEvidenceFilesChange}
+                          className="border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                        />
+                      </div>
                     )}
                     <div className="grid grid-cols-2 gap-x-3 items-center">
                       <label htmlFor="currentDate">Date</label>
