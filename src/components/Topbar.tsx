@@ -17,6 +17,7 @@ import {
 } from "react-icons/md";
 import { fetchNotifications } from "@/api/notificationsData";
 import { generateMessage } from "@/functions/generateMessage";
+import PrintReportDriverProfiles from "./PrintReportDriverProfiles";
 
 interface TopbarProps {
   isMenuOpen: boolean;
@@ -63,6 +64,7 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
   const componentRef1 = useRef<HTMLDivElement>(null);
   const componentRef2 = useRef<HTMLDivElement>(null);
   const componentRef3 = useRef<HTMLDivElement>(null);
+  const componentRef4 = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     content: () => {
@@ -73,6 +75,8 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
           return componentRef2.current;
         case "option3":
           return componentRef3.current;
+        case "option4":
+          return componentRef4.current;
         default:
           return null;
       }
@@ -135,8 +139,8 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
   const userType = pathname.includes("/admin/")
     ? "admin"
     : pathname.includes("/personnel/")
-    ? "personnel"
-    : null;
+      ? "personnel"
+      : null;
 
   const [notifications, setNotifications] = useState<any[]>([]);
 
@@ -190,6 +194,10 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                     ref={componentRef3}
                     selectedBarangay={selectedBarangay}
                   />
+                  <PrintReportDriverProfiles
+                    key="PrintReportDriverProfiles"
+                    ref={componentRef4}
+                  />
                 </div>
               </div>
             </div>
@@ -212,30 +220,31 @@ const Topbar: React.FC<TopbarProps> = ({ isMenuOpen, handleMenuClick }) => {
                     Registered Motor Tricycle Vehicles
                   </option>
                   <option value="option3">Renewed Tricycles</option>
+                  <option value="option4">Driver Profiles</option>
                 </select>
               </>
               {(selectedOption === "option2" ||
                 selectedOption === "option3") && (
-                <>
-                  <label
-                    htmlFor="selectedBarangay"
-                    className="whitespace-nowrap">
-                    Barangay
-                  </label>
-                  <select
-                    name="selectedBarangay"
-                    id="selectedBarangay"
-                    value={selectedBarangay}
-                    onChange={(e) => setSelectedBarangay(e.target.value)}
-                    className="border border-sky-700 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 rounded-lg p-2 w-full">
-                    {barangays.map((barangay) => (
-                      <option key={barangay} value={barangay}>
-                        {barangay}
-                      </option>
-                    ))}
-                  </select>
-                </>
-              )}
+                  <>
+                    <label
+                      htmlFor="selectedBarangay"
+                      className="whitespace-nowrap">
+                      Barangay
+                    </label>
+                    <select
+                      name="selectedBarangay"
+                      id="selectedBarangay"
+                      value={selectedBarangay}
+                      onChange={(e) => setSelectedBarangay(e.target.value)}
+                      className="border border-sky-700 focus:outline-none focus:ring-sky-500 focus:border-sky-500 focus:z-10 rounded-lg p-2 w-full">
+                      {barangays.map((barangay) => (
+                        <option key={barangay} value={barangay}>
+                          {barangay}
+                        </option>
+                      ))}
+                    </select>
+                  </>
+                )}
             </div>
           </div>
         </div>

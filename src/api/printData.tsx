@@ -13,6 +13,19 @@ export const fetchDriverComplaints = async () => {
   return response.data;
 };
 
+export const fetchDriverProfiles = async () => {
+  const query = supabase.from("DriverProfiles").select().order("last_name");
+
+  const response = await query;
+
+  if (response.error) {
+    console.error("Error fetching data:", response.error);
+    return;
+  }
+
+  return response.data;
+}
+
 export const fetchRegisteredVehicles = async (selectedBarangay: string) => {
   let query = supabase.from("ViewRegisteredTricycles").select();
 
