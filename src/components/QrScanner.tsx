@@ -131,6 +131,7 @@ const QrScannerComponent = ({
 
   const [records, setRecords] = useState<any[]>([]);
   const [currentBodyNum, setCurrentBodyNum] = useState("");
+  const [currentFranchiseStatus, setCurrentFranchiseStatus] = useState("");
   const [currentDriver, setCurrentDriver] = useState<any>("");
   // const [currentZone, setCurrentZone] = useState<any>("");
   const [currentRoute, setCurrentRoute] = useState("");
@@ -176,6 +177,7 @@ const QrScannerComponent = ({
       } else {
         setRecords(response?.data || []);
         setCurrentBodyNum(response?.data[0]?.body_num);
+        setCurrentFranchiseStatus(response?.data[0]?.franchise_status);
         setCurrentDriver(response?.data[0]?.driver_name);
         setCurrentDate(new Date().toISOString().split("T")[0]);
         setCurrentTime(new Date().toTimeString().split(" ")[0]);
@@ -358,6 +360,10 @@ const QrScannerComponent = ({
     }
   };
 
+  const capitalizeFirstLetter = (string: string) => {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
   return (
     <>
       {records && records.length === 0 ? (
@@ -488,17 +494,33 @@ const QrScannerComponent = ({
                         </div>
                       )}
                     </button>
-                    <div>
-                      <label htmlFor="currentBodyNum">Body Number</label>
-                      <input
-                        type="text"
-                        name="currentBodyNum"
-                        id="currentBodyNum"
-                        value={currentBodyNum}
-                        disabled
-                        className="bg-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
-                      />
+                    <div className="flex gap-3">
+                      <div>
+                        <label htmlFor="currentBodyNum">Body Number</label>
+                        <input
+                          type="text"
+                          name="currentBodyNum"
+                          id="currentBodyNum"
+                          value={currentBodyNum}
+                          disabled
+                          className="bg-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="currentFranchiseStatus">
+                          Franchise Status
+                        </label>
+                        <input
+                          type="text"
+                          name="currentFranchiseStatus"
+                          id="currentFranchiseStatus"
+                          value={capitalizeFirstLetter(currentFranchiseStatus)}
+                          disabled
+                          className="bg-white border border-sky-700 focus:outline-none focus:ring-sky-700 focus:border-sky-700 focus:z-10 rounded-lg p-2 w-full"
+                        />
+                      </div>
                     </div>
+
                     <div>
                       <label htmlFor="currentDriver">Driver&lsquo;s Name</label>
                       <input

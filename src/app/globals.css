@@ -155,3 +155,9 @@ select {
 .height-custom {
   height: calc(100vh - 1.5rem);
 }
+
+/* table, th, td {
+  border: 1px solid black;
+  border-collapse: separate;
+  border-spacing: 0;
+} */

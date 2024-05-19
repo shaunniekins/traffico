@@ -262,12 +262,13 @@ const Overview: React.FC = () => {
     ],
   };
 
+  // from doughnut to graph
   const optionsDoughnut = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: "left" as const,
+        position: "top" as const,
         // labels: {
         //   font: {
         //     size: 10,
@@ -290,27 +291,48 @@ const Overview: React.FC = () => {
     ],
     datasets: [
       {
+        label: "Number of records",
         data: [
-          totalOverPaying,
-          totalOverLoading,
-          totalOverSpeeding,
-          totalOverPricing,
-        ],
-        backgroundColor: [
-          "rgba(255, 99, 132, 0.2)",
-          "rgba(54, 162, 235, 0.2)",
-          "rgba(255, 206, 86, 0.2)",
-          "rgba(75, 192, 192, 0.2)",
-        ],
-        borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(75, 192, 192, 1)",
-        ],
+                  totalOverPaying,
+                  totalOverLoading,
+                  totalOverSpeeding,
+                  totalOverPricing,
+                ],
+        backgroundColor: "rgba(75, 192, 192, 0.2)",
       },
     ],
-  };
+  }; 
+
+  // const dataDoughnut = {
+  //   labels: [
+  //     `Over Paying - ${totalOverPaying}%`,
+  //     `Over Loading - ${totalOverLoading}%`,
+  //     `Over Speeding - ${totalOverSpeeding}%`,
+  //     `Over Pricing - ${totalOverPricing}%`,
+  //   ],
+  //   datasets: [
+  //     {
+  //       data: [
+  //         totalOverPaying,
+  //         totalOverLoading,
+  //         totalOverSpeeding,
+  //         totalOverPricing,
+  //       ],
+  //       backgroundColor: [
+  //         "rgba(255, 99, 132, 0.2)",
+  //         "rgba(54, 162, 235, 0.2)",
+  //         "rgba(255, 206, 86, 0.2)",
+  //         "rgba(75, 192, 192, 0.2)",
+  //       ],
+  //       borderColor: [
+  //         "rgba(255, 99, 132, 1)",
+  //         "rgba(54, 162, 235, 1)",
+  //         "rgba(255, 206, 86, 1)",
+  //         "rgba(75, 192, 192, 1)",
+  //       ],
+  //     },
+  //   ],
+  // };
 
   // violators graphs
   const optionsViolatorRecords = {
@@ -423,7 +445,7 @@ const Overview: React.FC = () => {
           <h1 className="text-md text-sky-700 font-medium">
             Monthly Reported Violations
           </h1>
-          <Doughnut options={optionsDoughnut} data={dataDoughnut} />
+          <Bar options={optionsDoughnut} data={dataDoughnut} />
         </div>
       </div>
       <div className="w-full h-60 flex flex-col sm:flex-row space-y-5 sm:space-y-0 sm:space-x-5">
@@ -452,7 +474,7 @@ const Overview: React.FC = () => {
         </div>
         <div className="h-full w-full sm:w-[50%] bg-white shadow-lg flex flex-col rounded-xl px-5 pt-4 pb-10">
           <h1 className="text-md text-sky-700 font-medium">
-            Violations Reported
+          Tricycle Driver&apos;s Violation
           </h1>
           <table className="h-full w-full text-sm text-center mt-3">
             <thead className="text-xs uppercase font-normal">
