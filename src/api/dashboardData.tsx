@@ -90,7 +90,7 @@ export const fetchGraphData2 = async (date: string) => {
   try {
     const currentYear = new Date().getFullYear();
 
-    let query = supabase.from("ViewViolatorsOverview").select().range(0, 5);
+    let query = supabase.from("ViewViolatorsOverview").select().range(0, 5).order('num_of_violations', { ascending: false });
 
     if (date) {
       const year = date.slice(0, 4);

@@ -443,7 +443,7 @@ const Overview: React.FC = () => {
         </div>
         <div className="h-full w-full sm:w-[35%] bg-white shadow-lg flex flex-col justify-between rounded-xl px-5 pt-4 pb-10">
           <h1 className="text-md text-sky-700 font-medium">
-            Monthly Reported Violations
+            Most Reported Complaints
           </h1>
           <Bar options={optionsDoughnut} data={dataDoughnut} />
         </div>
@@ -452,7 +452,7 @@ const Overview: React.FC = () => {
         <div className="h-full w-full sm:w-[50%] bg-white shadow-lg flex flex-col justify-between rounded-xl px-5 pt-4 pb-10">
           <div className="flex justify-between">
             <h1 className="text-md text-sky-700 font-medium">
-              Highly Reported Per Month
+             Monthly Reported Drivers Per Month
             </h1>
             <div className="flex gap-3">
               <label
@@ -474,7 +474,7 @@ const Overview: React.FC = () => {
         </div>
         <div className="h-full w-full sm:w-[50%] bg-white shadow-lg flex flex-col rounded-xl px-5 pt-4 pb-10">
           <h1 className="text-md text-sky-700 font-medium">
-          Tricycle Driver&apos;s Violation
+          Most Reported Drivers/ Tricycle Driver&apos;s Violation
           </h1>
           <table className="h-full w-full text-sm text-center mt-3">
             <thead className="text-xs uppercase font-normal">
