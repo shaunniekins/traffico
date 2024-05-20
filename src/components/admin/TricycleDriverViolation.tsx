@@ -1,5 +1,7 @@
 "use client";
 import {
+  fetchReportTricycleDriversData,
+  fetchReportTricycleDriversDataById,
   fetchReportViolationsData,
   updateReportViolations,
 } from "@/api/reportViolationsData";
@@ -33,8 +35,8 @@ const TricycleDriverViolation = () => {
     "License No.",
     "Driver",
     "Operator",
-    "Complain",
-    "Action Taken",
+    // "Complain",
+    // "Action Taken",
     "Details",
   ];
 
@@ -129,19 +131,46 @@ const TricycleDriverViolation = () => {
 
   const [currentComplaint, setCurrentComplaint] = useState<any | null>(null);
 
-  const handleViewClick = (id: string) => {
-    const record = records.find((record) => record.id === id);
+  const [showChooseReportModal, setShowChooseReportModal] = useState(false);
 
-    if (record) {
-      setCurrentComplaint(record);
-      // console.log("record", record);
-      setActionTakenUpdate(record?.action_taken);
-      setViolationUpdate(record?.violation);
-      setNoteUpdate(record?.noteOption);
+  const [duplicateRecords, setDuplicateRecords] = useState<any[]>([]);
 
-      setToggleMoreDetails(true);
+  const handleViewClick = async (body_num: string, id: string) => {
+    const response = await fetchReportTricycleDriversData(body_num);
+
+    // console.log("response", response?.data);
+
+    if (response && response.data.length > 1) {
+      setShowChooseReportModal(true);
+      setDuplicateRecords(response.data);
+    } else {
+      const record = records.find((record) => record.id === id);
+
+      if (record) {
+        setCurrentComplaint(record);
+        setActionTakenUpdate(record?.action_taken);
+        setViolationUpdate(record?.violation);
+        setNoteUpdate(record?.noteOption);
+
+        setToggleMoreDetails(true);
+      }
     }
   };
+
+const handleViewClickChooseReport = async (id: string) => {
+  const response = await fetchReportTricycleDriversDataById(id);
+  const record = response?.data[0];
+
+  if (record) {
+    setCurrentComplaint(record);
+    setActionTakenUpdate(record?.action_taken);
+    setViolationUpdate(record?.violation);
+    setNoteUpdate(record?.noteOption);
+
+    setToggleMoreDetails(true);
+    setShowChooseReportModal(false);
+  }
+};
 
   function formatDate(dateString: string) {
     const options = {
@@ -221,6 +250,58 @@ const TricycleDriverViolation = () => {
 
   return (
     <div className="z-0 flex flex-col gap-10 h-full">
+      {showChooseReportModal && (
+        <div
+          className="fixed z-10 inset-0 overflow-y-auto"
+          aria-labelledby="modal-title"
+          role="dialog"
+          aria-modal="true">
+          <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div
+              className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+              aria-hidden="true"></div>
+            <span
+              className="hidden sm:inline-block sm:align-middle sm:h-screen"
+              aria-hidden="true">
+              &#8203;
+            </span>
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="px-4 pt-5 sm:p-6 sm:pb-4 ">
+                <h2
+                  className="text-lg leading-6 font-semibold text-sky-600 mb-4"
+                  id="modal-title">
+                  Select a record
+                </h2>
+                 <hr className="border border-sky-700 w-full mt-3 mb-5" />
+                 <div className="grid grid-cols-2 place-items-center overflow-y-auto max-h-[calc(100vh-12rem)]">
+                {duplicateRecords.map((record) => (
+                  <div key={record.id}>
+                    <p className="text-sm text-gray-700 font-semibold">{record.complain}</p>
+                    <p className="text-sm text-gray-500">{record.driver_name}</p>
+                    <p className="text-sm text-gray-500">  {formatDate(record.date)}</p>
+                    <p className="text-sm text-gray-500">  {formatTime(record.time)}</p>
+                    
+                    <button
+                      onClick={() => handleViewClickChooseReport(record.id)}
+                      className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-sky-600 text-base font-medium text-white hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 sm:mt-0 sm:w-auto sm:text-sm border-none">
+                      View
+                    </button>
+                  </div>
+                ))}
+                </div>
+              </div>
+              <div className="mt-0 bg-white px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  onClick={() => setShowChooseReportModal(false)}
+                  type="button"
+                  className="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex justify-between items-center flex-col md:flex-row">
         <div className="flex gap-5 items-center">
           <h1 className="flex font-bold text-3xl text-sky-700 ">
@@ -251,7 +332,7 @@ const TricycleDriverViolation = () => {
             {!toggleMoreDetails ? "Details" : "More Details"}
           </h1>
           <div className="px-3 flex items-center gap-3">
-            {userType === "personnel" && (
+            {userType === "personnel" && toggleMoreDetails && (
               <div className="flex gap-2">
                 {toggleUpdateReportStatus && (
                   <button
@@ -588,7 +669,7 @@ const TricycleDriverViolation = () => {
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     {record.operator_name}
                   </td>
-                  <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                  {/* <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                     {record.complain}
                   </td>
                   <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
@@ -605,11 +686,13 @@ const TricycleDriverViolation = () => {
                       {record.action_taken.charAt(0).toUpperCase() +
                         record.action_taken.slice(1)}
                     </button>
-                  </td>
+                  </td> */}
                   <td className="px-6 font-medium text-gray-900 whitespace-nowrap">
                     <button
                       className="bg-sky-200 text-sky-700 py-2 px-5 text-sm rounded-lg"
-                      onClick={() => handleViewClick(record.id)}>
+                      onClick={() =>
+                        handleViewClick(record.body_num, record.id)
+                      }>
                       View
                     </button>
                   </td>

@@ -1,5 +1,6 @@
 import { supabase, supabaseAdmin } from "@/utils/supabase";
 
+// used by Tricycle Driver's Violation
 export const fetchReportViolationsData = async (
   searchValue: string,
   entriesPerPage: number,
@@ -9,7 +10,7 @@ export const fetchReportViolationsData = async (
 
   try {
     let query = supabase
-      .from("ViewTricycleDriverViolationsAdmin")
+      .from("ViewTricycleDriverViolationsAdminUniqueBodyNum")
       .select(`*`, { count: "exact" })
       // .neq("action_taken", "pending")
       .order("date", { ascending: false })
@@ -32,6 +33,44 @@ export const fetchReportViolationsData = async (
     return null;
   }
 };
+
+export const fetchReportTricycleDriversData = async  (body_num: string) => {
+  try {
+    const response = await supabase
+      .from("ViewTricycleDriverViolationsAdmin")
+      .select(`*`, { count: "exact" })
+      .eq("body_num", body_num)
+      .order("date", { ascending: false })
+      .order("time", { ascending: false });
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+}
+
+export const fetchReportTricycleDriversDataById = async  (id: string) => {
+  try {
+    const response = await supabase
+      .from("ViewTricycleDriverViolationsAdmin")
+      .select(`*`, { count: "exact" })
+      .eq("id", id)
+      .order("date", { ascending: false })
+      .order("time", { ascending: false });
+
+    if (response.error) {
+      throw response.error;
+    }
+    return response;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+}
 
 export const fetchReportViolations = async (
   currentView: string,
